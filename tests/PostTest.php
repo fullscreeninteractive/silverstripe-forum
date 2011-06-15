@@ -3,6 +3,43 @@
 class PostTest extends FunctionalTest {
 	
 	static $fixture_file = "forum/tests/ForumTest.yml";
+
+	function testPermissions() {
+		$member = $this->objFromFixture('Member', 'test1');
+		$this->session()->inst_set('loggedInAs', $member->ID);
+
+		// read only thread post
+		$readonly = $this->objFromFixture('Post', 'ReadonlyThreadPost');
+		$this->assertFalse($readonly->canEdit()); // Even though it's user's own
+		$this->assertTrue($readonly->canView());
+		$this->assertFalse($readonly->canCreate());
+		$this->assertFalse($readonly->canDelete());
+		
+		// normal thread. They can post to these
+		$post = $this->objFromFixture('Post', 'Post18');
+		$this->assertFalse($post->canEdit()); // Not user's post
+		$this->assertTrue($post->canView());
+		$this->assertTrue($post->canCreate());
+		$this->assertFalse($post->canDelete());
+		
+		$member = $this->objFromFixture('Member', 'test2');
+		$this->session()->inst_set('loggedInAs', $member->ID);
+
+		// Check the user can edit his own post (but not delete)
+		$this->assertTrue($post->canEdit()); // User's post
+		$this->assertTrue($post->canView());
+		$this->assertTrue($post->canCreate());
+		$this->assertFalse($post->canDelete());
+
+		// Moderator can delete posts
+		$member = $this->objFromFixture('Member', 'moderator');
+		$member->logIn();
+
+		$this->assertFalse($post->canEdit());
+		$this->assertTrue($post->canView());
+		$this->assertTrue($post->canCreate());
+		$this->assertTrue($post->canDelete());
+	}
 	
 	function testGetTitle() {
 		$post = $this->objFromFixture('Post', 'Post1');
@@ -81,10 +118,11 @@ class PostTest extends FunctionalTest {
 		// should be false since we're not logged in.
 		if($member = Member::currentUser()) $member->logOut();
 		
-		$this->assertFalse($post->EditLink());		
+		$this->assertFalse($post->EditLink());
+		$this->assertFalse($post->DeleteLink());
 		
-		// logged in as the member. Should be able to delete it
-		$member = $this->objFromFixture('Member', 'test1');
+		// logged in as the moderator. Should be able to delete the post.
+		$member = $this->objFromFixture('Member', 'moderator');
 		$member->logIn();
 		
 		$this->assertContains($post->Thread()->URLSegment .'/deletepost/'. $post->ID, $post->DeleteLink());

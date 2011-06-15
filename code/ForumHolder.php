@@ -22,7 +22,8 @@ class ForumHolder extends Page {
 		"DisplaySignatures" => "Boolean",
 		"ShowInCategories" => "Boolean",
 		"AllowGravatars" => "Boolean",
-		"ForbiddenWords" => "Text"	
+		"ForbiddenWords" => "Text",
+		"CanPostType" => "Enum('Anyone, LoggedInUsers, OnlyTheseUsers, NoOne', 'LoggedInUsers')",
 	);
 	
 	static $has_one = array();
@@ -84,7 +85,33 @@ class ForumHolder extends Page {
 			new LiteralField("FWLabel","These words will be replaced by an asterisk")
 		));
 		
+		$fields->addFieldToTab("Root.Access", new HeaderField(_t('Forum.ACCESSPOST','Who can post to the forum?'), 2));
+		$fields->addFieldToTab("Root.Access", new OptionsetField("CanPostType", "", array(
+		  	"Anyone" => _t('Forum.READANYONE', 'Anyone'),
+		  	"LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
+			"NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
+		)));
+
 		return $fields;
+	}
+
+	function canPost() {
+		if($this->CanPostType == "Anyone" || $this->canEdit()) return true;
+		
+		if($this->CanPostType == "NoOne") return false;
+		
+		if($member = Member::currentUser()) {
+			if($member->IsSuspended()) return false;
+			if($this->CanPostType == "LoggedInUsers") return true;
+
+			if($groups = $this->PosterGroups()) {
+				foreach($groups as $group) {
+					if($member->inGroup($group)) return true;
+				}
+			}
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -246,6 +273,12 @@ class ForumHolder extends Page {
 		return DataObject::get("Member", "", "ID DESC", "", $limit);
 	}
 
+	function getShowInCategories() {
+	 	$categories = DataObject::get("ForumCategory", "\"ForumHolderID\"={$this->ID}");	
+		$showInCategories = $this->getField('ShowInCategories');
+		return $categories && $showInCategories;
+	}
+
 	/**
 	 * Get the forums. Actually its a bit more complex than that
 	 * we need to group by the Forum Categories.
@@ -253,16 +286,16 @@ class ForumHolder extends Page {
 	 * @return DataObjectSet
 	 */
 	function Forums() {
-	 	$categories = DataObject::get("ForumCategory", "\"ForumHolderID\"={$this->ID}");	
 		if(isset($_REQUEST['Category'])){
 			$categoryText = Convert::raw2xml($_REQUEST['Category']);
 		}
-		if($categories && $this->ShowInCategories) {
+		if($this->getShowInCategories()) {
+	 		$categories = DataObject::get("ForumCategory", "\"ForumHolderID\"={$this->ID}");	
 			foreach($categories as $category) {
 				if(!isset($_REQUEST['Category']) || $category->Title==$categoryText){
 					$category->CategoryForums = new DataObjectSet();
 					
-					$forums = DataObject::get("Forum", "\"CategoryID\" = '$category->ID' AND \"ParentID\" = '$this->ID'");
+					$forums = DataObject::get("Forum", "\"CategoryID\" = '$category->ID' AND \"ParentID\" = '$this->ID' AND \"ShowInMenus\"=1");
 					
 					if($forums) {
 						foreach($forums as $forum) {
@@ -281,7 +314,7 @@ class ForumHolder extends Page {
 			return $categories;
 		}
 		
-		$forums = DataObject::get("Forum", "\"ParentID\" = '$this->ID'");
+		$forums = DataObject::get("Forum", "\"ParentID\" = '$this->ID' AND \"ShowInMenus\"=1");
 
 		if($forums) {
 			foreach($forums as $forum) {
@@ -356,8 +389,8 @@ class ForumHolder extends Page {
 		if($forumID) $filter[] = "\"ForumThread\".\"ForumID\" = '". Convert::raw2sql($forumID) ."'";
 
 		// limit to a thread
-		if($threadID) $filter[] = "\"ForumThread\".\"ID\" = '". Convert::raw2sql($threadID) ."'";
-		
+		if($threadID) $filter[] = "\"Post\".\"ThreadID\" = '". Convert::raw2sql($threadID) ."'";
+
 		// limit to just this forum install
 		$filter[] = "\"ForumPage\".\"ParentID\"='{$this->ID}'";
 		
@@ -470,6 +503,8 @@ class ForumHolder_Controller extends Page_Controller {
 	 * @return DataObjectSet A DataObjectSet of all the members which are signed up
 	 */
 	function memberlist() {
+		return $this->httpError(404);
+
 		$forumGroupID = (int) DataObject::get_one('Group', "\"Code\" = 'forum-members'")->ID;
 		
 		// If sort has been defined then save it as in the session
@@ -744,13 +779,17 @@ class ForumHolder_Controller extends Page_Controller {
 		);
 		
 		//Now go and get the most recent post for each of these forum threads
+		$trimmed = new DataObjectSet;
 		if($threads){
 			foreach($threads as $thread){
-				$post=DataObject::get_one('Post', "\"Post\".\"ThreadID\"={$thread->ID}", "\"Created\" DESC");
-				$thread->Post=$post;
+				if ($thread->canView()) {
+					$post = DataObject::get_one('Post', "\"Post\".\"ThreadID\"={$thread->ID}", "\"Created\" DESC");
+					$thread->Post = $post;
+					$trimmed->Push($thread);
+				}
 			}
 		}
 		
-		return $threads;
+		return $trimmed;
 	}
 }

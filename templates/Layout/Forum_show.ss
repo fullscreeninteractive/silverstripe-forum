@@ -77,7 +77,7 @@
 		</tr>
 	</table>
 	
-	<% if isAdmin %>
+	<% if AdminFormFeatures %>
 		<div class="clear"><!-- --></div>
 		<div id="ForumAdminFeatures">
 			<h3>Forum Admin Features</h3>

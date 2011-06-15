@@ -63,7 +63,8 @@ class ForumRole extends DataObjectDecorator {
 				'CountryPublic' => 'Boolean',
 				'EmailPublic' => 'Boolean',
 				'LastViewed' => 'SS_Datetime',
-				'Signature' => 'Text'
+				'Signature' => 'Text',
+				'SuspendedUntil' => 'Date'
 			),
 			'has_one' => array(
 				'Avatar' => 'Image'
@@ -79,6 +80,9 @@ class ForumRole extends DataObjectDecorator {
 			),
 			'indexes' => array(
 				'Nickname' => true,
+			),
+			'field_labels' => array(
+				'SuspendedUntil' => "Suspend this member from writing on forums until the specified date",
 			),
 		);
 		
@@ -218,7 +222,8 @@ class ForumRole extends DataObjectDecorator {
 		$allForums = DataObject::get('Forum');
 		$fields->removeByName('ModeratedForums');
 		$fields->addFieldToTab('Root.ModeratedForums', new CheckboxSetField('ModeratedForums', _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'), ($allForums ? $allForums->map('ID', 'Title') : array())));
-		
+		$suspend = $fields->dataFieldByName('SuspendedUntil');
+		$suspend->setConfig('showcalendar', true);
 		if(Permission::checkMember($this->owner->ID, "ACCESS_FORUM")) {
 			$fields->addFieldToTab('Root.Forum',new ImageField("Avatar", _t('ForumRole.UPLOADAVATAR', "Upload avatar")));
 			$fields->addFieldToTab('Root.Forum',new DropdownField("ForumRank", _t('ForumRole.FORUMRANK', "User rating"), array(
@@ -227,6 +232,11 @@ class ForumRole extends DataObjectDecorator {
 				"Moderator" => _t('ForumRole.MOD','Moderator')
 			)));
 		}
+	}
+	
+	function IsSuspended(){
+		if($this->owner->SuspendedUntil) return SS_Datetime::now()->Format('Y-m-d') < $this->owner->SuspendedUntil;
+		else return false; 
 	}
 
 

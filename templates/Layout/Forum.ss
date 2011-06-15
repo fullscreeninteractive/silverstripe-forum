@@ -13,10 +13,10 @@
 		<p><a href="{$Link}starttopic" title="<% _t('NEWTOPIC','Click here to start a new topic') %>"><img src="forum/images/forum_startTopic.gif" alt="<% _t('NEWTOPICIMAGE','Start new topic') %>" /></a></p>
 	<% end_if %>
 	<div class="forumHolderFeatures">
-		<% if StickyTopics %>
+		<% if getStickyTopics(0) %>
 			<table id="StickyTopiclist" class="topicList" summary="List of sticky topics in this forum">
 				<tr class="category"><td colspan="3"><% _t('ANNOUNCEMENTS', 'Announcements') %></td></tr>
-				<% control StickyTopics %>
+				<% control getStickyTopics(0) %>
 					<% include TopicListing %>
 				<% end_control %>
 			</table>

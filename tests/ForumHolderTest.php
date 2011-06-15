@@ -57,7 +57,7 @@ class ForumHolderTest extends FunctionalTest {
 	function testGetNumPosts() {
 		// test holder with posts
 		$fh = $this->objFromFixture("ForumHolder", "fh");
-		$this->assertEquals($fh->getNumPosts(), 23);
+		$this->assertEquals($fh->getNumPosts(), 24);
 		
 		// test holder that doesn't have posts
 		$fh2 = $this->objFromFixture("ForumHolder", "fh2");
@@ -89,7 +89,7 @@ class ForumHolderTest extends FunctionalTest {
 		$fh = $this->objFromFixture("ForumHolder", "fh");
 
 		// make sure all the posts are included
-		$this->assertEquals($fh->getRecentPosts()->Count(), 23);
+		$this->assertEquals($fh->getRecentPosts()->Count(), 24);
 
 		// check they're in the right order (well if the first and last are right its fairly safe)
 		$this->assertEquals($fh->getRecentPosts()->First()->Content, "This is the last post to a long thread");
@@ -105,9 +105,9 @@ class ForumHolderTest extends FunctionalTest {
 		// test trying to get recent posts specific to a forum which has posts
 		$forum = $this->objFromFixture("Forum", "general");
 
-		$this->assertEquals($fh->getRecentPosts(50, $forum->ID)->Count(), 23);
+		$this->assertEquals($fh->getRecentPosts(50, $forum->ID)->Count(), 24);
 		$this->assertEquals($fh->getRecentPosts(50, $forum->ID)->First()->Content, "This is the last post to a long thread");
-		
+
 		// test trying to filter by a specific thread
 		$thread = $this->objFromFixture("ForumThread","Thread1");
 		
@@ -131,7 +131,7 @@ class ForumHolderTest extends FunctionalTest {
 		$fh2 = $this->objFromFixture("ForumHolder", "fh2");
 		$controller2 = new ForumHolder_Controller($fh2);
 
-		$this->assertNull($controller2->GlobalAnnouncements());
+		$this->assertEquals($controller2->GlobalAnnouncements()->Count(), 0);
 	}
 	
 	function testGetNewPostsAvailable() {		

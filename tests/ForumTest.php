@@ -6,90 +6,172 @@
 class ForumTest extends FunctionalTest {
 	
 	static $fixture_file = "forum/tests/ForumTest.yml";
+	static $use_draft_site = true;
 	
 	function testCanView() {
-		// test viewing not logged in on each of the forums
+		// test viewing not logged in
 		if($member = Member::currentUser()) $member->logOut();
 		
 		$public = $this->objFromFixture('Forum', 'general');
 		$private = $this->objFromFixture('Forum', 'loggedInOnly');
 		$limited = $this->objFromFixture('Forum', 'limitedToGroup');
+		$noposting = $this->objFromFixture('Forum', 'noPostingForum');
+		$inherited = $this->objFromFixture('Forum', 'inheritedForum');
 		
 		$this->assertTrue($public->canView());
 		$this->assertFalse($private->canView());
 		$this->assertFalse($limited->canView());
+		$this->assertTrue($noposting->canView());
+		$this->assertFalse($inherited->canView());
 		
-		// try logging in a member, then we should be able to view both
+		// try logging in a member
 		$member = $this->objFromFixture('Member', 'test1');
 		$member->logIn();
 		
 		$this->assertTrue($public->canView());
 		$this->assertTrue($private->canView());
 		$this->assertFalse($limited->canView());
+		$this->assertTrue($noposting->canView());
+		$this->assertFalse($inherited->canView());
 		
-		// login as someone who can view the limited forum
+		// login as a person with access to restricted forum
 		$member = $this->objFromFixture('Member', 'test2');
 		$member->logIn();
 		
 		$this->assertTrue($public->canView());
 		$this->assertTrue($private->canView());
 		$this->assertTrue($limited->canView());
-	}
-	
-	function testCanEdit() {
-		if($member = Member::currentUser()) $member->logOut();
-		
-		$forum = $this->objFromFixture('Forum', 'general');
-		
-		$this->assertFalse($forum->canEdit());
-		
-		$member = $this->objFromFixture('Member', 'test1');
-		$member->logIn();
-		
-		$this->assertFalse($forum->canEdit());
+		$this->assertTrue($noposting->canView());
+		$this->assertFalse($inherited->canView());
 
-		$member->logOut();
-
+		// Moderator should be able to view his own forums
 		$member = $this->objFromFixture('Member', 'moderator');
 		$member->logIn();
 
-		$this->assertTrue($forum->canEdit());
+		$this->assertTrue($public->canView());
+		$this->assertTrue($private->canView());
+		$this->assertTrue($limited->canView());
+		$this->assertTrue($noposting->canView());
+		$this->assertTrue($inherited->canView());
 	}
-	
+
 	function testCanPost() {
-		// test post not logged in on each of the forums
+		// test viewing not logged in
 		if($member = Member::currentUser()) $member->logOut();
 		
 		$public = $this->objFromFixture('Forum', 'general');
 		$private = $this->objFromFixture('Forum', 'loggedInOnly');
 		$limited = $this->objFromFixture('Forum', 'limitedToGroup');
-		$noPost = $this->objFromFixture('Forum', 'noPostingForum');
+		$noposting = $this->objFromFixture('Forum', 'noPostingForum');
+		$inherited = $this->objFromFixture('Forum', 'inheritedForum');
 		
-		$this->assertFalse($public->canPost());
+		$this->assertTrue($public->canPost());
 		$this->assertFalse($private->canPost());
 		$this->assertFalse($limited->canPost());
-		$this->assertFalse($noPost->canPost());
+		$this->assertFalse($noposting->canPost());
+		$this->assertFalse($inherited->canPost());
 		
-		// try logging in a member, then we should be able to view both
+		// try logging in a member
 		$member = $this->objFromFixture('Member', 'test1');
 		$member->logIn();
 		
 		$this->assertTrue($public->canPost());
 		$this->assertTrue($private->canPost());
 		$this->assertFalse($limited->canPost());
-		$this->assertFalse($noPost->canPost());
+		$this->assertFalse($noposting->canPost());
+		$this->assertFalse($inherited->canPost());
 		
-		// login as someone who can view the limited forum
-		$member->logOut();
+		// login as a person with access to restricted forum
 		$member = $this->objFromFixture('Member', 'test2');
 		$member->logIn();
 		
 		$this->assertTrue($public->canPost());
 		$this->assertTrue($private->canPost());
 		$this->assertTrue($limited->canPost());
-		$this->assertFalse($noPost->canPost());
+		$this->assertFalse($noposting->canPost());
+		$this->assertFalse($inherited->canPost());
+
+		// Moderator should be able to view his own forums
+		$member = $this->objFromFixture('Member', 'moderator');
+		$member->logIn();
+
+		$this->assertTrue($public->canPost());
+		$this->assertTrue($private->canPost());
+		$this->assertFalse($limited->canPost());
+		$this->assertFalse($noposting->canPost());
+		$this->assertFalse($inherited->canPost());
 	}
 	
+	function testSuspended() {
+		$private = $this->objFromFixture('Forum', 'loggedInOnly');
+		$limited = $this->objFromFixture('Forum', 'limitedToGroup');
+		$inheritedForum_loggedInOnly = $this->objFromFixture('Forum', 'inheritedForum_loggedInOnly');
+		SS_Datetime::set_mock_now('2011-10-10 12:00:00');	
+			
+		// try logging in a member suspendedexpired
+		$suspendedexpired = $this->objFromFixture('Member', 'suspendedexpired');
+		$this->assertFalse($suspendedexpired->IsSuspended());
+		$suspendedexpired->logIn();
+		$this->assertTrue($private->canPost());
+		$this->assertTrue($limited->canPost());
+		$this->assertTrue($inheritedForum_loggedInOnly->canPost());
+		
+		// try logging in a member suspended
+		$suspended = $this->objFromFixture('Member', 'suspended');
+		$this->assertTrue($suspended->IsSuspended());
+		$suspended->logIn();
+		$this->assertFalse($private->canPost());
+		$this->assertFalse($limited->canPost());
+		$this->assertFalse($inheritedForum_loggedInOnly->canPost());
+	}
+
+	function testCanModerate() {
+		// test viewing not logged in
+		if($member = Member::currentUser()) $member->logOut();
+		
+		$public = $this->objFromFixture('Forum', 'general');
+		$private = $this->objFromFixture('Forum', 'loggedInOnly');
+		$limited = $this->objFromFixture('Forum', 'limitedToGroup');
+		$noposting = $this->objFromFixture('Forum', 'noPostingForum');
+		$inherited = $this->objFromFixture('Forum', 'inheritedForum');
+		
+		$this->assertFalse($public->canModerate());
+		$this->assertFalse($private->canModerate());
+		$this->assertFalse($limited->canModerate());
+		$this->assertFalse($noposting->canModerate());
+		$this->assertFalse($inherited->canModerate());
+		
+		// try logging in a member
+		$member = $this->objFromFixture('Member', 'test1');
+		$member->logIn();
+		
+		$this->assertFalse($public->canModerate());
+		$this->assertFalse($private->canModerate());
+		$this->assertFalse($limited->canModerate());
+		$this->assertFalse($noposting->canModerate());
+		$this->assertFalse($inherited->canModerate());
+		
+		// login as a person with access to restricted forum
+		$member = $this->objFromFixture('Member', 'test2');
+		$member->logIn();
+		
+		$this->assertFalse($public->canModerate());
+		$this->assertFalse($private->canModerate());
+		$this->assertFalse($limited->canModerate());
+		$this->assertFalse($noposting->canModerate());
+		$this->assertFalse($inherited->canModerate());
+
+		// Moderator should be able to view his own forums
+		$member = $this->objFromFixture('Member', 'moderator');
+		$member->logIn();
+
+		$this->assertTrue($public->canModerate());
+		$this->assertTrue($private->canModerate());
+		$this->assertTrue($limited->canModerate());
+		$this->assertTrue($noposting->canModerate());
+		$this->assertTrue($inherited->canModerate());
+	}
+
 	function testCanAttach() {
 		$canAttach = $this->objFromFixture('Forum', 'general');
 		$this->assertTrue($canAttach->canAttach());
@@ -116,20 +198,26 @@ class ForumTest extends FunctionalTest {
 	
 	function testGetStickyTopics() {
 		$forumWithSticky = $this->objFromFixture("Forum", "general");
-		
-		$this->assertEquals($forumWithSticky->getStickyTopics()->Count(), '2');
-		$this->assertEquals($forumWithSticky->getStickyTopics()->First()->Title, 'Sticky Thread');
+		$stickies = $forumWithSticky->getStickyTopics();
+		$this->assertEquals($stickies->Count(), '2');
+		$this->assertEquals($stickies->First()->Title, 'Global Sticky Thread');
+
+		$stickies = $forumWithSticky->getStickyTopics($include_global = false);
+		$this->assertEquals($stickies->Count(), '1');
+		$this->assertEquals($stickies->First()->Title, 'Sticky Thread');
 		
 		$forumWithGlobalOnly = $this->objFromFixture("Forum", "forum1cat2");
-		
-		$this->assertEquals($forumWithGlobalOnly->getStickyTopics()->Count(), '1');
-		$this->assertEquals($forumWithGlobalOnly->getStickyTopics()->First()->Title, 'Global Sticky Thread');
+		$stickies = $forumWithGlobalOnly->getStickyTopics();
+		$this->assertEquals($stickies->Count(), '1');
+		$this->assertEquals($stickies->First()->Title, 'Global Sticky Thread');
+		$stickies = $forumWithGlobalOnly->getStickyTopics($include_global = false);
+		$this->assertEquals($stickies->Count(), '0');
 	}
 	
 	function testTopics() {
 		$forumWithPosts = $this->objFromFixture("Forum", "general");
 		
-		$this->assertEquals($forumWithPosts->getTopics()->Count(), '3');
+		$this->assertEquals($forumWithPosts->getTopics()->Count(), '4');
 		
 		$forumWithoutPosts = $this->objFromFixture("Forum", "forum1cat2");
 		
@@ -196,5 +284,59 @@ class ForumTest extends FunctionalTest {
 
 		// removes the thread
 		$this->assertFalse(DataObject::get_by_id('ForumThread', $spamfirst->Thread()->ID));
+	}
+
+	function testNotifyModerators() {
+		Form::disable_all_security_tokens();
+		$notifyModerators = Forum::$notify_moderators;
+		Forum::$notify_moderators = true;
+
+		$forum = $this->objFromFixture('Forum', 'general');
+		$controller = new Forum_Controller($forum);
+		$user = $this->objFromFixture('Member', 'test1');
+		$this->session()->inst_set('loggedInAs', $user->ID);
+
+		// New thread
+		$this->post(
+			$forum->RelativeLink('PostMessageForm'),
+			array(
+				'Title' => 'New thread',
+				'Content' => 'Meticulously crafted content',
+				'action_doPostMessageForm' => 1
+			)
+		);
+		$this->assertEmailSent('test3@example.com', Email::getAdminEmail(), "New thread \"New thread\" in forum [General Discussion]");
+		$this->clearEmails();
+
+		// New response
+		$thread = DataObject::get_one('ForumThread', "\"ForumThread\".\"Title\"='New thread'");
+		$this->post(
+			$forum->RelativeLink('PostMessageForm'),
+			array(
+				'Title' => 'Re: New thread',
+				'Content' => 'Rough response',
+				'ThreadID' => $thread->ID,
+				'action_doPostMessageForm' => 1
+			)
+		);
+		$this->assertEmailSent('test3@example.com', Email::getAdminEmail(), "New post \"Re: New thread\" in forum [General Discussion]");
+		$this->clearEmails();
+
+		// Edit
+		$post = $thread->Posts()->Last();
+		$this->post(
+			$forum->RelativeLink('PostMessageForm'),
+			array(
+				'Title' => 'Re: New thread',
+				'Content' => 'Pleasant response',
+				'ThreadID' => $thread->ID,
+				'ID' => $post->ID,
+				'action_doPostMessageForm' => 1
+			)
+		);
+		$this->assertEmailSent('test3@example.com', Email::getAdminEmail(), "New post \"Re: New thread\" in forum [General Discussion]");
+		$this->clearEmails();
+
+		Forum::$notify_moderators = $notifyModerators;
 	}
 }

@@ -85,38 +85,35 @@ class Post extends DataObject {
 	}
 
 	/**
-	 * Return whether we can edit this post. Only the user, moderator
-	 * or admin can edit post
-	 *
-	 * @return bool
-	 */
-	function canEdit() {
-		if($member = Member::currentUser()) {
-			if($member->ID == $this->AuthorID) return true;
-		}
-
-		return $this->Thread()->canEdit();
-	}
-	
-	/**
-	 * Return whether we can delete this post. If a user can edit
-	 * a post then they can delete the post
-	 *
-	 * @return bool
-	 */
-	function canDelete() {
-		return $this->canEdit();
-	}
-	
-	/**
-	 * Return whether we can view this post. Needs to check the forums can
-	 * view since an individual posts won't be 'hidden' but whole forums will
-	 * be. Readonly posts aren't supported but read only threads are
-	 *
-	 * @return bool
+	 * Check if user can see the post
 	 */
 	function canView() {
 		return $this->Thread()->canView();
+	}
+
+	/**
+	 * Check if user can edit the post (only if it's his own)
+	 */
+	function canEdit() {
+		if($member = Member::currentUser()) {
+			if($this->Thread()->canPost() && $member->ID==$this->AuthorID) return true;
+		}
+
+		return false;
+	}
+	
+	/**
+	 * Check if user can delete this post - only moderators are allowed to delete.
+	 */
+	function canDelete() {
+		return $this->Thread()->canModerate();
+	}
+	
+	/**
+	 * Check if user can add new posts - hook up into canPost.
+	 */
+	function canCreate() {
+		return $this->Thread()->canPost();
 	}
 	
 	/**
