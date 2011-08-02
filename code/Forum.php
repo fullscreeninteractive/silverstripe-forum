@@ -241,7 +241,7 @@ class Forum extends Page {
 		// If it's installed, use it to select moderators for this forum
 		if(class_exists('TagField')) {
 			$fields->addFieldToTab('Root.Content.Moderators',
-				new TagField(
+				$moderatorsField = new TagField(
 					'Moderators',
 					_t('MODERATORS', 'Moderators for this forum'),
 					null,
@@ -252,6 +252,7 @@ class Forum extends Page {
 					// (2) can have spaces (default tag separator is a space)
 				)
 			);
+			$moderatorsField->deleteUnusedTags = false;
 		} else {
 			$fields->addFieldToTab('Root.Content.Moderators', new LiteralField('ModeratorWarning', '<p>Please install the <a href="http://silverstripe.org/tag-field-module/" target="_blank">TagField module</a> to manage moderators for this forum.</p>'));
 		}
