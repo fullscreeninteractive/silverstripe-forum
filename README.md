@@ -7,14 +7,10 @@ Will Rossiter (Nickname: wrossiter, willr) <will (at) silverstripe (dot) com>
 
 ## Requirements
 
-SilverStripe 2.4
+ * SilverStripe 2.4
+ * tagfield for adding moderators (https://github.com/chillu/silverstripe-tagfield)
 
-## Documentation
 
-http://doc.silverstripe.com/doku.php?id=modules:forum
+## Installation & Documentation
 
-See offline docs in the /forum/docs/ folder.
-
-## Installation Instructions
-
-See forum/docs/ for documentation
+Please see https://github.com/silverstripe/silverstripe-forum/tree/master/docs/en
