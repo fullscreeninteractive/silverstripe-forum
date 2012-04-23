@@ -310,7 +310,17 @@ class ForumRole extends DataObjectDecorator {
 		}
 
 		if($holder = DataObject::get_one("ForumHolder", "\"AllowGravatars\" = 1")) {
-			// ok. no image but can we find a gravatar. Will return the default image as defined above if not.
+			if ($holder->GravatarType != 'default') 
+			// If the GravatarType is one of the special types, then set it otherwise use the default image from above forummember_holder.gif
+			{
+				$default = $holder->GravatarType;
+			}
+			else
+			{
+				// we need to get the absolute path for the default forum image
+				$default = Director::absoluteURL($default);
+			}
+			// ok. no image but can we find a gravatar. Will return the GravatarType or default image as defined above if not.
 			return "http://www.gravatar.com/avatar/".md5($this->owner->Email)."?default=".urlencode($default)."&amp;size=80";
 		}
 
