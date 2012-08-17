@@ -11,7 +11,7 @@
 				<% else %>
 					<a href="$Link">$PageNum</a>
 				<% end_if %>
-				<% if Last %><% else %>,<% end_if %>
+				<% if not Last %>,<% end_if %>
 			<% end_control %>
 		</td>
 		<td class="gotoButtonEnd" >

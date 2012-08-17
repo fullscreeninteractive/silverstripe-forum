@@ -9,14 +9,14 @@
 				<th><a href="{$URLSegment}/memberlist/?order=joined" title="<% _t('ORDERBYJOINED', 'Order by Joined') %>"><% _t('JOINED', 'Joined') %>:</a></th>
 			</tr>
 			
-			<% control Members %>
+			<% loop Members %>
 				<tr class="$EvenOdd">
 					<td><a href="ForumMemberProfile/show/{$ID}" title="View Profile">$Nickname</a></td>
 					<td><% if CountryPublic %>$FullCountry<% else %>Private<% end_if %></td>
 					<td class="numericField"><% if NumPosts = 0 %><% else %>$NumPosts(false)<% end_if %></td>
-					<td><% control Created %>$DayOfMonth $ShortMonth $Year<% end_control %></td>
+					<td><% loop Created %>$DayOfMonth $ShortMonth $Year<% end_loop %></td>
 				</tr>
-			<% end_control %>
+			<% end_loop %>
 		</table>
 		
 		<% if Members.MoreThanOnePage %>
@@ -27,7 +27,7 @@
 					<% end_if %>
 				
 					<span>
-				    	<% control Members.PaginationSummary(4) %>
+				    	<% loop Members.PaginationSummary(4) %>
 							<% if CurrentBool %>
 								$PageNum
 							<% else %>
@@ -37,7 +37,7 @@
 									...
 								<% end_if %>
 							<% end_if %>
-						<% end_control %>
+						<% end_loop %>
 					</span>
 				
 					<% if Members.NotLastPage %>

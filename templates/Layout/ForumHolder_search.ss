@@ -36,23 +36,23 @@
 						<a href="$RSSLink"><% _t('RSSFEED', 'RSS Feed') %></a>
 					</th>
 				</tr>
-				<% control SearchResults %>
+				<% loop SearchResults %>
 				<tr class="$EvenOdd">
 					<td class="forumCategory" colspan="3">
-						<% control Thread %>
+						<% loop Thread %>
 							<a class="topicTitle" href="$Link" title="<% sprintf(_t('Forum.ss.GOTOTHISTOPIC',"Go to the %s topic"),$Title) %>">$Title</a>
-						<% end_control %>
+						<% end_loop %>
 					
 						<p>$Content.ContextSummary <span class="dateInfo">$Created.Ago</span></p>
 					</td>
 				</tr>
-				<% end_control %>
+				<% end_loop %>
 				<tr class="rowOne category">
 					<td class="pageNumbers" colspan="3">
 						<p>
 							<span class="paginationPageNumber">
 							<% _t('PAGE','Page') %>
-							<% control SearchResults.PaginationSummary(10) %>
+							<% loop SearchResults.PaginationSummary(10) %>
 								<% if CurrentBool %>
 									<strong>$PageNum</strong>
 								<% else %>
@@ -62,7 +62,7 @@
 										&hellip;
 									<% end_if %>
 								<% end_if %>
-							<% end_control %>
+							<% end_loop %>
 							</span>
 							<% if SearchResults.NextLink %><a class="paginationNextLink" style="float: right" href="$SearchResults.NextLink"><% _t('Next', 'Next') %> &gt;</a><% end_if %>
 							<% if SearchResults.PrevLink %><a class="paginationPrevLink" style="float: right" href="$SearchResults.PrevLink">&lt; <% _t('PREV','Prev' ) %></a><% end_if %>

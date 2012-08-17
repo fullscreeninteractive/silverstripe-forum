@@ -5,7 +5,9 @@
 			<div class="summary">
 				<p>$Content.LimitCharacters(80)</p>
 			<% if Moderators %>
-				<p>Moderators: <% loop Moderators %><a href="$Link">$Nickname</a><% if Last %><% else %>, <% end_if %><% end_loop %></p>
+				<p>Moderators: <% loop Moderators %>
+				<a href="$Link">$Nickname</a>
+				<% if not Last %>, <% end_if %><% end_loop %></p>
 			<% end_if %>
 			</div>
 		<% end_if %>

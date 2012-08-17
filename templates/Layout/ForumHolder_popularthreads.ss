@@ -13,14 +13,14 @@
 				<th><% _t('DATECREATED', 'Date created') %></th>
 			</tr>
 			
-			<% control Threads %>
+			<% loop Threads %>
 				<tr class="$EvenOdd">
 					<td>$Posts.Count</td>
 					<td>$NumViews</td>
 					<td><a href="$Link">$Title</a></td>
 					<td>$Created.Nice</td>
 				</tr>
-			<% end_control %>
+			<% end_loop %>
 		</table>
 		
 		<% if Threads.MoreThanOnePage %>
@@ -31,7 +31,7 @@
 					<% end_if %>
 				
 					<span>
-				    	<% control Threads.PaginationSummary(4) %>
+				    	<% loop Threads.PaginationSummary(4) %>
 							<% if CurrentBool %>
 								$PageNum
 							<% else %>
@@ -41,7 +41,7 @@
 									...
 								<% end_if %>
 							<% end_if %>
-						<% end_control %>
+						<% end_loop %>
 					</span>
 				
 					<% if Threads.NotLastPage %>

@@ -60,9 +60,7 @@
 			Moderators: 
 			<% control Moderators %>
 				<a href="$Link">$Nickname</a>
-				<% if Last %>
-				<% else %>,
-				<% end_if %>
+				<% if not Last %>, <% end_if %>
 			<% end_control %>
 		</p>
 	<% end_if %>

@@ -15,7 +15,7 @@
 		</p>
 		<div id="OpenIDDescription">
 	  		<span><a href="#" id="HideOpenIDdesc">X</a></span>
-			<h1><% _t('WHATOPENIDUPPER','What is OpenID?') %></h1>
+			<h2><% _t('WHATOPENIDUPPER','What is OpenID?') %></h2>
 			<p><% _t('OPENIDDESC1','OpenID is an Internet-wide identity system that allows you to sign in to many websites with a single account.') %></p>
 			<p><% _t('OPENIDDESC2','With OpenID, your ID becomes a URL (e.g. http://<strong>username</strong>.myopenid.com/). You can get a free OpenID for example from <a href="http://www.myopenid.com">myopenid.com</a>.') %></p>
 			<p><% _t('OPENIDDESC3','For more information visit the <a href="http://openid.net">official OpenID site.') %></a></p>

@@ -1,5 +1,5 @@
 <% include ForumHeader %>
-	<% control Member %>		
+	<% loop Member %>		
 		<div id="UserProfile">
 			<h2><% if Nickname %>$Nickname<% else %>Anon<% end_if %>&#39;s <% _t('PROFILE','Profile') %></h2>
 			<% if isSuspended %>
@@ -37,7 +37,7 @@
 				<p><img class="userAvatar" src="$FormattedAvatar" width="80" alt="<% if Nickname %>$Nickname<% else %>Anon<% end_if %><% _t('USERSAVATAR','&#39;s avatar') %>" /></p>
 			</div>
 		</div>
-	<% end_control %>
+	<% end_loop %>
 	<% if LatestPosts %>
 		<div id="MemberLatestPosts">
 			<h2><% _t('LATESTPOSTS','Latest Posts') %></h2>
