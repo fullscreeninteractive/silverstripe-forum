@@ -11,8 +11,8 @@ class CheckableOption extends CompositeField {
 		$this->childField = $childField;
 		
 		$children = new FieldList(
-			$this->childField,
-			$this->checkbox
+			$this->checkbox,
+			$this->childField			
 		);
 		
 		parent::__construct($children);

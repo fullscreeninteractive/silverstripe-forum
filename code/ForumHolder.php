@@ -38,7 +38,7 @@ class ForumHolder extends Page {
 		"HolderSubtitle" => "Welcome to our forum!",
 		"ProfileSubtitle" => "Edit Your Profile",
 		"ForumSubtitle" => "Start a new topic",
-		"HolderAbstract" => "<p>If this is your first visit, you will need to <a class=\"broken\" title=\"Click here to register\" href=\"ForumMemberProfile/register\">register</a> before you can post. However, you can browse all messages below.</p>",
+		"HolderAbstract" => '<p class="forum-abstract">If this is your first visit, you will need to <a class="broken" title="Click here to register" href="ForumMemberProfile/register">register</a> before you can post. However, you can browse all messages below.</p>',
 		"ProfileAbstract" => "<p>Please fill out the fields below. You can choose whether some are publically visible by using the checkbox for each one.</p>",
 		"ForumAbstract" => "<p>From here you can start a new topic.</p>",
 		"ProfileModify" => "<p>Thanks, your member profile has been modified.</p>",

@@ -1,2 +1,2 @@
-<a href="{$Link}/unsubscribe/{$ForumThread.ID}" class="unsubscribe <% if ForumThread.HasSubscribed %><% else %>hidden<% end_if %>" title="<% _t('CLICKUNSUBSCRIBE','Click here to Unsubscribe to this topic') %>"><% _t('UNSUBSCRIBE','Unsubscribe') %></a>
-<a href="{$Link}/subscribe/{$ForumThread.ID}" class="subscribe <% if ForumThread.HasSubscribed %>hidden<% end_if %>" title="<% _t('CLICKSUBSCRIBE','Click here to subscribe to this topic') %>"><% _t('SUBSCRIBE','Subscribe') %></a>
+<a href="{$Link}/unsubscribe/{$ForumThread.ID}" class="icon unsubscribe <% if ForumThread.HasSubscribed %><% else %>hidden<% end_if %>" title="<% _t('CLICKUNSUBSCRIBE','Click here to Unsubscribe to this topic') %>"><% _t('UNSUBSCRIBE','Unsubscribe') %></a>
+<a href="{$Link}/subscribe/{$ForumThread.ID}" class="icon subscribe <% if ForumThread.HasSubscribed %>hidden<% end_if %>" title="<% _t('CLICKSUBSCRIBE','Click here to subscribe to this topic') %>"><% _t('SUBSCRIBE','Subscribe') %></a>

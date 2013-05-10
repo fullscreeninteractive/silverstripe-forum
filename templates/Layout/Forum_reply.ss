@@ -2,14 +2,16 @@
 	$PostMessageForm
 	
 	<div id="PreviousPosts">
-		<ul id="Posts">
-			<% control Posts(DESC) %>
-				<li class="$EvenOdd">
+		<table id="posts" class="forum-table">
+
+			<tbody>
+			<% loop Posts(DESC) %>
+				<tr id="post{$ID}" class="singlePost $EvenOdd post-item">
 					<% include SinglePost %>
-				</li>
-			<% end_control %>
-		</ul>
-		<div class="clear"><!-- --></div>
+				</tr>
+			<% end_loop %>
+			</tbody>
+		</table>
 	</div>
 	
 <% include ForumFooter %>

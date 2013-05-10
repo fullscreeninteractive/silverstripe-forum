@@ -5,7 +5,7 @@
 			<p><% _t('SORTTHREADSBY', 'Sort threads by:') %> <a<% if Method = posts %> class="current"<% end_if %> href="{$Link}popularthreads?by=posts"><% _t('POSTCOUNT', 'Post count') %></a> | <a<% if Method = views %> class="current"<% end_if %> href="{$Link}popularthreads?by=views"><% _t('NUMVIEWS', 'Number of views') %></a></p>
 		</div>
 		
-		<table id="ThreadsList">
+		<table id="ThreadsList" class="forum-table">
 			<tr class="head">
 				<th><% _t('POSTS', 'Posts') %></th>
 				<th><% _t('VIEWS', 'Views') %></th>
@@ -15,7 +15,7 @@
 			
 			<% loop Threads %>
 				<tr class="$EvenOdd">
-					<td>$Posts.Count</td>
+					<td>$Children.Count</td>
 					<td>$NumViews</td>
 					<td><a href="$Link">$Title</a></td>
 					<td>$Created.Nice</td>
