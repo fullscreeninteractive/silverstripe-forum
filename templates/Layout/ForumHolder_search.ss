@@ -8,7 +8,7 @@
 						<p>						
 							<span class="paginationPageNumber">
 								<% _t('PAGE','Page') %>
-								<% control SearchResults.PaginationSummary(10) %>
+								<% loop SearchResults.PaginationSummary(10) %>
 									<% if CurrentBool %>
 										<strong>$PageNum</strong>
 									<% else %>
@@ -18,7 +18,7 @@
 											&hellip;
 										<% end_if %>
 									<% end_if %>
-								<% end_control %>
+								<% end_loop %>
 							</span>
 							<% if SearchResults.NextLink %><a class="paginationNextLink" style="float: right" href="$SearchResults.NextLink"><% _t('Next', 'Next') %> &gt;</a><% end_if %>
 							<% if SearchResults.PrevLink %><a class="paginationPrevLink" style="float: right" href="$SearchResults.PrevLink">&lt; <% _t('PREV','Prev') %></a><% end_if %>

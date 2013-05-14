@@ -5,14 +5,14 @@
 	<tr class="category">
 		<td class="page-numbers">
 			<span><strong><% _t('PAGE','Page:') %></strong></span>
-			<% control Posts.Pages %>
+			<% loop Posts.Pages %>
 				<% if CurrentBool %>
 					<span><strong>$PageNum</strong></span>
 				<% else %>
 					<a href="$Link">$PageNum</a>
 				<% end_if %>
 				<% if not Last %>,<% end_if %>
-			<% end_control %>
+			<% end_loop %>
 		</td>
 		<td class="gotoButtonEnd" >
 			<a href="#Footer" title="<% _t('CLICKGOTOEND','Click here to go the end of this post') %>"><% _t('GOTOEND','Go to End') %></a>

@@ -1,6 +1,6 @@
 <div class="forum-header">
 
-	<% control ForumHolder %>
+	<% loop ForumHolder %>
 		<div class="forum-header-forms">
 
 			<span class="forum-search-dropdown-icon"></span>
@@ -20,21 +20,21 @@
 					<option value=""><% _t('JUMPTO','Jump to:') %></option>
 					<!-- option value=""><% _t('SELECT','Select') %></option -->
 					<% if ShowInCategories %>
-						<% control Forums %>
+						<% loop Forums %>
 							<optgroup label="$Title">
-								<% control CategoryForums %>
+								<% loop CategoryForums %>
 									<% if can(view) %>
 										<option value="$Link">$Title</option>
 									<% end_if %>
-								<% end_control %>
+								<% end_loop %>
 							</optgroup>
-						<% end_control %>
+						<% end_loop %>
 					<% else %>
-						<% control Forums %>
+						<% loop Forums %>
 							<% if can(view) %>
 								<option value="$Link">$Title</option>
 							<% end_if %>
-						<% end_control %>
+						<% end_loop %>
 					<% end_if %>
 				</select>
 			</form>
@@ -49,7 +49,7 @@
 			<% end_if %>
 
 		</div><!-- forum-header-forms. -->
-	<% end_control %>
+	<% end_loop %>
 
 	<h1 class="forum-heading"><a name='Header'>$HolderSubtitle</a></h1>
 	<p class="forum-breadcrumbs">$Breadcrumbs</p>
@@ -58,10 +58,10 @@
 	<% if Moderators %>
 		<p>
 			Moderators: 
-			<% control Moderators %>
+			<% loop Moderators %>
 				<a href="$Link">$Nickname</a>
 				<% if not Last %>, <% end_if %>
-			<% end_control %>
+			<% end_loop %>
 		</p>
 	<% end_if %>
 

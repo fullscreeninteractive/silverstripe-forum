@@ -13,9 +13,9 @@
 		<% if Author %> <% _t('BY', "by") %> <em>$Author.Nickname</em><% end_if %>
 		<% _t('DATEON', "on") %> {$Post.LastEdited.Nice}.
 	</p>
-	<% control Post %>
+	<% loop Post %>
 		<p>$Content.Parse(BBCodeParser)</p>
-	<% end_control %>
+	<% end_loop %>
 </blockquote>
 
 <h3>Actions</h3>

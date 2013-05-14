@@ -23,9 +23,9 @@
 			<tr class="category">
 				<td colspan="3"><% _t('ANNOUNCEMENTS', 'Announcements') %></td>
 			</tr>
-			<% control getStickyTopics(0) %>
+			<% loop getStickyTopics(0) %>
 				<% include TopicListing %>
-			<% end_control %>
+			<% end_loop %>
 		</table>
 	<% end_if %>
 
@@ -39,9 +39,9 @@
 			<th class="even"><% _t('LASTPOST','Last Post') %></th>
 		</tr>
 		<% if Topics %>
-			<% control Topics %>
+			<% loop Topics %>
 				<% include TopicListing %>
-			<% end_control %>
+			<% end_loop %>
 		<% else %>
 			<tr>
 				<td colspan="3" class="forumCategory"><% _t('NOTOPICS','There are no topics in this forum, ') %><a href="{$Link}starttopic" title="<% _t('NEWTOPIC') %>"><% _t('NEWTOPICTEXT','click here to start a new topic') %>.</a></td>
@@ -54,13 +54,13 @@
 			<% if Topics.PrevLink %><a style="float: left" href="$Topics.PrevLink">	&lt; <% _t('PREVLNK','Previous Page') %></a><% end_if %>
 			<% if Topics.NextLink %><a style="float: right" href="$Topics.NextLink"><% _t('NEXTLNK','Next Page') %> &gt;</a><% end_if %>
 			
-			<% control Topics.Pages %>
+			<% loop Topics.Pages %>
 				<% if CurrentBool %>
 					<strong>$PageNum</strong>
 				<% else %>
 					<a href="$Link">$PageNum</a>
 				<% end_if %>
-			<% end_control %>
+			<% end_loop %>
 		</p>
 	<% end_if %>
 	

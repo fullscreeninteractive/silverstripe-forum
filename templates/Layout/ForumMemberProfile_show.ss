@@ -42,9 +42,9 @@
 		<div id="MemberLatestPosts">
 			<h2><% _t('LATESTPOSTS','Latest Posts') %></h2>
 			<ul>
-				<% control LatestPosts %>
+				<% loop LatestPosts %>
 					<li><a href="$Link#post$ID">$Title</a> (<% sprintf(_t('LASTPOST',"Last post: %s "),$Created.Ago) %>)</li>
-				<% end_control %>
+				<% end_loop %>
 			</ul>
 		</div>
 	<% end_if %>

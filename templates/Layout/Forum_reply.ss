@@ -3,11 +3,11 @@
 	
 	<div id="PreviousPosts">
 		<ul id="Posts">
-			<% control Posts(DESC) %>
+			<% loop Posts(DESC) %>
 				<li class="$EvenOdd">
 					<% include SinglePost %>
 				</li>
-			<% end_control %>
+			<% end_loop %>
 		</ul>
 		<div class="clear"><!-- --></div>
 	</div>
