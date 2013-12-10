@@ -35,7 +35,7 @@ class ForumDatabaseSearch implements ForumSearchProvider {
 		$SQL_authorClause = '';
 		$SQL_potentialAuthorIDs = array();
 		
-		if($potentialAuthors) {
+		if($potentialAuthors->exists()) {
 			foreach($potentialAuthors as $potentialAuthor) {
 				$SQL_potentialAuthorIDs[] = $potentialAuthor->ID;
 			}
