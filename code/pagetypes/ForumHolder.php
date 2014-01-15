@@ -224,10 +224,11 @@ class ForumHolder extends Page {
 			$groupIDs[] = $adminGroup->ID;
 		}
 
+		$quarterHour = date("Y-m-d H:i:s", strtotime("15 Minutes ago"));
 		return Member::get()
 			->leftJoin('Group_Members', 'Member.ID = Group_Members.MemberID')
 			->filter('GroupID', $groupIDs)
-			->filter("LastViewed:GreaterThan", DB::getConn()->datetimeIntervalClause('NOW', '-15 MINUTE'))
+			->filter("LastViewed:GreaterThan", $quarterHour)
 			->sort('Member.FirstName, Member.Surname');
 	}
 	
