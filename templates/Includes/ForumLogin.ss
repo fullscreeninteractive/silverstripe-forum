@@ -1,7 +1,7 @@
 <div id="RegisterLogin">
 	<% if CurrentMember %>
 		<p>
-			<% _t('LOGGEDINAS','You\'re logged in as') %> <% if CurrentMember.Nickname %>$CurrentMember.Nickname<% else %><% _t('ANONYMOUS','Anonymous') %><% end_if %> | 
+			<%t ForumLogin.ss.LOGGEDINAS %> <% if CurrentMember.Nickname %>$CurrentMember.Nickname<% else %><% _t('ANONYMOUS','Anonymous') %><% end_if %> | 
 			<a href="$ForumHolder.Link(logout)" title="<% _t('LOGOUTEXPLICATION','Click here to log out') %>"><% _t('LOGOUT','Log Out') %></a> | <a href="ForumMemberProfile/edit" title="<% _t('PROFILEEXPLICATION','Click here to edit your profile') %>"><% _t('PROFILE','Profile') %></a></p>
 	<% else %>
 		<p>
