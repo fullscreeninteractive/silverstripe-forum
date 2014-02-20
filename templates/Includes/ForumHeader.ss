@@ -53,10 +53,9 @@
 
 	<h1 class="forum-heading"><a name='Header'>$HolderSubtitle</a></h1>
 	<p class="forum-breadcrumbs">$Breadcrumbs</p>		
-	<div class="forum-abstract">		
-		$Content					
+	<div class="forum-abstract">			
+		$Content
 		$Abstract		
-		
 	</div>
 		
 	<% if Moderators %>

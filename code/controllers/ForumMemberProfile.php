@@ -73,7 +73,13 @@ class ForumMemberProfile extends Page_Controller {
 		}
 		else
 		{
-			return $this->renderWith(array('ForumMemberProfile_show', 'Page'));
+//			return $this->renderWith(array('ForumMemberProfile_show', 'Page'));
+		    $data = array(
+				"Title" => "Forum",
+				"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
+				"Abstract" => DataObject::get_one("ForumHolder")->ProfileAbstract,
+		    );			
+			return $this->owner->customise($data)->renderWith(array('ForumMemberProfile_show', 'Page'));	
 		}			
 	}
 
@@ -430,14 +436,14 @@ class ForumMemberProfile extends Page_Controller {
 		$form = $this->EditProfileForm()
 			? $this->EditProfileForm()
 			: "<p class=\"error message\">" . _t('ForumMemberProfile.WRONGPERMISSION','You don\'t have the permission to edit that member.') . "</p>";		
-		
+
 		return array(
 			"Title" => "Forum",
 			"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
-			"Abstract" => ,
+			"Abstract" => DataObject::get_one("ForumHolder")->EditProfileAbstract,
 			"Form" => $form,
 		);
-		
+	
 	}
 
 
