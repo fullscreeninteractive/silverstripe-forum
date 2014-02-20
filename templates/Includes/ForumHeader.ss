@@ -52,8 +52,8 @@
 	<% end_loop %>
 
 	<h1 class="forum-heading"><a name='Header'>$HolderSubtitle</a></h1>
-	<p class="forum-breadcrumbs">$Breadcrumbs</p>
-	<p class="forum-abstract">$ForumHolder.HolderAbstract</p>
+	<p class="forum-breadcrumbs">$Breadcrumbs</p>	
+	<p class="forum-abstract">$Content</p>
 		
 	<% if Moderators %>
 		<p>

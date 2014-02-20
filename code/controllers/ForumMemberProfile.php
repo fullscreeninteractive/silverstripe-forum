@@ -429,14 +429,15 @@ class ForumMemberProfile extends Page_Controller {
 	function edit() {
 		$form = $this->EditProfileForm()
 			? $this->EditProfileForm()
-			: "<p class=\"error message\">" . _t('ForumMemberProfile.WRONGPERMISSION','You don\'t have the permission to edit that member.') . "</p>";
-
+			: "<p class=\"error message\">" . _t('ForumMemberProfile.WRONGPERMISSION','You don\'t have the permission to edit that member.') . "</p>";		
+		
 		return array(
 			"Title" => "Forum",
 			"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
 			"Abstract" => DataObject::get_one("ForumHolder")->ProfileAbstract,
 			"Form" => $form,
 		);
+		
 	}
 
 

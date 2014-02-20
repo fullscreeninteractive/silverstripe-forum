@@ -1066,7 +1066,7 @@ class Forum_Controller extends Page_Controller {
 		$topic = array(
 			'Subtitle' => DBField::create_field('HTMLText', _t('Forum.NEWTOPIC','Start a new topic')),
 			'Abstract' => DBField::create_field('HTMLText', DataObject::get_one("ForumHolder")->ForumAbstract)
-		);
+		);		
 		return $topic;
 	}
 
