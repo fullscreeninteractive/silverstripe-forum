@@ -434,7 +434,7 @@ class ForumMemberProfile extends Page_Controller {
 		return array(
 			"Title" => "Forum",
 			"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
-			"Abstract" => DataObject::get_one("ForumHolder")->ProfileAbstract,
+			"Abstract" => ,
 			"Form" => $form,
 		);
 		
