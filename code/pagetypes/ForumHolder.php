@@ -89,7 +89,8 @@ class ForumHolder extends Page {
 		$fields->addFieldsToTab("Root.Settings", array(
 			new CheckboxField("DisplaySignatures", "Display Member Signatures?"),
 			new CheckboxField("ShowInCategories", "Show Forums In Categories?"),
-			new CheckboxField("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?")
+			new CheckboxField("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
+			new CheckboxField("AllowForumSubscriptions", "Allow users to subscribe to forums")
 		));
 		$fields->addFieldsToTab("Root.LanguageFilter", array(
 			new TextField("ForbiddenWords", "Forbidden words (comma separated)"),
