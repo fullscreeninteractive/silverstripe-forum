@@ -38,7 +38,7 @@
 					<% end_if %>
 				</select>
 			</form>
-
+		  
 			<% if NumPosts %>
 				<p class="forumStats">
 					$NumPosts 
@@ -67,5 +67,5 @@
 			<% end_loop %>
 		</p>
 	<% end_if %>
-
+	<% include ForumSubscribe %>
 </div><!-- forum-header. -->

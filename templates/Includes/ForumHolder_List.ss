@@ -1,6 +1,7 @@
 <tr>
 	<td>
 		<a class="topic-title" href="$Link">$Title</a>
+				
 		<% if Content || Moderators %>
 			<div class="summary">
 				<p>$Content.LimitCharacters(80)</p>
@@ -10,7 +11,7 @@
 				<% if not Last %>, <% end_if %><% end_loop %></p>
 			<% end_if %>
 			</div>
-		<% end_if %>
+		<% end_if %>		
 	</td>
 	<td class="count">
 		$NumTopics
