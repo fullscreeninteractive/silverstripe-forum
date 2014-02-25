@@ -41,5 +41,42 @@ class Forum_Subscription extends DataObject {
 			WHERE \"ForumID\" = '$SQL_forumID' AND \"MemberID\" = $SQL_memberID"
 		)->value() > 0) ? true : false;
 	}
+	
+	/**
+	 * Notifies everybody that has subscribed to this forum that a new post has been added.
+	 * To get emailed, people subscribed to this Forum must have visited the forum 
+	 * since the last time they received an email
+	 *
+	 * @param Post $post The post that has just been added
+	 */
+	static function notify(Post $post) {
+		$list = DataObject::get(
+			"Forum_Subscription",
+			"\"ForumID\" = '". $post->ForumID ."' AND \"MemberID\" != '$post->AuthorID'"
+		);
+		
+		if($list) {
+			foreach($list as $obj) {
+				$SQL_id = Convert::raw2sql((int)$obj->MemberID);
 
+				// Get the members details
+				$member = DataObject::get_one("Member", "\"Member\".\"ID\" = '$SQL_id'");
+				$adminEmail = Config::inst()->get('Email', 'admin_email');
+
+				if($member) {
+					$email = new Email();
+					$email->setFrom($adminEmail);
+					$email->setTo($member->Email);
+					$email->setSubject('New reply for ' . $post->Title);
+					$email->setTemplate('ForumMember_ForumNotification');
+					$email->populateTemplate($member);
+					$email->populateTemplate($post);
+					$email->populateTemplate(array(
+						'UnsubscribeLink' => Director::absoluteBaseURL() . $post->Thread()->Forum()->Link() . '/unsubscribe/' . $post->ID
+					));
+					$email->send();
+				}
+			}
+		}
+	}
 }
