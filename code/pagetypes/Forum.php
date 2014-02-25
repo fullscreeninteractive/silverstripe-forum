@@ -789,7 +789,7 @@ class Forum_Controller extends Page_Controller {
 			),
 			new CheckboxField("TopicSubscription", 
 				_t('Forum.SUBSCRIBETOPIC','Subscribe to this topic (Receive email notifications when a new reply is added)'), 
-				($thread) ? $thread->getHasSubscribed() : false)
+				($thread) ? $thread->getHasSubscribed() : true)
 		);
 		
 		if($thread) $fields->push(new HiddenField('ThreadID', 'ThreadID', $thread->ID));
@@ -998,6 +998,9 @@ class Forum_Controller extends Page_Controller {
 		
 		// Send any notifications that need to be sent
 		ForumThread_Subscription::notify($post);
+		
+		// Send any notifications to members subscribed to the forum
+		Forum_Subscription::notify($post);
 		
 		// Send any notifications to moderators of the forum
 		if (Forum::$notify_moderators) {
