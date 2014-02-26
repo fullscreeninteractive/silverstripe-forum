@@ -743,9 +743,11 @@ class Forum_Controller extends Page_Controller {
 	 * @return Form Returns the post message form
 	 */
 	function PostMessageForm($addMode = false, $post = false) {
+		
 		$thread = false;
 
-		if($post) $thread = $post->Thread();
+		if($post) 
+		$thread = $post->Thread();
 		else if(isset($this->urlParams['ID'])) $thread = DataObject::get_by_id('ForumThread', $this->urlParams['ID']);	
 
 		// Check permissions
@@ -999,8 +1001,8 @@ class Forum_Controller extends Page_Controller {
 		// Send any notifications that need to be sent
 		ForumThread_Subscription::notify($post);
 		
-		// Send any notifications to members subscribed to the forum
-		Forum_Subscription::notify($post);
+		// Send any notifications to members subscribed to the forum		
+		//Forum_Subscription::notify($post);
 		
 		// Send any notifications to moderators of the forum
 		if (Forum::$notify_moderators) {

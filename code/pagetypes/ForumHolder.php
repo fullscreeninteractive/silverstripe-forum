@@ -25,6 +25,7 @@ class ForumHolder extends Page {
 		"AllowGravatars" => "Boolean",
 		"ForbiddenWords" => "Text",
 		"CanPostType" => "Enum('Anyone, LoggedInUsers, OnlyTheseUsers, NoOne', 'LoggedInUsers')",
+		"ForumEmailAddress" => "Text"
 	);
 	
 	private static $has_one = array();
@@ -90,7 +91,8 @@ class ForumHolder extends Page {
 			new CheckboxField("DisplaySignatures", "Display Member Signatures?"),
 			new CheckboxField("ShowInCategories", "Show Forums In Categories?"),
 			new CheckboxField("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
-			new CheckboxField("AllowForumSubscriptions", "Allow users to subscribe to forums")
+			new CheckboxField("AllowForumSubscriptions", "Allow users to subscribe to forums"),
+			new TextField("ForumEmailAddress", "From E-Mail address for forum")
 		));
 		$fields->addFieldsToTab("Root.LanguageFilter", array(
 			new TextField("ForbiddenWords", "Forbidden words (comma separated)"),
