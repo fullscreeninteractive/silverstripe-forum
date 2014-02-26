@@ -20,3 +20,4 @@ options see /forum/docs/Configuration.md
 * Reports. 
 	- Includes recent members, highest ranking members, popular posts, threads and forums
 	- CMS Reports include: total people joined this month, total posts this month
+* Support added for subscription to a forum via email.

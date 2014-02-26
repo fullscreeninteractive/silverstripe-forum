@@ -14,3 +14,6 @@ another forum. The module supports multiple forum holders each with their own pe
 
 	/forum/docs/Configuration.md
 	
+4. 	To enable a user to be able to subscribe to a forum so that they can receive emails when a new post is sent out, log into the CMS, click on your
+forum holder page and choose the settings tab. Check the field "Allow users to subscribe to forums" and choose an email address that this should come from
+note - that this only controls the Forum subscription and not the topic subscription.
