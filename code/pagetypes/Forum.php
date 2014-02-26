@@ -1002,7 +1002,7 @@ class Forum_Controller extends Page_Controller {
 		ForumThread_Subscription::notify($post);
 		
 		// Send any notifications to members subscribed to the forum		
-		//Forum_Subscription::notify($post);
+		Forum_Subscription::notify($post);
 		
 		// Send any notifications to moderators of the forum
 		if (Forum::$notify_moderators) {

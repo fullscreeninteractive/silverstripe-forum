@@ -59,7 +59,7 @@ class Forum_Subscription extends DataObject {
 			"Forum_Subscription",
 			"\"ForumID\" = '". $post->ForumID ."' AND \"MemberID\" != '$post->AuthorID'"
 		);
-				
+			
 		if($list) {
 			foreach($list as $obj) {
 				$SQL_id = Convert::raw2sql((int)$obj->MemberID);
@@ -71,12 +71,12 @@ class Forum_Subscription extends DataObject {
 					$email = new Email();
 					$email->setFrom($emailAddress);
 					$email->setTo($member->Email);
-					$email->setSubject('New reply for ' . $post->Title);
+					$email->setSubject('New Post in the forum ' . $post->Thread()->Forum()->Title);
 					$email->setTemplate('ForumMember_ForumNotification');
 					$email->populateTemplate($member);
 					$email->populateTemplate($post);
 					$email->populateTemplate(array(
-						'UnsubscribeLink' => Director::absoluteBaseURL() . $post->Thread()->Forum()->Link() . '/forumUnsubscribe/' . $post->ID						
+						'UnsubscribeLink' => $post->Thread()->Forum()->Link() . '/forumUnsubscribe/?BackURL=' . $post->Thread()->Forum()->Link()						
 					));
 					$email->send();
 				}

@@ -3,7 +3,7 @@
 </p>
 
 <p>
-	<% _t('ForumMember_Notification_ss.NEWPOSTMESSAGE',"A new post has been added to a topic you've subscribed to") %> - '$Title' 
+	<% _t('ForumMember_Notification_ss.NEWPOSTMESSAGE',"A new post has been added to the forum you've subscribed to") %> - '$Title' 
 		<% if Author.Nickname %>
 			<% _t('BY', "by") %> $Author.Nickname
 		<% else %>
@@ -13,7 +13,7 @@
 	</p>
 <ul>
 	<li><a href="$Link"><% _t('ForumMember_Notification_ss.REPLYLINK', "View the topic") %></a></li>
-	<li><a href="$UnsubscribeLink"><% _t('ForumMember_Notification_ss.UNSUBSCRIBETEXT',"Unsubscribe from the topic") %></a></li>
+	<li><a href="$UnsubscribeLink"><% _t('ForumMember_Notification_ss.UNSUBSCRIBETEXT',"Unsubscribe from the forum") %></a></li>
 </ul>
 
 <p>
