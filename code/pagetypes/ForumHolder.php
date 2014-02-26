@@ -23,6 +23,7 @@ class ForumHolder extends Page {
 		"DisplaySignatures" => "Boolean",
 		"ShowInCategories" => "Boolean",
 		"AllowGravatars" => "Boolean",
+		'AllowForumSubscriptions' => "Boolean",
 		"ForbiddenWords" => "Text",
 		"CanPostType" => "Enum('Anyone, LoggedInUsers, OnlyTheseUsers, NoOne', 'LoggedInUsers')",
 		"ForumEmailAddress" => "Text"

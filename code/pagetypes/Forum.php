@@ -1001,8 +1001,11 @@ class Forum_Controller extends Page_Controller {
 		// Send any notifications that need to be sent
 		ForumThread_Subscription::notify($post);
 		
-		// Send any notifications to members subscribed to the forum		
-		Forum_Subscription::notify($post);
+		// If enabled in the CMS - allow users to subscribe to forums
+		if($holder = DataObject::get_one('ForumHolder', "\"AllowForumSubscriptions\" = '1'")) 
+		{
+			Forum_Subscription::notify($post);
+		}
 		
 		// Send any notifications to moderators of the forum
 		if (Forum::$notify_moderators) {
