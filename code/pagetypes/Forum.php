@@ -489,10 +489,10 @@ class Forum_Controller extends Page_Controller {
 		if($this->redirectedTo()) return;
 
 		Requirements::javascript(THIRDPARTY_DIR . "/jquery/jquery.js"); 
-		Requirements::javascript("forum/javascript/forum.js");
+		Requirements::javascript("forum/javascript/Forum.js");
 		Requirements::javascript("forum/javascript/jquery.MultiFile.js");
 
-		Requirements::themedCSS('Forum','forum','all');
+		Requirements::themedCSS('forum','forum','all');
 
 		RSSFeed::linkToFeed($this->Parent()->Link("rss/forum/$this->ID"), sprintf(_t('Forum.RSSFORUM',"Posts to the '%s' forum"),$this->Title)); 
 	 	RSSFeed::linkToFeed($this->Parent()->Link("rss"), _t('Forum.RSSFORUMS','Posts to all forums'));
@@ -930,7 +930,7 @@ class Forum_Controller extends Page_Controller {
 				$attachment->write();
 			}
 		}
-		
+
 
 		// Add a topic subscription entry if required
 		if(isset($data['TopicSubscription'])) {
@@ -943,7 +943,7 @@ class Forum_Controller extends Page_Controller {
 			}
 		} else {
 			// See if the member wanted to remove themselves
-			if(ForumThread_Subscription::already_subscribed($post->TopicID)) {
+			if(ForumThread_Subscription::already_subscribed($post->ThreadID)) {
 				DB::query("DELETE FROM \"ForumThread_Subscription\" WHERE \"ThreadID\" = '$post->ThreadID' AND \"MemberID\" = '$member->ID'");
 			}
 		}
