@@ -66,10 +66,10 @@ class PostTest extends FunctionalTest {
 	
 	function testIssFirstPost() {
 		$first = $this->objFromFixture('Post', 'Post1');
-		$this->assertTrue($first->isFirstPost());
+		$this->assertTrue($first->IsFirstPost());
 		
 		$notFirst = $this->objFromFixture('Post', 'Post2');
-		$this->assertFalse($notFirst->isFirstPost());
+		$this->assertFalse($notFirst->IsFirstPost());
 	}
 	
 	function testReplyLink() {
@@ -137,7 +137,7 @@ class PostTest extends FunctionalTest {
 		$member = $this->objFromFixture('Member', 'moderator');
 		$member->logIn();
 		
-		$this->assertContains($post->Thread()->URLSegment .'/deletepost/'. $post->ID, $post->DeleteLink());
+		$this->assertContains($post->Forum()->URLSegment .'/deletepost/'. $post->ID, $post->DeleteLink());
 		
 		// because this is the first post test for the class which is used in javascript
 		$this->assertContains("class=\"deleteLink firstPost\"", $post->DeleteLink());

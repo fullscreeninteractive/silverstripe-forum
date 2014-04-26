@@ -21,7 +21,9 @@
 
 		<div class="quick-reply">
 			<% if Thread.canPost %>
-				<p>$Top.ReplyLink</p>
+				<p>
+				    <a href="$Top.ReplyLink" class="replyLink"><%t Post.REPLYLINK %></a>
+				</p>
 			<% end_if %>
 		</div>
 		<h4><a href="$Link">$Title <img src="forum/images/right.png" alt="Link to this post" title="Link to this post" /></a></h4>
@@ -33,15 +35,15 @@
 		<% if EditLink || DeleteLink %>
 			<div class="post-modifiers">
 				<% if EditLink %>
-					$EditLink
+					<a href="$EditLink" class="editPostLink"><%t Post.EDIT %></a>
 				<% end_if %>
 				
 				<% if DeleteLink %>
-					$DeleteLink
+					<a href="$DeleteLink" class="deleteLink<% if $IsFirstPost %> firstPost<% end_if %>"><%t Post.DELETE %></a>
 				<% end_if %>
 				
 				<% if MarkAsSpamLink %>
-					$MarkAsSpamLink
+					<a href="$MarkAsSpamLink" class="markAsSpamLink<% if $IsFirstPost %> firstPost<% end_if %>" rel="$ID"><%t Post.MARKASSPAM %></a>
 				<% end_if %>
 			</div>
 		<% end_if %>
