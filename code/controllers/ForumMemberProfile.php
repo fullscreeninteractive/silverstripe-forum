@@ -67,13 +67,9 @@ class ForumMemberProfile extends Page_Controller {
 		$member = $this->Member();
 		if(!$member) return $this->httpError(404);
 		
-		if($member->ID == Member::currentUserID())
-		{		
+		if($member->ID == Member::currentUserID()){		
 			$this->redirect('ForumMemberProfile/edit/'.$member->ID);
-		}
-		else
-		{
-//			return $this->renderWith(array('ForumMemberProfile_show', 'Page'));
+		} else {
 		    $data = array(
 				"Title" => "Forum",
 				"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
