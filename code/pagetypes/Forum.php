@@ -564,7 +564,6 @@ class Forum_Controller extends Page_Controller {
 			$obj->MemberID = Member::currentUserID();
 			$obj->LastSent = date("Y-m-d H:i:s"); 
 			$obj->write();
-			//die('1');
 			$this->redirectBack();
 			return true;
 		}
