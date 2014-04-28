@@ -285,12 +285,7 @@ class ForumThread_Subscription extends DataObject {
 	 *
 	 * @param Post $post The post that has just been added
 	 */
-	static function notify(Post $post) {
-		// Use the email address specified in the CMS
-		// This might not work when there's multiple forums as i'm not specifying the ID of the forum
-		// Yet to test		
-		$emailAddress = DataObject::get_one("ForumHolder")->ForumEmailAddress;
-
+	static function notify(Post $post) {			
 		$list = DataObject::get(
 			"ForumThread_Subscription",
 			"\"ThreadID\" = '". $post->ThreadID ."' AND \"MemberID\" != '$post->AuthorID'"
@@ -305,7 +300,7 @@ class ForumThread_Subscription extends DataObject {
 
 				if($member) {
 					$email = new Email();
-					$email->setFrom($emailAddress);
+					$email->setFrom(ForumHolder::get()->First()->ForumEmailAddress);
 					$email->setTo($member->Email);
 					$email->setSubject('New reply in the topic `' . $post->Title) . "`";
 					$email->setTemplate('ForumMember_TopicNotification');
