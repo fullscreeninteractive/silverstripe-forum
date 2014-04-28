@@ -581,13 +581,11 @@ class Forum_Controller extends Page_Controller {
 	function forumUnsubscribe() {
 		$member = Member::currentUser();
 
-		if(!$member) 
-		{
+		if(!$member) {
 			Security::permissionFailure($this, _t('LOGINTOUNSUBSCRIBE', 'To unsubscribe from that forum, please log in first.'));
 		}
 		
-		if(Forum_Subscription::already_subscribed($this->ID, $member->ID)) 
-		{
+		if(Forum_Subscription::already_subscribed($this->ID, $member->ID)) {
 			$output = DB::query("
 				DELETE FROM \"Forum_Subscription\" 
 				WHERE \"ForumID\" = '". Convert::raw2sql($this->ID) ."' 
@@ -745,9 +743,11 @@ class Forum_Controller extends Page_Controller {
 		
 		$thread = false;
 
-		if($post) 
-		$thread = $post->Thread();
-		else if(isset($this->urlParams['ID'])) $thread = DataObject::get_by_id('ForumThread', $this->urlParams['ID']);	
+		if($post) {
+			$thread = $post->Thread();
+		} else if(isset($this->urlParams['ID'])) {
+			$thread = DataObject::get_by_id('ForumThread', $this->urlParams['ID']);	
+		}
 
 		// Check permissions
 		$messageSet = array(
@@ -1001,8 +1001,7 @@ class Forum_Controller extends Page_Controller {
 		ForumThread_Subscription::notify($post);
 		
 		// If enabled in the CMS - allow users to subscribe to forums
-		if($holder = DataObject::get_one('ForumHolder', "\"AllowForumSubscriptions\" = '1'")) 
-		{
+		if($holder = DataObject::get_one('ForumHolder', "\"AllowForumSubscriptions\" = '1'")) {
 			Forum_Subscription::notify($post);
 		}
 		
