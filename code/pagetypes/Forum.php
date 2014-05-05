@@ -408,8 +408,8 @@ class Forum extends Page {
 			->setSelect(array())
 			->selectField('MAX("Created")', 'PostCreatedMax')
 			->selectField('MAX("ID")', 'PostIDMax')
-			->selectField('ThreadID')
-			->setGroupBy('ThreadID');
+			->selectField('"ThreadID"')
+			->setGroupBy('"ThreadID"');
 
 		// Get a list of forum threads inside this forum that aren't sticky
 		$threads = DataList::create('ForumThread')->filter(array("ForumID"=>$this->ID, 'IsGlobalSticky'=>0, 'IsSticky'=>0));
@@ -419,7 +419,7 @@ class Forum extends Page {
 		$threadQuery = $threads->dataQuery()->query();
 		$threadQuery
 			->addSelect(array('"PostMax"."PostCreatedMax", "PostMax"."PostIDMax"'))
-			->addFrom('INNER JOIN ('.$postQuery->sql().') AS PostMax ON (PostMax.ThreadID = ForumThread.ID)')
+			->addFrom('INNER JOIN ('.$postQuery->sql().') AS "PostMax" ON ("PostMax"."ThreadID" = "ForumThread"."ID")')
 			->addOrderBy(array('"PostMax"."PostCreatedMax" DESC', '"PostMax"."PostIDMax" DESC'));
 
 		// Alter the forum threads list to use the new query
@@ -447,7 +447,7 @@ class Forum extends Page {
 		$query
 			->addSelect('"PostMax"."PostMax"')
 			// TODO: Confirm this works in non-MySQL DBs
-			->addFrom('LEFT JOIN (SELECT MAX("Created") AS PostMax, "ThreadID" FROM "Post" GROUP BY "ThreadID") AS PostMax ON (PostMax."ThreadID" = "ForumThread"."ID")')
+			->addFrom('LEFT JOIN (SELECT MAX("Created") AS "PostMax", "ThreadID" FROM "Post" GROUP BY "ThreadID") AS "PostMax" ON ("PostMax"."ThreadID" = "ForumThread"."ID")')
 		   ->addOrderBy('"PostMax"."PostMax" DESC');
 
 		// Build result as ArrayList
@@ -494,7 +494,7 @@ class Forum_Controller extends Page_Controller {
 		Requirements::javascript("forum/javascript/forum.js");
 		Requirements::javascript("forum/javascript/jquery.MultiFile.js");
 
-		Requirements::themedCSS('forum','forum','all');
+		Requirements::themedCSS('Forum','forum','all');
 
 		RSSFeed::linkToFeed($this->Parent()->Link("rss/forum/$this->ID"), sprintf(_t('Forum.RSSFORUM',"Posts to the '%s' forum"),$this->Title)); 
 	 	RSSFeed::linkToFeed($this->Parent()->Link("rss"), _t('Forum.RSSFORUMS','Posts to all forums'));
@@ -549,6 +549,7 @@ class Forum_Controller extends Page_Controller {
 
 		return ($member) ? Forum_Subscription::already_subscribed($this->ID, $member->ID) : false;
 	}
+<<<<<<< HEAD
 
 	/**
 	 * Subscribe a user to a forum given by an ID.
@@ -572,6 +573,31 @@ class Forum_Controller extends Page_Controller {
 	}
 
 	/**
+=======
+
+	/**
+	 * Subscribe a user to a forum given by an ID.
+	 * 
+	 * Designed to be called via AJAX so return true / false
+	 *
+	 * @return bool
+	 */
+	function forumSubscribe() {		
+		if(Member::currentUser() && !Forum_Subscription::already_subscribed($this->urlParams['ID'])) {
+			$obj = new Forum_Subscription();		
+			$obj->ForumID = $this->ID;
+			$obj->MemberID = Member::currentUserID();
+			$obj->LastSent = date("Y-m-d H:i:s"); 
+			$obj->write();
+			$this->redirectBack();
+			return true;
+		}
+		
+		return false;
+	}
+
+	/**
+>>>>>>> upstream/61-forumsubscribe
 	 * Unsubscribe a user from a thread by an ID
 	 *
 	 * Designed to be called via AJAX so return true / false
@@ -605,7 +631,12 @@ class Forum_Controller extends Page_Controller {
 	 *
 	 * @return bool
 	 */
-	function subscribe() {
+	function subscribe(SS_HTTPRequest $request) {
+		// Check CSRF
+		if (!SecurityToken::inst()->checkRequest($request)) {
+			return $this->httpError(400);
+		}
+
 		if(Member::currentUser() && !ForumThread_Subscription::already_subscribed($this->urlParams['ID'])) {
 			$obj = new ForumThread_Subscription();
 			$obj->ThreadID = (int) $this->urlParams['ID'];
@@ -626,7 +657,7 @@ class Forum_Controller extends Page_Controller {
 	 *
 	 * @return bool
 	 */
-	function unsubscribe() {
+	function unsubscribe(SS_HTTPRequest $request) {
 		$member = Member::currentUser();
 		
 		if(!$member) Security::permissionFailure($this, _t('LOGINTOUNSUBSCRIBE', 'To unsubscribe from that thread, please log in first.'));
@@ -650,23 +681,25 @@ class Forum_Controller extends Page_Controller {
 	 *
 	 * Must be logged in and have the correct permissions to do marking
 	 */
-	function markasspam() {
+	function markasspam(SS_HTTPRequest $request) {
 		$currentUser = Member::currentUser();
 		if(!isset($this->urlParams['ID'])) return $this->httpError(400);
 		if(!$this->canModerate()) return $this->httpError(403);
 
+		// Check CSRF token
+		if (!SecurityToken::inst()->checkRequest($request)) {
+			return $this->httpError(400);
+		}
+
+
 		$post = Post::get()->byID($this->urlParams['ID']);
 		if($post) {
-			// send spam feedback if needed
-			if(class_exists('SpamProtectorManager')) {
-				SpamProtectorManager::send_feedback($post, 'spam');
-			}
-			
 			// post was the start of a thread, Delete the whole thing
 			if($post->isFirstPost()) $post->Thread()->delete();
 
 			// Delete the current post
 			$post->delete();
+			$post->extend('onAfterMarkAsSpam');
 
 			// Log deletion event
 			SS_Log::log(sprintf(
@@ -807,11 +840,16 @@ class Forum_Controller extends Page_Controller {
 			if($attachmentList->exists()) {
 				$attachments = "<div id=\"CurrentAttachments\"><h4>". _t('Forum.CURRENTATTACHMENTS', 'Current Attachments') ."</h4><ul>";
 				$link = $this->Link();
-				
+				// An instance of the security token
+				$token = SecurityToken::inst();
+
 				foreach($attachmentList as $attachment) {
-					$attachments .= "<li class='attachment-$attachment->ID'>$attachment->Name [<a href='{$link}deleteattachment/$attachment->ID' rel='$attachment->ID' class='deleteAttachment'>"
-							. _t('Forum.REMOVE','remove') 
-							. "</a>]</li>";
+					// Generate a link properly, since it requires a security token
+					$attachmentLink = Controller::join_links($link, 'deleteattachment', $attachment->ID);
+					$attachmentLink = $token->addToUrl($attachmentLink);
+
+					$attachments .= "<li class='attachment-$attachment->ID'>$attachment->Name [<a href='{$attachmentLink}' rel='$attachment->ID' class='deleteAttachment'>"
+							. _t('Forum.REMOVE','remove') . "</a>]</li>";
 				}
 				$attachments .= "</ul></div>";
 			
@@ -1175,8 +1213,12 @@ class Forum_Controller extends Page_Controller {
 	 *
 	 * @return boolean
 	 */
-	function deleteattachment() {
-		
+	function deleteattachment(SS_HTTPRequest $request) {
+		// Check CSRF token
+		if (!SecurityToken::inst()->checkRequest($request)) {
+			return $this->httpError(400);
+		}
+
 		// check we were passed an id and member is logged in
 		if(!isset($this->urlParams['ID'])) return false;
 		
@@ -1220,7 +1262,12 @@ class Forum_Controller extends Page_Controller {
 	 *
 	 * @return bool
 	 */
-	function deletepost() {
+	function deletepost(SS_HTTPRequest $request) {
+		// Check CSRF token
+		if (!SecurityToken::inst()->checkRequest($request)) {
+			return $this->httpError(400);
+		}
+
 		if(isset($this->urlParams['ID'])) {
 			if($post = DataObject::get_by_id('Post', (int) $this->urlParams['ID'])) {
 				if($post->canDelete()) {

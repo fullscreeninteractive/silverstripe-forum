@@ -55,6 +55,12 @@ en:
     WELCOMEFORUM: 'Welcome to SilverStripe Forum Module! This is the default Forum page. You can now add topics.'
     WELCOMEFORUMHOLDER: 'Welcome to SilverStripe Forum Module! This is the default ForumHolder page. You can now add forums.'
     YES: Yes
+    IDENTICON: Identicon
+    MM: 'Mystery Man'
+    MONSTERID: Monsterid
+    RETRO: Retro
+    STANDARD: Standard
+    WAVATAR: Wavatar
   Forum_ss:
     ANNOUNCEMENTS: Announcements
     GOTOTHISTOPIC: 'Go to the %s topic'
@@ -136,6 +142,10 @@ en:
     RSSFEED: 'RSS Feed'
     THREAD: Thread
     TITLE: Title
+    NEWEST: Newest
+    OLDEST: Oldest
+    ORDERBYNEWEST: 'Order by Newest. Most recent posts first'
+    ORDERBYOLDEST: 'Order by Oldest. Oldest posts First'
   ForumLogin_ss:
     ANONYMOUS: Anonymous
     LOGGEDINAS: 'You''re logged in as'

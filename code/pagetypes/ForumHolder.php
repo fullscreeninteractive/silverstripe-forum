@@ -23,6 +23,10 @@ class ForumHolder extends Page {
 		"DisplaySignatures" => "Boolean",
 		"ShowInCategories" => "Boolean",
 		"AllowGravatars" => "Boolean",
+<<<<<<< HEAD
+=======
+		"GravatarType" => "Varchar(10)",
+>>>>>>> upstream/61-forumsubscribe
 		'AllowForumSubscriptions' => "Boolean",
 		"ForbiddenWords" => "Text",
 		"CanPostType" => "Enum('Anyone, LoggedInUsers, OnlyTheseUsers, NoOne', 'LoggedInUsers')",
@@ -77,7 +81,9 @@ class ForumHolder extends Page {
 	
 	function getCMSFields() {
 		$fields = parent::getCMSFields();
+		
 		$fields->addFieldsToTab("Root.Messages", array(
+<<<<<<< HEAD
 			new TextField("HolderSubtitle","Forum Holder Subtitle"),
 			new HTMLEditorField("HolderAbstract","Forum Holder Abstract"),
 			new TextField("ProfileSubtitle","Member Profile Subtitle"),
@@ -87,21 +93,50 @@ class ForumHolder extends Page {
 			new HTMLEditorField("ForumAbstract","Create topic Abstract"),
 			new HTMLEditorField("ProfileModify","Create message after modifing forum member"),
 			new HTMLEditorField("ProfileAdd","Create message after adding forum member")
+=======
+			TextField::create("HolderSubtitle","Forum Holder Subtitle"),
+			HTMLEditorField::create("HolderAbstract","Forum Holder Abstract"),
+			TextField::create("ProfileSubtitle","Member Profile Subtitle"),
+			HTMLEditorField::create("ProfileAbstract","Message to show on Member Profile page"),
+			HTMLEditorField::create("EditProfileAbstract","Message to show on Edit Member Profile page"),
+			TextField::create("ForumSubtitle","Create topic Subtitle"),
+			HTMLEditorField::create("ForumAbstract","Create topic Abstract"),
+			HTMLEditorField::create("ProfileModify","Create message after modifing forum member"),
+			HTMLEditorField::create("ProfileAdd","Create message after adding forum member")
+>>>>>>> upstream/61-forumsubscribe
 		));
+
 		$fields->addFieldsToTab("Root.Settings", array(
+<<<<<<< HEAD
 			new CheckboxField("DisplaySignatures", "Display Member Signatures?"),
 			new CheckboxField("ShowInCategories", "Show Forums In Categories?"),
 			new CheckboxField("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
 			new CheckboxField("AllowForumSubscriptions", "Allow users to subscribe to forums"),
 			new TextField("ForumEmailAddress", "From E-Mail address for forum")
+=======
+			CheckboxField::create("DisplaySignatures", "Display Member Signatures?"),
+			CheckboxField::create("ShowInCategories", "Show Forums In Categories?"),
+			CheckboxField::create("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
+			DropdownField::create("GravatarType", "Gravatar Type", array(
+ 		  		"standard" => _t('Forum.STANDARD','Standard'),
+ 		  		"identicon" => _t('Forum.IDENTICON','Identicon'),
+		  		"wavatar" => _t('Forum.WAVATAR', 'Wavatar'),
+				"monsterid" => _t('Forum.MONSTERID', 'Monsterid'),
+				"retro" => _t('Forum.RETRO', 'Retro'),
+ 				"mm" => _t('Forum.MM', 'Mystery Man'),
+ 			))->setEmptyString('Use Forum Default'),
+			CheckboxField::create("AllowForumSubscriptions", "Allow users to subscribe to forums"),
+			TextField::create("ForumEmailAddress", "From E-Mail address for forum")
+>>>>>>> upstream/61-forumsubscribe
 		));
+
 		$fields->addFieldsToTab("Root.LanguageFilter", array(
-			new TextField("ForbiddenWords", "Forbidden words (comma separated)"),
-			new LiteralField("FWLabel","These words will be replaced by an asterisk")
+			TextField::create("ForbiddenWords", "Forbidden words (comma separated)"),
+			LiteralField::create("FWLabel","These words will be replaced by an asterisk")
 		));
 		
-		$fields->addFieldToTab("Root.Access", new HeaderField(_t('Forum.ACCESSPOST','Who can post to the forum?'), 2));
-		$fields->addFieldToTab("Root.Access", new OptionsetField("CanPostType", "", array(
+		$fields->addFieldToTab("Root.Access", HeaderField::create(_t('Forum.ACCESSPOST','Who can post to the forum?'), 2));
+		$fields->addFieldToTab("Root.Access", OptionsetField::create("CanPostType", "", array(
 		  	"Anyone" => _t('Forum.READANYONE', 'Anyone'),
 		  	"LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
 			"NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
@@ -234,7 +269,11 @@ class ForumHolder extends Page {
 		return Member::get()
 			->leftJoin('Group_Members', '"Member"."ID" = "Group_Members"."MemberID"')
 			->filter('GroupID', $groupIDs)
+<<<<<<< HEAD
 			->filter("LastVisited:GreaterThan", time() - 900)
+=======
+			->where('"Member"."LastViewed" > ' . DB::getConn()->datetimeIntervalClause('NOW', '-15 MINUTE'))
+>>>>>>> upstream/61-forumsubscribe
 			->sort('"Member"."FirstName", "Member"."Surname"');
 	}
 	
@@ -496,7 +535,7 @@ class ForumHolder_Controller extends Page_Controller {
 		Requirements::javascript("forum/javascript/jquery.MultiFile.js");
 		Requirements::javascript("forum/javascript/forum.js");
 
-		Requirements::themedCSS('forum','forum','all');
+		Requirements::themedCSS('Forum','forum','all');
 
 		RSSFeed::linkToFeed($this->Link("rss"), _t('ForumHolder.POSTSTOALLFORUMS', "Posts to all forums"));
 
@@ -665,6 +704,12 @@ class ForumHolder_Controller extends Page_Controller {
 			$results = false;
 		}
 
+		//Paginate the results
+		$results = PaginatedList::create(
+			$results,
+			$this->request->getVars()
+		);
+
 		
 		// if the user has requested this search as an RSS feed then output the contents as xml
 		// rather than passing it to the template
@@ -679,11 +724,11 @@ class ForumHolder_Controller extends Page_Controller {
 		RSSFeed::linkToFeed($rssLink, _t('ForumHolder.SEARCHRESULTS','Search results'));
 		
 		return array(
-			"Subtitle"		=> DBField::create('Text', _t('ForumHolder.SEARCHRESULTS','Search results')),
-			"Abstract"		=> DBField::create('HTMLText', $abstract),
-			"Query"			=> DBField::create('Text', $_REQUEST['Search']),
-			"Order"			=> DBField::create('Text', ($order) ? $order : "relevance"),
-			"RSSLink"		=> DBField::create('HTMLText', $rssLink),
+			"Subtitle"		=> DBField::create_field('Text', _t('ForumHolder.SEARCHRESULTS','Search results')),
+			"Abstract"		=> DBField::create_field('HTMLText', $abstract),
+			"Query"			=> DBField::create_field('Text', $_REQUEST['Search']),
+			"Order"			=> DBField::create_field('Text', ($order) ? $order : "relevance"),
+			"RSSLink"		=> DBField::create_field('HTMLText', $rssLink),
 			"SearchResults"	=> $results
 		);
 	}

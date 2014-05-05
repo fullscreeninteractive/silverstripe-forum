@@ -53,8 +53,12 @@ class ForumMemberProfile extends Page_Controller {
 	 */
 	function init() {
 		parent::init();
+<<<<<<< HEAD
 		
 		Requirements::themedCSS('forum','forum','all');
+=======
+		Requirements::themedCSS('Forum','forum','all');
+>>>>>>> upstream/61-forumsubscribe
 		$member = $this->Member() ? $this->Member() : null;
 		$nicknameText = ($member) ? ($member->Nickname . '\'s ') : '';
 		
@@ -67,7 +71,11 @@ class ForumMemberProfile extends Page_Controller {
 		$member = $this->Member();
 		if(!$member) return $this->httpError(404);
 		
+<<<<<<< HEAD
 		if($member->ID == Member::currentUserID()){		
+=======
+		if($member->ID == Member::currentUserID()) {		
+>>>>>>> upstream/61-forumsubscribe
 			$this->redirect('ForumMemberProfile/edit/'.$member->ID);
 		} else {
 		    $data = array(
@@ -562,7 +570,7 @@ class ForumMemberProfile extends Page_Controller {
 	 */
  	function Member() {
 		$member = null;
-		if(is_numeric($this->urlParams['ID'])) {
+		if(!empty($this->urlParams['ID']) && is_numeric($this->urlParams['ID'])) {
 			$member = DataObject::get_by_id('Member', $this->urlParams['ID']);
 		} else {
 			$member = Member::currentUser();

@@ -32,23 +32,7 @@ class ForumThread extends DataObject {
 		'IsReadOnly' => false,
 		'IsGlobalSticky' => false
 	);
-	
-	/**
-	 * When rebuilding the database we need to ensure that all the threads have been assigned
-	 * a last post and when people upgrade to this version running the rebuild should fix the data
-	 * rather than the entire migrate script
-	 *
-	 * @return void
-	 */
-	function requireDefaultRecords() {
-		if(DB::query("SELECT COUNT(*) FROM \"ForumThread\" WHERE \"LastPostID\" = 0")->value() > 0) {
-			
-			$migrate = new ForumMigrationTask();
-			$migrate->attachLastPostIDs();
-		}
 		
-		parent::requireDefaultRecords();
-	}
 	
 	/**
 	 * Check if the user can create new threads and add responses

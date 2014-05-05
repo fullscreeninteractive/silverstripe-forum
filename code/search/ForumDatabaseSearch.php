@@ -17,116 +17,57 @@ class ForumDatabaseSearch implements ForumSearchProvider {
 	 * @param Int Offset
 	 * @param Int Limit
 	 *
-	 * @return DataObjectSet
+	 * @return DataSet Results of matching posts or empty DataSet if no results.
 	 */
-	public function getResults($forumHolderID, $query, $order, $offset = 0, $limit = 10) {
-		// we need to do escape for the $query string to avoid sql injection
-		// since $query string has been used more than once below in searching out potential authors and posts in different ways,
-		// we'd better make the escaping just before its defferent variations putting into a query.
-		
-		
-		// Search for authors
-		$SQL_queryParts = Convert::raw2sql(preg_split('/ +/', trim($query)));
-		foreach($SQL_queryParts as $SQL_queryPart ) { 
-			$SQL_clauses[] = "FirstName LIKE '%$SQL_queryPart%' OR Surname LIKE '%$SQL_queryPart' OR Nickname LIKE '%$SQL_queryPart'";
-		}
+	public function getResults($forumHolderID, $query, $order=null, $offset = 0, $limit = 10) {
 
-		$potentialAuthors = DataObject::get('Member', implode(" OR ", $SQL_clauses), '"ID" ASC');
-		$SQL_authorClause = '';
-		$SQL_potentialAuthorIDs = array();
-		
-		if($potentialAuthors) {
-			foreach($potentialAuthors as $potentialAuthor) {
-				$SQL_potentialAuthorIDs[] = $potentialAuthor->ID;
-			}
-			$SQL_authorList = implode(", ", $SQL_potentialAuthorIDs);
-			$SQL_authorClause = "OR Post.AuthorID IN ($SQL_authorList)";
-		}
-		
+		//sanitise the query string to avoid XSS (Using the ORM will also help avoid this too).
+		$query = Convert::raw2sql(trim($query));
+
+		//sanitise the order/sorting as it can be changed by the user in quesry string.
+		$order = Convert::raw2sql(trim($order));
+
+		//explode the query into the multiple terms to search, supply as an array to pass into the ORM filter.
+		$terms = explode(' ', $query);
+		//Add the original full query as one of the keywords.
+		$terms[] = $query;
+
+		//Get  posts (limitation is that it picks up the whole phase rather than a FULLTEXT SEARCH. 
+		//We are aiming to keep this as simple as possible). More complex impementations acheived with Solr.
+		//Rquires the post be moderated, then Checks for any match of Author name or Content partial match.
+		//Author name checks the full query whereas Content checks each term for matches.
+		$posts = Post::get()
+			->filter(array(
+				'Status' => 'Moderated', //posts my be moderated/visible.
+				'Forum.ParentID' => $forumHolderID //posts must be from a particular forum section.
+				))
+			->filterAny(array(
+				'Author.Nickname:PartialMatch:nocase' => $query,
+				'Author.FirstName:PartialMatch:nocase' => $query,
+				'Author.Surname:PartialMatch:nocase' => $query,
+				'Content:PartialMatch:nocase' => $terms
+			))
+			->leftJoin('ForumThread', 'Post.ThreadID = ForumThread.ID');
+
 		// Work out what sorting method
 		switch($order) {
-			case 'date':
-				$sort = "Post.Created DESC";
+			case 'newest':
+				$posts = $posts->sort('Created', 'DESC');
+				break;
+			case 'oldest':
 				break;
 			case 'title':
-				$sort = "ForumThread.Title ASC";
+				$posts = $posts->sort(array('Thread.Title'=>'ASC'));
 				break;
 			default:
-				$sort = "RelevancyScore DESC";
+				$posts = $posts->sort(array(
+					'Thread.Title'=>'ASC',
+					'Created' => 'DESC'
+				));
 				break;
 		}
-		/*
-		$baseSelect = "SELECT \"Post\".\"ID\", \"Post\".\"Created\", \"Post\".\"LastEdited\", \"Post\".\"ClassName\", \"ForumThread\".\"Title\", \"Post\".\"Content\", \"Post\".\"ThreadID\", \"Post\".\"AuthorID\", \"ForumThread\".\"ForumID\"";
-		$baseFrom = "FROM \"Post\"
-			JOIN \"ForumThread\" ON \"Post\".\"ThreadID\" = \"ForumThread\".\"ID\"
-			JOIN \"" . ForumHolder::baseForumTable() . "\" \"ForumPage\" ON \"ForumThread\".\"ForumID\"=\"ForumPage\".\"ID\"";
-		*/
-
-		$baseSelect = "SELECT Post.ID, Post.Created, Post.LastEdited, Post.ClassName, ForumThread.Title, Post.Content, Post.ThreadID, Post.AuthorID, ForumThread.ForumID";
-		$baseFrom = "FROM Post JOIN ForumThread ON Post.ThreadID = ForumThread.ID JOIN {ForumHolder::baseForumTable()} ForumPage ON ForumThread.ForumID=ForumPage.ID";
 		
-		$SQL_query = Convert::raw2sql(trim($query));
-		// each database engine does its own thing 
-		switch(DB::getConn()->getDatabaseServer()) {
-			case 'postgresql':
-				$queryString = "
-					$baseSelect
-					$baseFrom	
-					, to_tsquery('english', '$SQL_query') AS q";
-			
-				$limitString = "LIMIT $limit OFFSET $offset;";
-				break;
-				
-			case 'mssql':
-				$queryString = "
-					$baseSelect
-					$baseFrom
-					WHERE
-						(CONTAINS(\"ForumThread\".\"Title\", '$SQL_query') OR CONTAINS(\"Post\".\"Content\", '$SQL_query')
-						AND \"ForumPage\".\"ParentID\"='{$forumHolderID}'";
-						
-				// @todo fix this to use MSSQL's version of limit/offsetB
-				$limitString = false;
-				break;
-				
-			default:
-				$queryString = "
-					$baseSelect,
-					MATCH (\"Post\".\"Content\") AGAINST ('$SQL_query') AS RelevancyScore
-					$baseFrom
-					WHERE
-						MATCH (\"ForumThread\".\"Title\", \"Post\".\"Content\") AGAINST ('$SQL_query' IN BOOLEAN MODE)
-						$SQL_authorClause
-						AND ForumPage.ParentID='{$forumHolderID}'
-					ORDER BY $sort";
-
-				$limitString = " LIMIT $offset, $limit;";
-		}
-
-		// Find out how many posts that match with no limit
-		$allPosts = DB::query($queryString);
-		
-		// Get the 10 posts from the starting record
-		if($limitString) {
-			$query = DB::query("
-				$queryString
-				$limitString
-			");
-		}
-		else {
-			$query = $allPosts;
-		}
-		
-		$allPostsCount = $allPosts ? $allPosts->numRecords() : 0;
-		
-		$baseClass = new Post();
-		$postsSet = $baseClass->buildDataObjectSet($query);
-		
-		if($postsSet) {
-			$postsSet->setPageLimits($offset, $limit, $allPostsCount);
-		}
-		
-		return $postsSet ? $postsSet: new DataObjectSet();
+		return $posts ? $posts: new DataList();
 	}
 	
 	/**

@@ -28,6 +28,14 @@
 	display:none;
 }
 
+/* Search Results */
+.forum-pagination .page-numbers {
+	text-align: center;
+}
+.forum-pagination ul li {
+	display: inline;
+}
+
 
 /* Content */
 .forum-message-admin {}
@@ -55,6 +63,11 @@
 .forum-topics tr.author {
 	background:#EDEDED;
 }
+
+.forum-topics .highlight {
+	background-color:yellow;
+}
+
 .forum-topics th, .forum-topics td {
 	padding:8px 10px;
 	margin:0;

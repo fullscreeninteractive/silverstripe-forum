@@ -305,7 +305,7 @@ class ForumRole extends DataExtension {
 		}
 		// if they have uploaded an image
 		if($this->owner->AvatarID) {
-			$avatar = DataObject::get_by_id("Image", $this->owner->AvatarID);
+			$avatar = Image::get()->byID($this->owner->AvatarID);
 			if(!$avatar) return $default;
 			
 			$resizedAvatar = $avatar->SetWidth(80);
@@ -314,7 +314,16 @@ class ForumRole extends DataExtension {
 			return $resizedAvatar->URL;
 		}
 
-		if($holder = DataObject::get_one("ForumHolder", "\"AllowGravatars\" = 1")) {
+		//If Gravatar is enabled, allow the selection of the type of default Gravatar.
+		if($holder = ForumHolder::get()->filter('AllowGravatars',1)->first()) {
+			// If the GravatarType is one of the special types, then set it otherwise use the 
+			//default image from above forummember_holder.gif
+			if($holder->GravatarType){
+ 				$default = $holder->GravatarType;
+ 			} else {
+ 				// we need to get the absolute path for the default forum image
+ 				return $default;
+ 			}
 			// ok. no image but can we find a gravatar. Will return the default image as defined above if not.
 			return "http://www.gravatar.com/avatar/".md5($this->owner->Email)."?default=".urlencode($default)."&amp;size=80";
 		}
