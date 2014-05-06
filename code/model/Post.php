@@ -168,13 +168,13 @@ class Post extends DataObject {
 	 * 
 	 * @return String
 	 */
-	function EditLink() {	
-		if($this->canEdit()) {
+	function EditLink() {
+		if ($this->canEdit()) {
 			$url = Controller::join_links($this->Link('editpost'), $this->ID);
-
-			return '<a href="' . $url . '" class="editPostLink">' . _t('Post.EDIT','Edit') . '</a>';
+			$token = SecurityToken::inst();
+			$url = $token->addToUrl($url);
+			return '<a href="' . $url . '" class="editPostLink">' . _t('Post.EDIT', 'Edit') . '</a>';
 		}
-		
 		return false;
 	}
 
@@ -188,13 +188,13 @@ class Post extends DataObject {
 	 */
 	function DeleteLink() {
 		if($this->canDelete()) {
-			$link = $this->Link('deletepost') . '/' . $this->ID;
+			$url = $this->Link('deletepost') . '/' . $this->ID;
 			$token = SecurityToken::inst();
-			$link = $token->addToUrl($link);
+			$url = $token->addToUrl($url);
 
 			$firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
 
-			return '<a class="deleteLink' . $firstPost . '" href="' . $link . '">' . _t('Post.DELETE','Delete') . '</a>';
+			return '<a class="deleteLink' . $firstPost . '" href="' . $url . '">' . _t('Post.DELETE','Delete') . '</a>';
 		}
 		
 		return false;
@@ -233,13 +233,13 @@ class Post extends DataObject {
 		if($this->Thread()->canModerate()) {
 			$member = Member::currentUser();
 		 	if($member->ID != $this->AuthorID) {
-				$link = $this->Forum()->Link('markasspam') . '/' . $this->ID;
+				$url = $this->Forum()->Link('markasspam') . '/' . $this->ID;
 				$token = SecurityToken::inst();
-				$link = $token->addToUrl($link);
+				$url = $token->addToUrl($url);
 
 				$firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
 				
-				return '<a href="' . $link .'" class="markAsSpamLink' . $firstPost . '" rel="' . $this->ID . '">'. _t('Post.MARKASSPAM', 'Mark as Spam') . '</a>';
+				return '<a href="' . $url .'" class="markAsSpamLink' . $firstPost . '" rel="' . $this->ID . '">'. _t('Post.MARKASSPAM', 'Mark as Spam') . '</a>';
 			}
 		}
 	}

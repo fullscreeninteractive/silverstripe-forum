@@ -68,6 +68,11 @@
 	background-color:yellow;
 }
 
+.forum-topics .hidden {
+	display:none;
+	visibility:hidden;
+}
+
 .forum-topics th, .forum-topics td {
 	padding:8px 10px;
 	margin:0;

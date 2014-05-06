@@ -140,8 +140,8 @@
 		$("td.replyButton a.subscribe").click(function() {
 			$.post($(this).attr("href"), function(data) {
 				if(data == 1) {
-					$("td.replyButton a.subscribe").fadeOut().hide();
-					$("td.replyButton a.unsubscribe").fadeIn();
+					$("td.replyButton a.subscribe").hide().addClass("hidden");
+					$("td.replyButton a.unsubscribe").show().removeClass("hidden");
 				}
 			});
 			return false;
@@ -150,8 +150,8 @@
 		$("td.replyButton a.unsubscribe").click(function() {
 			$.post($(this).attr("href"), function(data) {
 				if(data == 1) {
-					$("td.replyButton a.unsubscribe").fadeOut().hide();
-					$("td.replyButton a.subscribe").fadeIn();
+					$("td.replyButton a.unsubscribe").hide().addClass("hidden");
+					$("td.replyButton a.subscribe").show().removeClass("hidden");
 				}
 			});
 			return false;
