@@ -68,8 +68,8 @@ class ForumThreadTest extends FunctionalTest {
 		
 		$thread->delete();
 		
-		$this->assertFalse(DataObject::get_by_id('Post', $postID));
-		$this->assertFalse(DataObject::get_by_id('ForumThread', $thread->ID));
+		$this->assertNull(Post::get()->byID($postID));
+		$this->assertNull(ForumThread::get()->byID($thread->ID));
 	}
 	
 	function testPermissions() {

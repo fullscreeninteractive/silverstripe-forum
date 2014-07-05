@@ -98,7 +98,7 @@ class PostTest extends FunctionalTest {
 	
 	function testShowLink() {
 		$post = $this->objFromFixture('Post', 'Post1');
-		Forum::$posts_per_page = 8;
+		Config::inst()->update("Forum","posts_per_page",8);
 		
 		// test for show link on first page
 		$this->assertContains($post->Thread()->URLSegment .'/show/'.$post->ThreadID, $post->ShowLink());

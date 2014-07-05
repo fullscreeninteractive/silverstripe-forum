@@ -306,8 +306,11 @@ class ForumTest extends FunctionalTest {
 
 	function testNotifyModerators() {
 		SecurityToken::disable();
-		$notifyModerators = Forum::$notify_moderators;
-		Forum::$notify_moderators = true;
+		$notifyModerators = Config::inst()->get("Forum","notify_moderators");
+		Config::inst()->update("Forum","notify_moderators", true);
+
+		//ensure the config gets set to true
+		$this->assertTrue(Config::inst()->get("Forum","notify_moderators"));
 
 		$forum = $this->objFromFixture('Forum', 'general');
 		$controller = new Forum_Controller($forum);
@@ -327,10 +330,11 @@ class ForumTest extends FunctionalTest {
 		$adminEmail = Config::inst()->get('Email', 'admin_email');
 
 		$this->assertEmailSent('test3@example.com', $adminEmail, "New thread \"New thread\" in forum [General Discussion]");
+		
 		$this->clearEmails();
 
 		// New response
-		$thread = DataObject::get_one('ForumThread', "\"ForumThread\".\"Title\"='New thread'");
+		$thread = ForumThread::get()->filter("Title","New thread")->first();
 		$this->post(
 			$forum->RelativeLink('PostMessageForm'),
 			array(
@@ -358,6 +362,6 @@ class ForumTest extends FunctionalTest {
 		$this->assertEmailSent('test3@example.com', $adminEmail, "New post \"Re: New thread\" in forum [General Discussion]");
 		$this->clearEmails();
 
-		Forum::$notify_moderators = $notifyModerators;
+		Config::inst()->update("Forum","notify_moderators", $notifyModerators);
 	}
 }

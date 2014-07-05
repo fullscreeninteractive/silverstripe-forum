@@ -162,7 +162,7 @@ class ForumHolder extends Page {
 	 * Ensure that any categories that exist with no forum holder are updated to be owned by the first forum holder
 	 * if there is one. This is required now that multiple forum holds are allowed, and categories belong to holders.
 	 *
-	 * @see sapphire/core/model/DataObject#requireDefaultRecords()
+	 * @see framework/core/model/DataObject#requireDefaultRecords()
 	 */
 	public function requireDefaultRecords() {
 		parent::requireDefaultRecords();
@@ -361,10 +361,7 @@ class ForumHolder extends Page {
 		$stage = (Controller::curr()->getRequest()) ? Controller::curr()->getRequest()->getVar('stage') : false;
 		if (!$stage) $stage = Versioned::get_live_stage();
 		
-		if(
-			(class_exists('SapphireTest', false) && SapphireTest::is_running_test())
-			|| $stage == "Stage"
-		) {
+		if((class_exists('SapphireTest', false) && SapphireTest::is_running_test()) || $stage == "Stage") {
 			return "SiteTree";
 		} else {
 			return "SiteTree_Live";
@@ -543,7 +540,7 @@ class ForumHolder_Controller extends Page_Controller {
 	function memberlist() {
 		return $this->httpError(404);
 
-		$forumGroupID = (int) DataObject::get_one('Group', "\"Code\" = 'forum-members'")->ID;
+		$forumGroupID = (int) Group::get()->filter("Code","forum-members")->first()->ID;
 		
 		// If sort has been defined then save it as in the session
 		$order = (isset($_GET['order'])) ? $_GET['order']: "";
@@ -556,7 +553,6 @@ class ForumHolder_Controller extends Page_Controller {
 
 		switch($order) {
 			case "joined":
-//				$members = DataObject::get("Member", "\"GroupID\" = '$forumGroupID'", "\"Member\".\"Created\" ASC", "LEFT JOIN \"Group_Members\" ON \"Member\".\"ID\" = \"Group_Members\".\"MemberID\"", "{$SQL_start},100");
 				$members = Member::get()
 						->filter('Member.GroupID', $forumGroupID)
 						->leftJoin('Group_Members', '"Member"."ID" = "Group_Members"."MemberID"')
@@ -564,7 +560,6 @@ class ForumHolder_Controller extends Page_Controller {
 						->limit($SQL_start . ',100');
 			break;
 			case "name":
-//				$members = DataObject::get("Member", "\"GroupID\" = '$forumGroupID'", "\"Member\".\"Nickname\" ASC", "LEFT JOIN \"Group_Members\" ON \"Member\".\"ID\" = \"Group_Members\".\"MemberID\"", "{$SQL_start},100");
 				$members = Member::get()
 						->filter('Member.GroupID', $forumGroupID)
 						->leftJoin('Group_Members', '"Member"."ID" = "Group_Members"."MemberID"')
@@ -572,7 +567,6 @@ class ForumHolder_Controller extends Page_Controller {
 						->limit($SQL_start . ',100');
 			break;
 			case "country":
-//				$members = DataObject::get("Member", "\"GroupID\" = '$forumGroupID' AND \"Member\".\"CountryPublic\" = TRUE", "\"Member\".\"Country\" ASC", "LEFT JOIN \"Group_Members\" ON \"Member\".\"ID\" = \"Group_Members\".\"MemberID\"", "{$SQL_start},100");
 				$members = Member::get()
 						->filter(array('Member.GroupID' => $forumGroupID, 'Member.CountryPublic' => TRUE))
 						->leftJoin('Group_Members', '"Member"."ID" = "Group_Members"."MemberID"')
@@ -587,7 +581,6 @@ class ForumHolder_Controller extends Page_Controller {
 				$members->parseQueryLimit($query);
 			break;
 			default:
-				//$members = DataObject::get("Member", "\"GroupID\" = '$forumGroupID'", "\"Member\".\"Created\" DESC", "LEFT JOIN \"Group_Members\" ON \"Member\".\"ID\" = \"Group_Members\".\"MemberID\"", "{$SQL_start},100");
 				$members = Member::get()
 						->filter('Member.GroupID', $forumGroupID)
 						->leftJoin('Group_Members', '"Member"."ID" = "Group_Members"."MemberID"')
@@ -634,7 +627,7 @@ class ForumHolder_Controller extends Page_Controller {
 			if($threads) $threads->setPageLimits($start, $limit, $threadsQuery->unlimitedRowCount());
 			
 		} elseif($method == 'views') {
-			$threads = DataObject::get('ForumThread', '', "\"NumViews\" DESC", '', "$start,$limit");
+			$threads = ForumThread::get()->sort("NumViews DESC")->limit($limit, $start);
 		}
 		
 		return array(
@@ -820,23 +813,6 @@ class ForumHolder_Controller extends Page_Controller {
 	 * @return DataObjectSet
 	 */
 	function GlobalAnnouncements() {
-		/*return DataObject::get(
-			"ForumThread", 
-			"\"ForumThread\".\"IsGlobalSticky\" = 1 AND \"ForumPage\".\"ParentID\"={$this->ID}", 
-			"MAX(\"PostList\".\"Created\") DESC",	
-			"INNER JOIN \"Post\" AS \"PostList\" ON \"PostList\".\"ThreadID\" = \"ForumThread\".\"ID\" 
-		  	 INNER JOIN \"" . ForumHolder::baseForumTable() . "\" \"ForumPage\" ON \"ForumThread\".\"ForumID\"=\"ForumPage\".\"ID\"");
-
-		
-		//Get all the forums with global sticky threads, and then get the most recent post for each of these		
-		$threads=DataObject::get(
-			'ForumThread',
-			"\"ForumThread\".\"IsGlobalSticky\"=1 AND \"ForumPage\".\"ParentID\"={$this->ID}",
-			'',
-			"INNER JOIN \"" . ForumHolder::baseForumTable() . "\" AS \"ForumPage\" ON \"ForumThread\".\"ForumID\"=\"ForumPage\".\"ID\""
-		);
-		*/
-		//dump(ForumHolder::baseForumTable());
 
 		// Get all the forums with global sticky threads
 		return ForumThread::get()

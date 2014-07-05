@@ -35,7 +35,7 @@ class ForumMemberProfile extends Page_Controller {
 	 * Create breadcrumbs (just shows a forum holder link and name of user)
 	 * @return string HTML code to display breadcrumbs
 	 */
-	public function Breadcrumbs() {
+	public function Breadcrumbs($maxDepth = 20, $unlinked = false, $stopAtPageType = false, $showHidden = false) {
 		$nonPageParts = array();
 		$parts = array();
 
@@ -56,7 +56,7 @@ class ForumMemberProfile extends Page_Controller {
 		$member = $this->Member() ? $this->Member() : null;
 		$nicknameText = ($member) ? ($member->Nickname . '\'s ') : '';
 		
-		//$this->Title = DBField::create('HTMLText',Convert::raw2xml($nicknameText) . _t('ForumMemberProfile.USERPROFILE', 'User Profile'));
+		//$this->Title = DBField::create_field('HTMLText',Convert::raw2xml($nicknameText) . _t('ForumMemberProfile.USERPROFILE', 'User Profile'));
 		$this->Title = DBField::create_field('HTMLText', Convert::raw2xml($nicknameText) . _t('ForumMemberProfile.USERPROFILE', 'User Profile'));
 		
 		parent::init();
@@ -205,7 +205,7 @@ class ForumMemberProfile extends Page_Controller {
 		}
 
 		// create the new member
-		$member = Object::create('Member');
+		$member = Member::create();
 		$form->saveInto($member);
   		
 		$member->write();
@@ -425,8 +425,8 @@ class ForumMemberProfile extends Page_Controller {
 
 		return array(
 			"Title" => "Forum",
-			"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
-			"Abstract" => DataObject::get_one("ForumHolder")->ProfileAbstract,
+			"Subtitle" => ForumHolder::get()->first()->ProfileSubtitle,
+			"Abstract" => ForumHolder::get()->first()->ProfileAbstract,
 			"Form" => $form,
 		);
 	}
@@ -442,15 +442,13 @@ class ForumMemberProfile extends Page_Controller {
 		$show_openid = (isset($member->IdentityURL) && !empty($member->IdentityURL));
 
 		$fields = $member ? $member->getForumFields($show_openid) : singleton('Member')->getForumFields($show_openid);
+		$actions = FieldList::create(FormAction::create("dosave", _t('ForumMemberProfile.SAVECHANGES','Save changes')));
 		$validator = $member ? $member->getForumValidator(false) : singleton('Member')->getForumValidator(false);
-		if($holder = DataObject::get_one('ForumHolder', "\"DisplaySignatures\" = '1'")) {
-			$fields->push(new TextareaField('Signature', 'Forum Signature'));
+		if($holder = ForumHolder::get()->filter(array("DisplaySignatures" => true))->first()) {
+			$fields->push(TextareaField::create('Signature', 'Forum Signature'));
 		}
 
-		$form = new Form($this, 'EditProfileForm', $fields,
-			new FieldList(new FormAction("dosave", _t('ForumMemberProfile.SAVECHANGES','Save changes'))),
-			$validator
-		);
+		$form = Form::create($this, 'EditProfileForm', $fields, $actions, $validator);
 
 		if($member && $member->hasMethod('canEdit') && $member->canEdit()) {
 			$member->Password = '';
@@ -472,11 +470,11 @@ class ForumMemberProfile extends Page_Controller {
 		$member = Member::currentUser();
 		
 		$SQL_email = Convert::raw2sql($data['Email']);
-		$forumGroup = DataObject::get_one('Group', "\"Code\" = 'forum-members'");
+		$forumGroup = Group::get()->filter(array("Code"=>"forum-members"))->first();
 		
 		// An existing member may have the requested email that doesn't belong to the
 		// person who is editing their profile - if so, throw an error
-		$existingMember = DataObject::get_one('Member', "\"Email\" = '$SQL_email'");
+		$existingMember = Member::get()->filter(array("Email"=>$SQL_email))->first();
 		if($existingMember) {
 			if($existingMember->ID != $member->ID) {
   				$form->addErrorMessage('Blurb',
@@ -491,14 +489,10 @@ class ForumMemberProfile extends Page_Controller {
 			}
 		}
 
-		$nicknameCheck = DataObject::get_one(
-			"Member",
-			sprintf(
-				"\"Nickname\" = '%s' AND \"Member\".\"ID\" != '%d'",
-				Convert::raw2sql($data['Nickname']),
-				$member->ID
-			)
-		);
+		$nicknameCheck = Member::get()->filter(array(
+			"Nickname" => Convert::raw2sql($data['Nickname']),
+			"ID:not" => $member->ID
+		))->first();
 
 		if($nicknameCheck) {
 			$form->addErrorMessage("Blurb",
@@ -527,7 +521,7 @@ class ForumMemberProfile extends Page_Controller {
 	 */
 	function thanks() {
 		return array(
-			"Form" => DataObject::get_one("ForumHolder")->ProfileModify
+			"Form" => ForumHolder::get()->first()->ProfileModify
 		);
 	}
 
@@ -552,7 +546,7 @@ class ForumMemberProfile extends Page_Controller {
  	function Member() {
 		$member = null;
 		if(!empty($this->urlParams['ID']) && is_numeric($this->urlParams['ID'])) {
-			$member = DataObject::get_by_id('Member', $this->urlParams['ID']);
+			$member = Member::get()->byID($this->urlParams['ID']);
 		} else {
 			$member = Member::currentUser();
 		}
@@ -566,7 +560,7 @@ class ForumMemberProfile extends Page_Controller {
 	 * @return ForumHolder Returns the forum holder controller.
 	 */
 	function getForumHolder() {
-		$holders = DataObject::get("ForumHolder");
+		$holders = ForumHolder::get();
 		if($holders) {
 			foreach($holders as $holder) {
 				if($holder->canView()) return $holder;

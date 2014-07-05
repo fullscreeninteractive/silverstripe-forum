@@ -120,7 +120,7 @@ class ForumRole extends DataExtension {
 	}
 	function NumPosts() {
 		if(is_numeric($this->owner->ID)) {
-			return (int)DB::query("SELECT count(*) FROM \"Post\" WHERE \"AuthorID\" = '" . $this->owner->ID . "'")->value();
+			return Post::get()->filter(array("AuthorID" => $this->owner->ID))->count();
 		} else {
 			return 0;
 		}
@@ -152,47 +152,50 @@ class ForumRole extends DataExtension {
 	 *                  the registration of new users
 	 */
 	function getForumFields($showIdentityURL = false, $addmode = false) {
-		$gravatarText = (DataObject::get_one("ForumHolder", "\"AllowGravatars\" = 1")) ? '<small>'. _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') .'</small>' : "";
 
-		$avatarField = new UploadField('Avatar', _t('ForumRole.AVATAR','Avatar Image') .' '. $gravatarText);
-		$avatarField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'gif', 'png'));
+		//@TODO remove the markup from gravatar text, could this be the extra helper text?
+		$gravatarText = "";
+		if(ForumHolder::get()->filter(array("AllowGravatars" => true))->first()){
+			$gravatarText = '<small>'. _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') .'</small>';
+		}
 
-		$personalDetailsFields = new CompositeField(
-			new HeaderField("PersonalDetails", _t('ForumRole.PERSONAL','Personal Details')),
-	
-			new LiteralField("Blurb","<p id=\"helpful\">" . _t('ForumRole.TICK', 'Tick the fields to show in public profile') . "</p>"),
-	
-			new TextField("Nickname", _t('ForumRole.NICKNAME','Nickname')),
-			new CheckableOption("FirstNamePublic", new TextField("FirstName", _t('ForumRole.FIRSTNAME','First name'))),
-			new CheckableOption("SurnamePublic", new TextField("Surname", _t('ForumRole.SURNAME','Surname'))),
-			new CheckableOption("OccupationPublic", new TextField("Occupation", _t('ForumRole.OCCUPATION','Occupation')), true),
-			new CheckableOption('CompanyPublic', new TextField('Company', _t('ForumRole.COMPANY', 'Company')), true),
-			new CheckableOption('CityPublic', new TextField('City', _t('ForumRole.CITY', 'City')), true),
-			new CheckableOption("CountryPublic", new ForumCountryDropdownField("Country", _t('ForumRole.COUNTRY','Country')), true),
-			new CheckableOption("EmailPublic", new EmailField("Email", _t('ForumRole.EMAIL','Email'))),
-			new ConfirmedPasswordField("Password", _t('ForumRole.PASSWORD','Password')),
-			//new SimpleImageField("Avatar", _t('ForumRole.AVATAR','Upload avatar ') .' '. $gravatarText)
+		//@TODO ensure UploadField works for frontend
+		$avatarField = UploadField::create('Avatar', _t('ForumRole.AVATAR','Avatar Image') .' '. $gravatarText)
+			->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'gif', 'png'));
+
+		$personalDetailsFields = CompositeField::create(
+			HeaderField::create("PersonalDetails", _t('ForumRole.PERSONAL','Personal Details')),
+			LiteralField::create("Blurb","<p id=\"helpful\">" . _t('ForumRole.TICK', 'Tick the fields to show in public profile') . "</p>"),
+			TextField::create("Nickname", _t('ForumRole.NICKNAME','Nickname')),
+			CheckableOption::create("FirstNamePublic", TextField::create("FirstName", _t('ForumRole.FIRSTNAME','First name'))),
+			CheckableOption::create("SurnamePublic", TextField::create("Surname", _t('ForumRole.SURNAME','Surname'))),
+			CheckableOption::create("OccupationPublic", TextField::create("Occupation", _t('ForumRole.OCCUPATION','Occupation')), true),
+			CheckableOption::create('CompanyPublic', TextField::create('Company', _t('ForumRole.COMPANY', 'Company')), true),
+			CheckableOption::create('CityPublic', TextField::create('City', _t('ForumRole.CITY', 'City')), true),
+			CheckableOption::create("CountryPublic", ForumCountryDropdownField::create("Country", _t('ForumRole.COUNTRY','Country')), true),
+			CheckableOption::create("EmailPublic", EmailField::create("Email", _t('ForumRole.EMAIL','Email'))),
+			ConfirmedPasswordField::create("Password", _t('ForumRole.PASSWORD','Password')),
 			$avatarField
 		);
 		// Don't show 'forum rank' at registration
 		if(!$addmode) {
 			$personalDetailsFields->push(
-				new ReadonlyField("ForumRank", _t('ForumRole.RATING','User rating'))
+				ReadonlyField::create("ForumRank", _t('ForumRole.RATING','User rating'))
 			);
 		}
 		$personalDetailsFields->setID('PersonalDetailsFields');
 		
-		$fieldset = new FieldList(
+		$fieldset = FieldList::create(
 			$personalDetailsFields
 		);
 
 		if($showIdentityURL) {
 			$fieldset->insertBefore(
-				new ReadonlyField('IdentityURL', _t('ForumRole.OPENIDINAME','OpenID/i-name')),
+				ReadonlyField::create('IdentityURL', _t('ForumRole.OPENIDINAME','OpenID/i-name')),
 				'Password'
 			);
 			$fieldset->insertAfter(
-				new LiteralField(
+				LiteralField::create(
 					'PasswordOptionalMessage',
 					'<p>' . _t('ForumRole.PASSOPTMESSAGE','Since you provided an OpenID respectively an i-name the password is optional. If you enter one, you will be able to log in also with your e-mail address.') . '</p>'
 				),
@@ -202,7 +205,7 @@ class ForumRole extends DataExtension {
 
 		if($this->owner->IsSuspended()) {
 			$fieldset->insertAfter(
-				new LiteralField(
+				LiteralField::create(
 					'SuspensionNote', 
 					'<p class="message warning suspensionWarning">' . $this->ForumSuspensionMessage() . '</p>'
 				),
@@ -224,9 +227,9 @@ class ForumRole extends DataExtension {
 	 */
 	function getForumValidator($needPassword = true) {
 		if ($needPassword) {
-			$validator = new RequiredFields("Nickname", "Email", "Password");
+			$validator = RequiredFields::create("Nickname", "Email", "Password");
 		} else {
-			$validator = new RequiredFields("Nickname", "Email");
+			$validator = RequiredFields::create("Nickname", "Email");
 		}
 		$this->owner->extend('updateForumValidator', $validator);
 
@@ -234,17 +237,25 @@ class ForumRole extends DataExtension {
 	}
 
 	function updateCMSFields(FieldList $fields) {
-		$allForums = DataObject::get('Forum');
+		$allForums = Forum::get();
 		$fields->removeByName('ModeratedForums');
-		$fields->addFieldToTab('Root.ModeratedForums', new CheckboxSetField('ModeratedForums', _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'), ($allForums->exists() ? $allForums->map('ID', 'Title') : array())));
+		$fields->addFieldToTab(
+			'Root.ModeratedForums',
+			CheckboxSetField::create(
+				'ModeratedForums',
+				_t('ForumRole.MODERATEDFORUMS', 'Moderated forums'),
+				($allForums->exists() ? $allForums->map('ID', 'Title')->toArray() : array())
+			)
+		);
+
 		$suspend = $fields->dataFieldByName('SuspendedUntil');
 		$suspend->setConfig('showcalendar', true);
 		if(Permission::checkMember($this->owner->ID, "ACCESS_FORUM")) {
-			$avatarField = new UploadField('Avatar', _t('ForumRole.UPLOADAVATAR', 'Upload avatar'));
+			$avatarField = UploadField::create('Avatar', _t('ForumRole.UPLOADAVATAR', 'Upload avatar'));
 			$avatarField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'gif', 'png'));
 
 			$fields->addFieldToTab('Root.Forum', $avatarField);
-			$fields->addFieldToTab('Root.Forum',new DropdownField("ForumRank", _t('ForumRole.FORUMRANK', "User rating"), array(
+			$fields->addFieldToTab('Root.Forum', DropdownField::create("ForumRank", _t('ForumRole.FORUMRANK', "User rating"), array(
 				"Community Member" => _t('ForumRole.COMMEMBER'),
 				"Administrator" => _t('ForumRole.ADMIN','Administrator'),
 				"Moderator" => _t('ForumRole.MOD','Moderator')

@@ -114,11 +114,13 @@ class ForumSphinxSearch implements ForumSearchProvider {
 		// we still have to add the extra field _ageband, but we set it
 		// to 10 so it's sorted like it's recent.
 		DataObject::add_extension('ForumThread', 'SphinxSearchable');
-		Object::set_static("ForumThread", "sphinx", array(
+
+		Config::inst()->update("ForumThread", "sphinx", array(
 			"extra_fields" => array("_ageband" => "if(datediff(now(),LastEdited)<30,10,if(datediff(now(),LastEdited)<90,9,if(datediff(now(),LastEdited)<180,8,if(datediff(now(),LastEdited)<365,7,6))))")
 		));
 		DataObject::add_extension('Post', 'SphinxSearchable');
-		Object::set_static("Post", "sphinx", array(
+
+		Config::inst()->update("Post", "sphinx", array(
 			"extra_fields" => array("_ageband" => "if(datediff(now(),Created)<30,10,if(datediff(now(),Created)<90,9,if(datediff(now(),Created)<180,8,if(datediff(now(),Created)<365,7,6))))")
 		));
 
@@ -126,11 +128,11 @@ class ForumSphinxSearch implements ForumSearchProvider {
 		// are decorated with SphinxSearchable.
 		foreach (self::$extra_search_classes as $c) {
 			if (Object::has_extension($c, 'SphinxSearchable')) {
-				$conf = Object::uninherited_static($c, "sphinx");
+				$conf = Config::inst()->get($c, "sphinx", Config::UNINHERITED);
 				if (!$conf) $conf = array();
 				if (!isset($conf['extra_fields'])) $conf['extra_fields'] = array();
 				$conf['extra_fields']['_ageband'] = "10";
-				Object::set_static($c, "sphinx", $conf);
+				Config::inst()->update($c, "sphinx", $conf);
 			}
 		}
 	}

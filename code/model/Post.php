@@ -277,7 +277,8 @@ class Post extends DataObject {
 			WHERE \"ThreadID\" = '$this->ThreadID' AND \"Status\" = 'Moderated' AND \"ID\" < $this->ID
 		")->value();
 
-		$start = ($count >= Forum::$posts_per_page) ? floor($count / Forum::$posts_per_page) * Forum::$posts_per_page : 0;
+		$postsPerPage = Config::inst()->get("Forum","posts_per_page");
+		$start = ($count >= $postsPerPage) ? floor($count / $postsPerPage) * $postsPerPage : 0;
 		$pos = ($start == 0 ? '' : "?start=$start") . ($count == 0 ? '' : "#post{$this->ID}");
 		
 		return ($action == "show") ? $link . $pos : $link;
@@ -327,7 +328,7 @@ class Post_Attachment extends File {
 			$SQL_ID = Convert::raw2sql($this->urlParams['ID']);
 			
 			if(is_numeric($SQL_ID)) {
-				$file = DataObject::get_by_id("Post_Attachment", $SQL_ID);
+				$file = Post_Attachment::get()->byID($SQL_ID);
 				$response = SS_HTTPRequest::send_file(file_get_contents($file->getFullPath()), $file->Name);
 				$response->output();
 			}

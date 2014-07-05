@@ -37,7 +37,7 @@ class ForumThread extends DataObject {
 	/**
 	 * Check if the user can create new threads and add responses
 	 */
-	function canPost($member = null) {
+	public function canPost($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return ($this->Forum()->canPost($member) && !$this->IsReadOnly);
 	}
@@ -45,7 +45,7 @@ class ForumThread extends DataObject {
 	/**
 	 * Check if user can moderate this thread
 	 */
-	function canModerate($member = null) {
+	public function canModerate($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return $this->Forum()->canModerate($member);
 	}
@@ -53,7 +53,7 @@ class ForumThread extends DataObject {
 	/**
 	 * Check if user can view the thread
 	 */
-	function canView($member = null) {
+	public function canView($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return $this->Forum()->canView($member);
 	}
@@ -61,7 +61,7 @@ class ForumThread extends DataObject {
 	/**
 	 * Hook up into moderation.
 	 */
-	function canEdit($member = null) {
+	public function canEdit($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return $this->canModerate($member);
 	}
@@ -70,7 +70,7 @@ class ForumThread extends DataObject {
 	 * Hook up into moderation - users cannot delete their own posts/threads because 
 	 * we will loose history this way.
 	 */
-	function canDelete($member = null) {
+	public function canDelete($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return $this->canModerate($member);
 	}
@@ -78,7 +78,7 @@ class ForumThread extends DataObject {
 	/**
 	 * Hook up into canPost check
 	 */
-	function canCreate($member = null) {
+	public function canCreate($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return $this->canPost($member);
 	}
@@ -88,7 +88,7 @@ class ForumThread extends DataObject {
 	 * 
 	 * @return bool
 	 */
-	 function getDisplaySignatures() {
+	public function getDisplaySignatures() {
 	 	return $this->Forum()->Parent()->DisplaySignatures;
 	}
 	
@@ -98,7 +98,7 @@ class ForumThread extends DataObject {
 	 *
 	 * @return Post
 	 */
-	function getLatestPost() {
+	public function getLatestPost() {
 		$post = $this->LastPost();
 		if($post && $post->ID > 0) return $post;    //need to check for null post object both with ID of zero
 
@@ -110,8 +110,8 @@ class ForumThread extends DataObject {
 	 *
 	 * @return Post
 	 */
-	function getFirstPost() {
-		return DataObject::get_one('Post', "\"ThreadID\" = '$this->ID'", true, "\"ID\" ASC");
+	public function getFirstPost() {
+		return Post::get()->filter(array('ThreadID' => $this->ID))->sort('ID')->first();
 	}
 
 	/**
@@ -121,7 +121,7 @@ class ForumThread extends DataObject {
 	 * @return int
 	 */
 	function getNumPosts() {
-		return (int)DB::query("SELECT count(*) FROM \"Post\" WHERE \"ThreadID\" = $this->ID")->value();
+		return Post::get()->filter(array("ThreadID" => $this->ID))->count();
 	}
 	
 	/**
@@ -147,7 +147,7 @@ class ForumThread extends DataObject {
 	 * @return String
 	 */
 	function Link($action = "show", $showID = true) {
-		$forum = DataObject::get_by_id("Forum", $this->ForumID);
+		$forum = Forum::get()->byID($this->ForumID);
 		if($forum) {
 			$baseLink = $forum->Link();
 			$extra = ($showID) ? '/'.$this->ID : '';
@@ -206,7 +206,7 @@ class ForumThread extends DataObject {
 	 * 							to determine the next most recent.
 	 */
 	function updateLastPost($post = null) {
-		if (!$post) $post = DataObject::get_one('Post', "\"ThreadID\" = '$this->ID'", true, "\"ID\" DESC");
+		if (!$post) $post = Post::get()->filter(array("ThreadID" => $this->ID))->sort("ID DESC");
 		
 		if ($post && $post->ID != $this->LastPostID) {
 			$this->LastPostID = $post->ID;
@@ -220,7 +220,6 @@ class ForumThread extends DataObject {
 	 * @return Text
 	 */
 	function getEscapedTitle() {
-		//return DBField::create('Text', $this->dbObject('Title')->XML());
 		return DBField::create_field('Text', $this->dbObject('Title')->XML());
 	}
 }
@@ -258,12 +257,9 @@ class ForumThread_Subscription extends DataObject {
 
 		if($SQL_threadID=='' || $SQL_memberID=='')
 			return false;
-			
-		return (DB::query("
-			SELECT COUNT(\"ID\") 
-			FROM \"ForumThread_Subscription\" 
-			WHERE \"ThreadID\" = '$SQL_threadID' AND \"MemberID\" = $SQL_memberID"
-		)->value() > 0) ? true : false;
+
+		$subscription = ForumThread_Subscription::get()->filter(array("ThreadID" => $SQL_threadID, "MemberID" => $SQL_memberID));
+		return ($subscription->count() > 0) ? true : false;
 	}
 
 	/**
@@ -274,17 +270,17 @@ class ForumThread_Subscription extends DataObject {
 	 * @param Post $post The post that has just been added
 	 */
 	static function notify(Post $post) {
-		$list = DataObject::get(
-			"ForumThread_Subscription",
-			"\"ThreadID\" = '". $post->ThreadID ."' AND \"MemberID\" != '$post->AuthorID'"
-		);
+		$list =	ForumThread_Subscription::get()->filter(array(
+			"ThreadID" => $post->ThreadID,
+			"MemberID:not" => $post->AuthorID
+		));
 		
 		if($list) {
 			foreach($list as $obj) {
 				$SQL_id = Convert::raw2sql((int)$obj->MemberID);
 
 				// Get the members details
-				$member = DataObject::get_one("Member", "\"Member\".\"ID\" = '$SQL_id'");
+				$member = Member::get()->byID($SQL_id);
 				$adminEmail = Config::inst()->get('Email', 'admin_email');
 
 				if($member) {
