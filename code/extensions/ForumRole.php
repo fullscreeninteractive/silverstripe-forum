@@ -56,7 +56,9 @@ class ForumRole extends DataExtension {
 		'EmailPublic' => 'Boolean',
 		'LastViewed' => 'SS_Datetime',
 		'Signature' => 'Text',
+		'ForumStatus' => 'Enum("Normal, Banned, Ghost", "Normal")',
 		'SuspendedUntil' => 'Date'
+
 	);
 
 	private static $has_one = array(
@@ -249,14 +251,46 @@ class ForumRole extends DataExtension {
 				"Administrator" => _t('ForumRole.ADMIN','Administrator'),
 				"Moderator" => _t('ForumRole.MOD','Moderator')
 			)));
+			$fields->addFieldToTab('Root.Forum', $this->owner->dbObject('ForumStatus')->scaffoldFormField());
+
 		}
 	}
 	
-	function IsSuspended(){
+	public function IsSuspended(){
 		if($this->owner->SuspendedUntil) {
 			return strtotime(SS_Datetime::now()->Format('Y-m-d')) < strtotime($this->owner->SuspendedUntil);
 		} else {
 			return false; 
+		}
+	}
+
+
+	public function IsBanned() {
+		return $this->owner->ForumStatus == 'Banned';
+	}
+
+
+	public function IsGhost() {
+		return $this->owner->ForumStatus == 'Ghost' && $this->owner->ID !== Member::currentUserID();
+	}
+
+
+	public function BanLink() {
+		foreach(Forum::get() as $forum) {
+			if ($forum->canModerate()) {
+				$link = $forum->Link('ban') .'/'. $this->owner->ID;
+				return "<a class='banLink' href=\"$link\" rel=\"$this->owner->ID\">". _t('Post.BANUSER', 'Ban User') ."</a>";
+			}
+		}
+	}
+
+
+	public function GhostLink() {
+		foreach(Forum::get() as $forum) {
+			if ($forum->canModerate()) {
+				$link = $forum->Link('ghost') .'/'. $this->owner->ID;
+				return "<a class='ghostLink' href=\"$link\" rel=\"$this->owner->ID\">". _t('Post.GHOSTUSER', 'Ghost User') ."</a>";
+			}
 		}
 	}
 

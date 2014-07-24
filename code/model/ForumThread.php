@@ -18,8 +18,7 @@ class ForumThread extends DataObject {
 	);
 	
 	private static $has_one = array(
-		'Forum' => 'Forum',
-		'LastPost' => 'Post'
+		'Forum' => 'Forum'
 	);
 	
 	private static $has_many = array(
@@ -98,11 +97,13 @@ class ForumThread extends DataObject {
 	 *
 	 * @return Post
 	 */
-	function getLatestPost() {
-		$post = $this->LastPost();
-		if($post && $post->ID > 0) return $post;    //need to check for null post object both with ID of zero
-
-		return $this->updateLastPost();
+	public function getLatestPost() {
+		return Post::get()
+			->filter(array(
+				'ThreadID' => $this->ID
+			))
+			->sort("\"Post\".\"LastEdited\" DESC")
+			->first();
 	}
 	
 	/**
@@ -195,27 +196,6 @@ class ForumThread extends DataObject {
 		parent::onAfterWrite();
 	}
 
-	/**
-	 * Update LastPost to the most recent.
-	 * @param $post Post		If supplied, this is assumed to be the
-	 * 							most recently added or editing Post. If
-	 * 							null, we automatically determine the most
-	 * 							recent by grabbing the one with the highest
-	 * 							ID. This is required in the case of deletion:
-	 * 							If the most recent Post is deleted, we need
-	 * 							to determine the next most recent.
-	 */
-	function updateLastPost($post = null) {
-		if (!$post) $post = DataObject::get_one('Post', "\"ThreadID\" = '$this->ID'", true, "\"ID\" DESC");
-		
-		if ($post && $post->ID != $this->LastPostID) {
-			$this->LastPostID = $post->ID;
-			$this->write();
-		}
-		
-		return $post;
-	}
-	
 	/**
 	 * @return Text
 	 */

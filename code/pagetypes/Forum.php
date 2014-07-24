@@ -87,6 +87,7 @@ class Forum extends Page {
 		
 		if($member = Member::currentUser()) {
 			if($member->IsSuspended()) return false;
+			if($member->IsBanned()) return false;
 			
 			if($this->CanPostType == "LoggedInUsers") return true;
 
@@ -394,8 +395,8 @@ class Forum extends Page {
 		$postQuery = $posts->dataQuery()->query();
 		$postQuery
 			->setSelect(array())
-			->selectField('MAX("Created")', 'PostCreatedMax')
-			->selectField('MAX("ID")', 'PostIDMax')
+			->selectField('MAX("Post"."Created")', 'PostCreatedMax')
+			->selectField('MAX("Post"."ID")', 'PostIDMax')
 			->selectField('"ThreadID"')
 			->setGroupBy('"ThreadID"');
 
@@ -416,6 +417,8 @@ class Forum extends Page {
 		// And return the results
 		return $threads->exists() ? new PaginatedList($threads, $_GET) : null;
 	}
+
+
 	
 	/*
 	 * Returns the Sticky Threads
@@ -468,7 +471,9 @@ class Forum_Controller extends Page_Controller {
 		'starttopic',
 		'subscribe',
 		'unsubscribe',
-		'rss'
+		'rss',
+		'ban',
+		'ghost'
 	);
 	
 	
@@ -614,24 +619,56 @@ class Forum_Controller extends Page_Controller {
 				$currentUser->Email,
 				$currentUser->ID
 			), SS_Log::NOTICE);
-
-			// Suspend the member (rather than deleting him), 
-			// which gives him or a moderator the chance to revoke a decision. 
-			if($author = $post->Author()) {
-				$author->SuspendedUntil = date('Y-m-d', strtotime('+99 years', SS_Datetime::now()->Format('U')));
-				$author->write();
-			}
-
-			SS_Log::log(sprintf(
-				'Suspended member %s (#%d) for spam activity, by moderator %s (#%d)', 
-				$author->Email,
-				$author->ID,
-				$currentUser->Email,
-				$currentUser->ID
-			), SS_Log::NOTICE);
 		}
 
 		return (Director::is_ajax()) ? true : $this->redirect($this->Link());
+	}
+
+
+	public function ban(SS_HTTPRequest $r) {
+		if(!$r->param('ID')) return $this->httpError(404);
+		if(!$this->canModerate()) return $this->httpError(403);
+
+		$member = Member::get()->byID($r->param('ID'));
+		if (!$member || !$member->exists()) return $this->httpError(404);
+
+		$member->ForumStatus = 'Banned';
+		$member->write();
+
+		// Log event
+		$currentUser = Member::currentUser();
+		SS_Log::log(sprintf(
+			'Banned member %s (#%d), by moderator %s (#%d)',
+			$member->Email,
+			$member->ID,
+			$currentUser->Email,
+			$currentUser->ID
+		), SS_Log::NOTICE);
+
+		return ($r->isAjax()) ? true : $this->redirectBack();
+	}
+
+	public function ghost(SS_HTTPRequest $r) {
+		if(!$r->param('ID')) return $this->httpError(400);
+		if(!$this->canModerate()) return $this->httpError(403);
+
+		$member = Member::get()->byID($r->param('ID'));
+		if (!$member || !$member->exists()) return $this->httpError(404);
+
+		$member->ForumStatus = 'Ghost';
+		$member->write();
+
+		// Log event
+		$currentUser = Member::currentUser();
+		SS_Log::log(sprintf(
+			'Ghosted member %s (#%d), by moderator %s (#%d)',
+			$member->Email,
+			$member->ID,
+			$currentUser->Email,
+			$currentUser->ID
+		), SS_Log::NOTICE);
+
+		return ($r->isAjax()) ? true : $this->redirectBack();
 	}
 
 	/**

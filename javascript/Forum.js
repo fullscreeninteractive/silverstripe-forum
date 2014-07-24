@@ -156,5 +156,18 @@
 			});
 			return false;
 		});
+
+
+		/**
+		 * Ban / Ghost member confirmation
+		 */
+		$('a.banLink, a.ghostLink').click(function() {
+			var action = $(this).is('.banLink') ? 'ban' : 'ghost';
+
+			if(!confirm("Are you sure you wish to "+action+" this user? This will hide all posts by this user on all forums")) {
+				return false;
+			}
+		});
+		
 	})
 })(jQuery);
