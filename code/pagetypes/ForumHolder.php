@@ -146,6 +146,7 @@ class ForumHolder extends Page {
 		
 		if($member) {
 			if($member->IsSuspended()) return false;
+			if($member->IsBanned()) return false;
 			if($this->CanPostType == "LoggedInUsers") return true;
 
 			if($groups = $this->PosterGroups()) {
@@ -203,12 +204,13 @@ class ForumHolder extends Page {
 	 *
 	 * @return int Returns the number of posts
 	 */
-	function getNumPosts() {
-		return DB::query("
-			SELECT COUNT(\"Post\".\"ID\") 
-			FROM \"Post\" 
-			JOIN \"" . ForumHolder::baseForumTable() . "\" AS \"ForumPage\" ON \"Post\".\"ForumID\" = \"ForumPage\".\"ID\"
-			WHERE \"ForumPage\".\"ParentID\" = '" . $this->ID . "'")->value(); 
+	public function getNumPosts() {
+		return Post::get()
+			->innerJoin(ForumHolder::baseForumTable(),"\"Post\".\"ForumID\" = \"ForumPage\".\"ID\"" , "ForumPage")
+			->filter(array(
+				"ForumPage.ParentID" => $this->ID
+			))
+			->count();
 	}
 
 
@@ -218,11 +220,12 @@ class ForumHolder extends Page {
 	 * @return int Returns the number of topics (threads)
 	 */
 	function getNumTopics() {
-		return DB::query("
-			SELECT COUNT(\"ForumThread\".\"ID\") 
-			FROM \"ForumThread\" 
-			JOIN \"" . ForumHolder::baseForumTable() . "\" AS \"ForumPage\" ON \"ForumThread\".\"ForumID\" = \"ForumPage\".\"ID\"
-			WHERE \"ForumPage\".\"ParentID\" = '" . $this->ID . "'")->value(); 
+		return ForumThread::get()
+			->innerJoin(ForumHolder::baseForumTable(),"\"ForumThread\".\"ForumID\" = \"ForumPage\".\"ID\"","ForumPage")
+			->filter(array(
+				"ForumPage.ParentID" => $this->ID
+			))
+			->count();
 	}
 
 
@@ -231,7 +234,7 @@ class ForumHolder extends Page {
 	 *
 	 * @return int Returns the number of distinct authors
 	 */
-	function getNumAuthors() {
+	public function getNumAuthors() {
 		return DB::query("
 			SELECT COUNT(DISTINCT \"Post\".\"AuthorID\") 
 			FROM \"Post\" 
@@ -820,22 +823,6 @@ class ForumHolder_Controller extends Page_Controller {
 	 * @return DataObjectSet
 	 */
 	function GlobalAnnouncements() {
-		/*return DataObject::get(
-			"ForumThread", 
-			"\"ForumThread\".\"IsGlobalSticky\" = 1 AND \"ForumPage\".\"ParentID\"={$this->ID}", 
-			"MAX(\"PostList\".\"Created\") DESC",	
-			"INNER JOIN \"Post\" AS \"PostList\" ON \"PostList\".\"ThreadID\" = \"ForumThread\".\"ID\" 
-		  	 INNER JOIN \"" . ForumHolder::baseForumTable() . "\" \"ForumPage\" ON \"ForumThread\".\"ForumID\"=\"ForumPage\".\"ID\"");
-
-		
-		//Get all the forums with global sticky threads, and then get the most recent post for each of these		
-		$threads=DataObject::get(
-			'ForumThread',
-			"\"ForumThread\".\"IsGlobalSticky\"=1 AND \"ForumPage\".\"ParentID\"={$this->ID}",
-			'',
-			"INNER JOIN \"" . ForumHolder::baseForumTable() . "\" AS \"ForumPage\" ON \"ForumThread\".\"ForumID\"=\"ForumPage\".\"ID\""
-		);
-		*/
 		//dump(ForumHolder::baseForumTable());
 
 		// Get all the forums with global sticky threads
