@@ -85,10 +85,10 @@ class PostTest extends FunctionalTest {
 	
 	function testIssFirstPost() {
 		$first = $this->objFromFixture('Post', 'Post1');
-		$this->assertTrue($first->isFirstPost());
+		$this->assertTrue($first->IsFirstPost());
 		
 		$notFirst = $this->objFromFixture('Post', 'Post2');
-		$this->assertFalse($notFirst->isFirstPost());
+		$this->assertFalse($notFirst->IsFirstPost());
 	}
 	
 	function testReplyLink() {
@@ -159,11 +159,11 @@ class PostTest extends FunctionalTest {
 		$member = $this->objFromFixture('Member', 'moderator');
 		$member->logIn();
 		
-		$this->assertContains($post->Thread()->URLSegment .'/deletepost/'. $post->ID, $post->DeleteLink());
-		
-		// because this is the first post test for the class which is used in javascript
-		$this->assertContains("class=\"deleteLink firstPost\"", $post->DeleteLink());
+		$this->assertContains($post->Forum()->URLSegment .'/deletepost/'. $post->ID, $post->DeleteLink());
 
+		//Ensure firstPost class exits in the thread for javascript to use
+		$response = $this->get('/forum/general/show/1/');
+		$this->assertContains("class=\"deleteLink firstPost\"", $response->getBody());
 		$member->logOut();
 		
 		// log in as another member who is not in a position to delete this post
@@ -209,7 +209,8 @@ class PostTest extends FunctionalTest {
 		$this->assertContains($post->Thread()->URLSegment .'/markasspam/'. $post->ID, $post->MarkAsSpamLink());
 
 		// because this is the first post test for the class which is used in javascript
-		$this->assertContains("class=\"markAsSpamLink firstPost\"", $post->MarkAsSpamLink());
+		$response = $this->get('/forum/general/show/1/');
+		$this->assertContains("class=\"markAsSpamLink firstPost\"", $response->getBody());
 
 		$member->logOut();
 

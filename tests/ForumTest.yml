@@ -101,6 +101,7 @@ ForumCategory:
 Forum:
 	general:
 		Title: General Discussion
+		URLSegment: general
 		ParentID: =>ForumHolder.fh
 		CategoryID: =>ForumCategory.fh1cat1
 		CanViewType: Anyone
