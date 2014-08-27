@@ -43,6 +43,14 @@ class Forum extends Page {
 	);
 
 	/**
+	 * Same request cache so we don't call {@link getTopics()} multiple times,
+	 * as it's an expensive call.
+	 *
+	 * @var null|PaginatedList
+	 */
+	private static $_cache_topics = null;
+
+	/**
 	 * Number of posts to include in the thread view before pagination takes effect.
 	 *
 	 * @var int
@@ -379,6 +387,11 @@ class Forum extends Page {
 	 * @return DataList
 	 */
 	function getTopics() {
+		// return the cached result if it's set, improves performance calling getTopics() multiple times.
+		if(isset(self::$_cache_topics)) {
+			return self::$_cache_topics;
+		}
+
 		// Get a list of Posts
 		$posts = Post::get();
 
@@ -414,7 +427,9 @@ class Forum extends Page {
 		$threads = $threads->setDataQuery(new Forum_DataQuery('ForumThread', $threadQuery));
 
 		// And return the results
-		return $threads->exists() ? new PaginatedList($threads, $_GET) : null;
+		$results = $threads->exists() ? new PaginatedList($threads, $_GET) : null;
+		self::$_cache_topics = $results;
+		return $results;
 	}
 	
 	/*
