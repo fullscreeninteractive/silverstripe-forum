@@ -159,6 +159,7 @@ class ForumMemberProfile extends Page_Controller {
 	 * @param Form $form The used form
 	 */
 	function doregister($data, $form) {
+
 		// Check if the honeypot has been filled out
 		if(ForumHolder::$use_honeypot_on_register) {
 			if(@$data['username']) {
@@ -419,14 +420,20 @@ class ForumMemberProfile extends Page_Controller {
 	 * @return array Returns an array to render the edit profile page.
 	 */
 	function edit() {
-		$form = $this->EditProfileForm()
-			? $this->EditProfileForm()
-			: "<p class=\"error message\">" . _t('ForumMemberProfile.WRONGPERMISSION','You don\'t have the permission to edit that member.') . "</p>";
+		$holder = DataObject::get_one("ForumHolder");
+		$form = $this->EditProfileForm();
+
+		if(!$form && Member::currentUser()) {
+			$form = "<p class=\"error message\">" . _t('ForumMemberProfile.WRONGPERMISSION','You don\'t have the permission to edit that member.') . "</p>";
+		}
+		else if(!$form) {
+			return $this->redirect('ForumMemberProfile/show/'.$this->Member()->ID);
+		}
 
 		return array(
 			"Title" => "Forum",
-			"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
-			"Abstract" => DataObject::get_one("ForumHolder")->ProfileAbstract,
+			"Subtitle" => $holder->ProfileSubtitle,
+			"Abstract" => $holder->ProfileAbstract,
 			"Form" => $form,
 		);
 	}
