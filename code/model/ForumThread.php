@@ -32,6 +32,11 @@ class ForumThread extends DataObject {
 		'IsGlobalSticky' => false
 	);
 
+	private static $indexes = array(
+		'IsGlobalSticky' => true,
+		'IsSticky' => true
+	);
+
 	/**
 	 * @var null|boolean Per-request cache, whether we should display signatures on a post.
 	 */
