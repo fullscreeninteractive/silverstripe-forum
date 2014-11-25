@@ -302,7 +302,7 @@ class ForumThread_Subscription extends DataObject {
 					$email = new Email();
 					$email->setFrom(Email::getAdminEmail());
 					$email->setTo($member->Email);
-					$email->setSubject('New reply for ' . $post->Title);
+					$email->setSubject(_t('Post.NEWREPLY', 'New reply for') . " " . $post->Title);
 					$email->setTemplate('ForumMember_TopicNotification');
 					$email->populateTemplate($member);
 					$email->populateTemplate($post);
