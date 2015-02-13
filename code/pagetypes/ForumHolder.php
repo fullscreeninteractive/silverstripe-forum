@@ -83,66 +83,73 @@ class ForumHolder extends Page {
 	private static $currently_online_enabled = true;
 
 	function getCMSFields() {
-		$fields = parent::getCMSFields();
-		$fields->addFieldsToTab("Root.Messages", array(
-			TextField::create("HolderSubtitle","Forum Holder Subtitle"),
-			HTMLEditorField::create("HolderAbstract","Forum Holder Abstract"),
-			TextField::create("ProfileSubtitle","Member Profile Subtitle"),
-			HTMLEditorField::create("ProfileAbstract","Member Profile Abstract"),
-			TextField::create("ForumSubtitle","Create topic Subtitle"),
-			HTMLEditorField::create("ForumAbstract","Create topic Abstract"),
-			HTMLEditorField::create("ProfileModify","Create message after modifing forum member"),
-			HTMLEditorField::create("ProfileAdd","Create message after adding forum member")
-		));
-		$fields->addFieldsToTab("Root.Settings", array(
-			CheckboxField::create("DisplaySignatures", "Display Member Signatures?"),
-			CheckboxField::create("ShowInCategories", "Show Forums In Categories?"),
-			CheckboxField::create("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
-			DropdownField::create("GravatarType", "Gravatar Type", array(
- 		  		"standard" => _t('Forum.STANDARD','Standard'),
- 		  		"identicon" => _t('Forum.IDENTICON','Identicon'),
-		  		"wavatar" => _t('Forum.WAVATAR', 'Wavatar'),
-				"monsterid" => _t('Forum.MONSTERID', 'Monsterid'),
-				"retro" => _t('Forum.RETRO', 'Retro'),
- 				"mm" => _t('Forum.MM', 'Mystery Man'),
- 			))->setEmptyString('Use Forum Default')
-		));
-
-		// add a grid field to the category tab with all the categories
-		$categoryConfig = GridFieldConfig::create()
-			->addComponents(
-				new GridFieldSortableHeader(),
-				new GridFieldButtonRow(),
-				new GridFieldDataColumns(),
-				new GridFieldEditButton(),
-				new GridFieldViewButton(),
-				new GridFieldDeleteAction(),
-				new GridFieldAddNewButton('buttons-before-left'),
-				new GridFieldPaginator(),
-				new GridFieldDetailForm()
-			);
-
-		$categories = GridField::create(
-			'Category',
-			_t('Forum.FORUMCATEGORY', 'Forum Category'),
-			$this->Categories(),
-			$categoryConfig
-		);
-
-		$fields->addFieldsToTab("Root.Categories", $categories);
-
-
-		$fields->addFieldsToTab("Root.LanguageFilter", array(
-			TextField::create("ForbiddenWords", "Forbidden words (comma separated)"),
-			LiteralField::create("FWLabel","These words will be replaced by an asterisk")
-		));
+		$self = $this;
 		
-		$fields->addFieldToTab("Root.Access", HeaderField::create(_t('Forum.ACCESSPOST','Who can post to the forum?'), 2));
-		$fields->addFieldToTab("Root.Access", OptionsetField::create("CanPostType", "", array(
-		  	"Anyone" => _t('Forum.READANYONE', 'Anyone'),
-		  	"LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
-			"NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
-		)));
+		$this->beforeUpdateCMSFields(function($fields) use ($self) {
+			
+			$fields->addFieldsToTab("Root.Messages", array(
+				TextField::create("HolderSubtitle","Forum Holder Subtitle"),
+				HTMLEditorField::create("HolderAbstract","Forum Holder Abstract"),
+				TextField::create("ProfileSubtitle","Member Profile Subtitle"),
+				HTMLEditorField::create("ProfileAbstract","Member Profile Abstract"),
+				TextField::create("ForumSubtitle","Create topic Subtitle"),
+				HTMLEditorField::create("ForumAbstract","Create topic Abstract"),
+				HTMLEditorField::create("ProfileModify","Create message after modifing forum member"),
+				HTMLEditorField::create("ProfileAdd","Create message after adding forum member")
+			));
+			$fields->addFieldsToTab("Root.Settings", array(
+				CheckboxField::create("DisplaySignatures", "Display Member Signatures?"),
+				CheckboxField::create("ShowInCategories", "Show Forums In Categories?"),
+				CheckboxField::create("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
+				DropdownField::create("GravatarType", "Gravatar Type", array(
+					"standard" => _t('Forum.STANDARD','Standard'),
+					"identicon" => _t('Forum.IDENTICON','Identicon'),
+					"wavatar" => _t('Forum.WAVATAR', 'Wavatar'),
+					"monsterid" => _t('Forum.MONSTERID', 'Monsterid'),
+					"retro" => _t('Forum.RETRO', 'Retro'),
+					"mm" => _t('Forum.MM', 'Mystery Man'),
+				))->setEmptyString('Use Forum Default')
+			));
+	
+			// add a grid field to the category tab with all the categories
+			$categoryConfig = GridFieldConfig::create()
+				->addComponents(
+					new GridFieldSortableHeader(),
+					new GridFieldButtonRow(),
+					new GridFieldDataColumns(),
+					new GridFieldEditButton(),
+					new GridFieldViewButton(),
+					new GridFieldDeleteAction(),
+					new GridFieldAddNewButton('buttons-before-left'),
+					new GridFieldPaginator(),
+					new GridFieldDetailForm()
+				);
+	
+			$categories = GridField::create(
+				'Category',
+				_t('Forum.FORUMCATEGORY', 'Forum Category'),
+				$self->Categories(),
+				$categoryConfig
+			);
+	
+			$fields->addFieldsToTab("Root.Categories", $categories);
+	
+	
+			$fields->addFieldsToTab("Root.LanguageFilter", array(
+				TextField::create("ForbiddenWords", "Forbidden words (comma separated)"),
+				LiteralField::create("FWLabel","These words will be replaced by an asterisk")
+			));
+			
+			$fields->addFieldToTab("Root.Access", HeaderField::create(_t('Forum.ACCESSPOST','Who can post to the forum?'), 2));
+			$fields->addFieldToTab("Root.Access", OptionsetField::create("CanPostType", "", array(
+				"Anyone" => _t('Forum.READANYONE', 'Anyone'),
+				"LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
+				"NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
+			)));
+			
+		});
+		
+		$fields = parent::getCMSFields();
 
 		return $fields;
 	}
