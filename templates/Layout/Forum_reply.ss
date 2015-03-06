@@ -1,5 +1,5 @@
 <% include ForumHeader %>
-	$PostMessageForm
+	$PostMessageForm(false)
 	
 	<div id="PreviousPosts">
 		<ul id="Posts">

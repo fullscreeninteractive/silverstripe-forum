@@ -731,9 +731,13 @@ class Forum_Controller extends Page_Controller {
 	 *
 	 * @return Form Returns the post message form
 	 */
-	function PostMessageForm($addMode = false, $post = false) {
-		$thread = false;
+	function PostMessageForm($addMode = true, $post = false) {
+		if (!$addMode || $addMode == 'false') {
+    			$addMode = false;
+		}
 
+		$thread = false;
+		
 		if($post) {
 			$thread = $post->Thread();
 		} else if(isset($this->urlParams['ID']) && is_numeric($this->urlParams['ID'])) {
@@ -819,7 +823,7 @@ class Forum_Controller extends Page_Controller {
 			new FormAction("doPostMessageForm", _t('Forum.REPLYFORMPOST', 'Post'))
 		);
 
-		$required = $addMode === true ? new RequiredFields("Title", "Content") : new RequiredFields("Content");
+		$required = $addMode == 'true' ? new RequiredFields("Title", "Content") : new RequiredFields("Content");
 
 		$form = new Form($this, 'PostMessageForm', $fields, $actions, $required);
 
