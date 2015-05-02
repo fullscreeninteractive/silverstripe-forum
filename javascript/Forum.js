@@ -37,15 +37,21 @@
 		 * BBCode Tools
 		 * While editing / replying to a post you can get a little popup
 		 * with all the BBCode tags
+		 * 
+		 * @TODO use ss.i18n.addDictionary to make the strings "View Formatting Help" and "Hide Formatting Helo" translatable. Until then we need the two functions below.
 		 */
-		$("#BBCodeHint").click(function() {
-			if($("#BBTagsHolder").hasClass("showing")) {
-				$(this).text("View Formatting Help");
-				$("#BBTagsHolder").hide().removeClass("showing");
-			} else {
-				$(this).text("Hide Formatting Help");
-				$("#BBTagsHolder").show().addClass("showing");
-			}
+		$("#ViewBBCodeHint").click(function() {
+			$("#BBTagsHolder").toggleClass("showing");
+			$("#ViewBBCodeHint").hide();
+			$("#HideBBCodeHint").show();
+			$("#BBTagsHolder").toggle();
+			return false;
+		});
+		$("#HideBBCodeHint").click(function() {
+			$("#BBTagsHolder").toggleClass("showing");
+			$("#ViewBBCodeHint").show();
+			$("#HideBBCodeHint").hide();
+			$("#BBTagsHolder").toggle();
 			return false;
 		});
 	

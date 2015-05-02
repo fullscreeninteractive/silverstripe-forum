@@ -7,8 +7,11 @@ en:
   Forum:
     ACCESSATTACH: 'Can users attach files?'
     ACCESSPOST: 'Who can post to the forum?'
+    ADMINFEATURES: 'Forum Admin Features'
     ATTACH: 'Attach file'
     BBCODEHINT: 'View Formatting Help'
+    VIEWBBCODEHINT: 'View Formatting Help'
+    HIDEBBCODEHINT: 'Hide Formatting Help'
     CHANGETHREADFORUM: 'Change Thread Forum'
     CURRENTATTACHMENTS: 'Current Attachments'
     DEFAULTCATEGORY: General
@@ -146,6 +149,8 @@ en:
     OLDEST: Oldest
     ORDERBYNEWEST: 'Order by Newest. Most recent posts first'
     ORDERBYOLDEST: 'Order by Oldest. Oldest posts First'
+  ForumHolder_List_ss:
+    BY: by
   ForumLogin_ss:
     ANONYMOUS: Anonymous
     LOGGEDINAS: 'You''re logged in as'

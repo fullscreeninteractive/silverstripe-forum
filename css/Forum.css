@@ -17,6 +17,37 @@
 .forum-header-forms form {
 	margin:0;
 }
+.typography .start-topic{
+	color: #92b167;
+	background: #e4e4e4;
+	background: -moz-linear-gradient(top, #ffffff 0%, #e4e4e4 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#e4e4e4));
+	background: -webkit-linear-gradient(top, #ffffff 0%,#e4e4e4 100%);
+	background: -o-linear-gradient(top, #ffffff 0%,#e4e4e4 100%);
+	background: -ms-linear-gradient(top, #ffffff 0%,#e4e4e4 100%);
+	background: linear-gradient(to bottom, #ffffff 0%,#e4e4e4 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#cccccc',GradientType=0 );
+	font-weight: bold;
+	border: 1px solid #cccccc;
+	padding: 6px 7px;
+	border-radius: 15px;
+}
+.typography .start-topic:hover{
+	color: #92b167;
+	background: #e4e4e4;
+	background: -moz-linear-gradient(top,  #e4e4e4 0%, #ffffff 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e4e4e4), color-stop(100%,#ffffff));
+	background: -webkit-linear-gradient(top,  #e4e4e4 0%,#ffffff 100%);
+	background: -o-linear-gradient(top,  #e4e4e4 0%,#ffffff 100%);
+	background: -ms-linear-gradient(top,  #e4e4e4 0%,#ffffff 100%);
+	background: linear-gradient(to bottom,  #e4e4e4 0%,#ffffff 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e4e4e4', endColorstr='#ffffff',GradientType=0 );
+	border: 1px solid #cccccc;
+}
+.typography .start-topic::before{
+	content: "+";
+	margin: 3px;
+}
 .forum-jump {
 }
 .forum-jump label {
@@ -146,5 +177,6 @@
 }
 .forum-footer p strong {
 }
-
-
+.BBCodeHint #HideBBCodeHint{
+	display: none;
+}

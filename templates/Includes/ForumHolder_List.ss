@@ -23,7 +23,7 @@
 			<% with LatestPost %>
 				<p class="post-date">$Created.Ago</p>
 				<% with Author %>
-					<p>by <% if Link %><a href="$Link"><% if Nickname %>$Nickname<% else %>Anon<% end_if %></a><% else %><span>Anon</span><% end_if %></p>
+					<p><% _t('ForumHolder_List_ss.BY','by') %> <% if Link %><a href="$Link"><% if Nickname %>$Nickname<% else %>Anon<% end_if %></a><% else %><span>Anon</span><% end_if %></p>
 				<% end_with %>
 			<% end_with %>
 		<% end_if %>
