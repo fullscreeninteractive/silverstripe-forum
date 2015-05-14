@@ -276,6 +276,8 @@ en:
     EDIT: Edit
     MARKASSPAM: 'Mark as Spam'
     REPLYLINK: 'Post Reply'
+    BANUSER: 'Ban user'
+    GHOSTUSER: 'Ghost user'
     RESPONSE: 'Re: %s'
     SHOWLINK: 'Show Thread'
     PLURALNAME: Posts

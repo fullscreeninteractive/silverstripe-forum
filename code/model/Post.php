@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Forum Post Object. Contains a single post by the user. A thread is generated 
+ * Forum Post Object. Contains a single post by the user. A thread is generated
  * with multiple posts.
  *
  * @package forum
  */
 
 class Post extends DataObject {
-	
+
 	private static $db = array(
 		"Content" => "Text",
 		"Status" => "Enum('Awaiting, Moderated, Rejected, Archived', 'Moderated')",
@@ -40,9 +40,9 @@ class Post extends DataObject {
 	);
 
 	/**
-	 * Update all the posts to have a forum ID of their thread ID. 
+	 * Update all the posts to have a forum ID of their thread ID.
 	 */
-	function requireDefaultRecords() {
+	public function requireDefaultRecords() {
 		$posts = Post::get()->filter(array('ForumID' => 0, 'ThreadID:GreaterThan' => 0));
 
 		if($posts->exists()) {
@@ -52,29 +52,29 @@ class Post extends DataObject {
 					$post->write();
 				}
 			}
-			
+
 			DB::alteration_message(_t('Forum.POSTSFORUMIDUPDATED', 'Forum posts forum ID added'), 'created');
 		}
 	}
-	
+
 	/**
 	 * Before deleting a post make sure all attachments are also deleted
 	 */
-	function onBeforeDelete() {
+	public function onBeforeDelete() {
 		parent::onBeforeDelete();
-		
+
 		if($attachments = $this->Attachments()) {
 			foreach($attachments as $file) {
 				$file->delete();
 				$file->destroy();
 			}
-		}	
+		}
 	}
 
 	/**
 	 * Check if user can see the post
 	 */
-	function canView($member = null) {
+	public function canView($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return $this->Thread()->canView($member);
 	}
@@ -82,25 +82,25 @@ class Post extends DataObject {
 	/**
 	 * Check if user can edit the post (only if it's his own, or he's an admin user)
 	 */
-	function canEdit($member = null) {
+	public function canEdit($member = null) {
 		if(!$member) $member = Member::currentUser();
-		
+
 		if($member) {
 			// Admins can always edit, regardless of thread/post ownership
 			if(Permission::checkMember($member, 'ADMIN')) return true;
 
 			// Otherwise check for thread permissions and ownership
 			if($this->Thread()->canPost($member) && $member->ID == $this->AuthorID) return true;
-		} 
+		}
 
 		return false;
 	}
-	
+
 	/**
 	 * Follow edit permissions for this, but additionally allow moderation even
 	 * if the thread is marked as readonly.
 	 */
-	function canDelete($member = null) {
+	public function canDelete($member = null) {
 		if(!$member) $member = Member::currentUser();
 		if($this->canEdit($member)) {
 			return true;
@@ -108,48 +108,48 @@ class Post extends DataObject {
 			return $this->Thread()->canModerate($member);
 		}
 	}
-	
+
 	/**
 	 * Check if user can add new posts - hook up into canPost.
 	 */
-	function canCreate($member = null) {
+	public function canCreate($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return $this->Thread()->canPost($member);
 	}
-	
+
 	/**
 	 * Returns the absolute url rather then relative. Used in Post RSS Feed
 	 *
 	 * @return String
 	 */
-	function AbsoluteLink() {
+	public function AbsoluteLink() {
 		return Director::absoluteURL($this->Link());
 	}
 
 	/**
 	 * Return the title of the post. Because we don't have to have the title
 	 * on individual posts check with the topic
-	 * 
+	 *
 	 * @return String
 	 */
-	function getTitle() {
-		return ($this->isFirstPost()) ? $this->Thread()->Title : sprintf(_t('Post.RESPONSE',"Re: %s",'Post Subject Prefix'),$this->Thread()->Title);
+	public function getTitle() {
+		return ($this->IsFirstPost()) ? $this->Thread()->Title : sprintf(_t('Post.RESPONSE',"Re: %s",'Post Subject Prefix'),$this->Thread()->Title);
 	}
 
 	/**
 	 * Return the last edited date, if it's different from created
 	 */
-	function getUpdated() {
+	public function getUpdated() {
 		if($this->LastEdited != $this->Created) return $this->LastEdited;
 	}
-	
+
 	/**
 	 * Is this post the first post in the thread. Check if their is a post with an ID less
 	 * than the one of this post in the same thread
 	 *
 	 * @return bool
 	 */
-	public function isFirstPost() {
+	public function IsFirstPost() {
 		if(empty($this->ThreadID) || empty($this->ID)) return false;
 		$earlierPosts = DB::query(sprintf(
 			'SELECT COUNT("ID") FROM "Post" WHERE "ThreadID" = \'%d\' and "ID" < \'%d\'',
@@ -158,23 +158,25 @@ class Post extends DataObject {
 		))->value();
 		return empty($earlierPosts);
 	}
-	
+
 	/**
 	 * Return a link to edit this post.
-	 * 
+	 *
 	 * @return String
 	 */
-	function EditLink() {
+	public function EditLink() {
 		if ($this->canEdit()) {
 			$url = Controller::join_links($this->Link('editpost'), $this->ID);
-			return '<a href="' . $url . '" class="editPostLink">' . _t('Post.EDIT', 'Edit') . '</a>';
+			$token = SecurityToken::inst();
+			$url = $token->addToUrl($url);
+			return $url;
 		}
 		return false;
 	}
 
 	/**
 	 * Return a link to delete this post.
-	 * 
+	 *
 	 * If the member is an admin of this forum, (ADMIN permissions
 	 * or a moderator) then they can delete the post.
 	 *
@@ -186,54 +188,49 @@ class Post extends DataObject {
 			$token = SecurityToken::inst();
 			$url = $token->addToUrl($url);
 
-			$firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
-
-			return '<a class="deleteLink' . $firstPost . '" href="' . $url . '">' . _t('Post.DELETE','Delete') . '</a>';
+			return $url;
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Return a link to the reply form. Permission checking is handled on the actual URL
 	 * and not on this function
 	 *
 	 * @return String
 	 */
-	function ReplyLink() {
+	public function ReplyLink() {
 		$url = $this->Link('reply');
 
-		return '<a href="' . $url . '" class="replyLink">' . _t('Post.REPLYLINK','Post Reply') . '</a>';
+		return $url;
 	}
-		
+
 	/**
 	 * Return a link to the post view.
 	 *
 	 * @return String
 	 */
-	function ShowLink() {
+	public function ShowLink() {
 		$url = $this->Link('show');
-		
-		return '<a href="' . $url . '" class="showLink">' . _t('Post.SHOWLINK','Show Thread') . "</a>";
+
+		return $url;
 	}
-	
+
 	/**
 	 * Return a link to mark this post as spam.
 	 * used for the spamprotection module
 	 *
 	 * @return String
 	 */
-	function MarkAsSpamLink() {
+	public function MarkAsSpamLink() {
 		if($this->Thread()->canModerate()) {
 			$member = Member::currentUser();
 		 	if($member->ID != $this->AuthorID) {
 			    $url = Controller::join_links($this->Forum()->Link('markasspam'),$this->ID);
 				$token = SecurityToken::inst();
 				$url = $token->addToUrl($url);
-
-				$firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
-				
-				return '<a href="' . $url .'" class="markAsSpamLink' . $firstPost . '" rel="' . $this->ID . '">'. _t('Post.MARKASSPAM', 'Mark as Spam') . '</a>';
+				return $url;
 			}
 		}
 		return false;
@@ -242,8 +239,10 @@ class Post extends DataObject {
 	public function BanLink() {
 		$thread = $this->Thread();
 		if($thread->canModerate()) {
-			$link = $thread->Forum()->Link('ban') .'/'. $this->AuthorID;
-			return "<a class='banLink' href=\"$link\" rel=\"$this->AuthorID\">". _t('Post.BANUSER', 'Ban User') ."</a>";
+			$url = $thread->Forum()->Link('ban') .'/'. $this->AuthorID;
+			$token = SecurityToken::inst();
+			$url = $token->addToUrl($url);
+			return $url;
 		}
 		return false;
 	}
@@ -251,34 +250,36 @@ class Post extends DataObject {
 	public function GhostLink() {
 		$thread = $this->Thread();
 		if($thread->canModerate()) {
-			$link = $thread->Forum()->Link('ghost') .'/'. $this->AuthorID;
-			return "<a class='ghostLink' href=\"$link\" rel=\"$this->AuthorID\">". _t('Post.GHOSTUSER', 'Ghost User') ."</a>";
+			$url = $thread->Forum()->Link('ghost') .'/'. $this->AuthorID;
+			$token = SecurityToken::inst();
+			$url = $token->addToUrl($url);
+			return $url;
 		}
 		return false;
 	}
 
 	/**
-	 * Return the parsed content and the information for the 
+	 * Return the parsed content and the information for the
 	 * RSS feed
 	 */
-	function getRSSContent() {
+	public function getRSSContent() {
 		return $this->renderWith('Includes/Post_rss');
 	}
 
-	
-	function getRSSAuthor() {
+
+	public function getRSSAuthor() {
 		$author = $this->Author();
-		
+
 		return $author->Nickname;
 	}
-	
+
 	/**
 	 * Return a link to show this post
 	 *
 	 * @return String
 	 */
-	function Link($action = "show") {
-		// only include the forum thread ID in the URL if we're showing the thread either 
+	public function Link($action = "show") {
+		// only include the forum thread ID in the URL if we're showing the thread either
 		// by showing the posts or replying therwise we only need to pass a single ID.
 		$includeThreadID = ($action == "show" || $action == "reply") ? true : false;
 		$link = $this->Thread()->Link($action, $includeThreadID);
@@ -286,14 +287,14 @@ class Post extends DataObject {
 		// calculate what page results the post is on
 		// the count is the position of the post in the thread
 		$count = DB::query("
-			SELECT COUNT(\"ID\") 
-			FROM \"Post\" 
+			SELECT COUNT(\"ID\")
+			FROM \"Post\"
 			WHERE \"ThreadID\" = '$this->ThreadID' AND \"Status\" = 'Moderated' AND \"ID\" < $this->ID
 		")->value();
 
 		$start = ($count >= Forum::$posts_per_page) ? floor($count / Forum::$posts_per_page) * Forum::$posts_per_page : 0;
 		$pos = ($start == 0 ? '' : "?start=$start") . ($count == 0 ? '' : "#post{$this->ID}");
-		
+
 		return ($action == "show") ? $link . $pos : $link;
 	}
 }
@@ -304,11 +305,11 @@ class Post extends DataObject {
  * @package forum
  */
 class Post_Attachment extends File {
-	
+
 	private static $has_one = array(
 		"Post" => "Post"
 	);
-	
+
 	private static $defaults = array(
 		'ShowInSearch' => 0
 	);
@@ -318,17 +319,17 @@ class Post_Attachment extends File {
 	 *
 	 * @return bool
 	 */
-	function canDelete($member = null) {
+	public function canDelete($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return ($this->Post()) ? $this->Post()->canDelete($member) : true;
 	}
-	
+
 	/**
 	 * Can a user edit this attachement
 	 *
 	 * @return bool
 	 */
-	function canEdit($member = null) {
+	public function canEdit($member = null) {
 		if(!$member) $member = Member::currentUser();
 		return ($this->Post()) ? $this->Post()->canEdit($member) : true;
 	}
@@ -336,17 +337,17 @@ class Post_Attachment extends File {
 	/**
 	 * Allows the user to download a file without right-clicking
 	 */
-	function download() {
+	public function download() {
 		if(isset($this->urlParams['ID'])) {
 			$SQL_ID = Convert::raw2sql($this->urlParams['ID']);
-			
+
 			if(is_numeric($SQL_ID)) {
 				$file = DataObject::get_by_id("Post_Attachment", $SQL_ID);
 				$response = SS_HTTPRequest::send_file(file_get_contents($file->getFullPath()), $file->Name);
 				$response->output();
 			}
 		}
-		
+
 		return $this->redirectBack();
 	}
 }
