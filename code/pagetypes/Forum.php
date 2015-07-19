@@ -1296,7 +1296,9 @@ class Forum_Controller extends Page_Controller {
 			$thread = ForumThread::get()->byID($id);
 			$form->loadDataFrom($thread);
 		}
-
+		
+		$this->extend('updateAdminFormFeatures', $form);
+		
 		return $form;
 	}
 
