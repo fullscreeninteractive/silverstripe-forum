@@ -5,7 +5,7 @@
 </div>
 <% include Editor_toolbar %>
 
-<% if EditForm %>
+<% if $EditForm %>
 	$EditForm
 <% else %>
 	<form id="Form_EditForm" action="admin?executeForm=EditForm" method="post" enctype="multipart/form-data">

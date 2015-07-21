@@ -1,7 +1,7 @@
 <% include ForumHeader %>
 <div id="TopicTree">
 	<div id="Root">
-		$PostMessageForm(true)
+		$PostMessageForm(1)
 	</div>
 </div>
 <% include ForumFooter %>

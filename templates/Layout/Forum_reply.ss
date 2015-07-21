@@ -3,7 +3,7 @@
 
 	<div id="PreviousPosts">
 		<ul id="Posts">
-			<% loop Posts(DESC) %>
+			<% loop $Posts('DESC') %>
 				<li class="$EvenOdd">
 					<% include SinglePost %>
 				</li>

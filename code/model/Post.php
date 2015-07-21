@@ -31,6 +31,14 @@ class Post extends DataObject {
 		"Attachments" => "Post_Attachment"
 	);
 
+	private static $summary_fields = array(
+		"Content.LimitWordCount" => "Summary",
+		"Created" => "Created",
+		"Status" => "Status",
+		"Thread.Title" => "Thread",
+		"Forum.Title" => "Forum"
+	);
+
 	/**
 	 * Update all the posts to have a forum ID of their thread ID. 
 	 */
@@ -143,11 +151,10 @@ class Post extends DataObject {
 	 */
 	public function isFirstPost() {
 		if(empty($this->ThreadID) || empty($this->ID)) return false;
-		$earlierPosts = DB::query(sprintf(
-			'SELECT COUNT("ID") FROM "Post" WHERE "ThreadID" = \'%d\' and "ID" < \'%d\'',
-			$this->ThreadID,
-			$this->ID
-		))->value();
+		$earlierPosts = DB::prepared_query(
+			'SELECT COUNT("ID") FROM "Post" WHERE "ThreadID" = ? AND "ID" < ?',
+			array($this->ThreadID, $this->ID)
+		)->value();
 		return empty($earlierPosts);
 	}
 	
@@ -277,11 +284,12 @@ class Post extends DataObject {
 
 		// calculate what page results the post is on
 		// the count is the position of the post in the thread
-		$count = DB::query("
-			SELECT COUNT(\"ID\") 
-			FROM \"Post\" 
-			WHERE \"ThreadID\" = '$this->ThreadID' AND \"Status\" = 'Moderated' AND \"ID\" < $this->ID
-		")->value();
+		$count = DB::prepared_query('
+			SELECT COUNT("ID") 
+			FROM "Post" 
+			WHERE "ThreadID" = ? AND "Status" = \'Moderated\' AND "ID" < ?',
+			array($this->ThreadID, $this->ID)
+		)->value();
 
 		$start = ($count >= Forum::$posts_per_page) ? floor($count / Forum::$posts_per_page) * Forum::$posts_per_page : 0;
 		$pos = ($start == 0 ? '' : "?start=$start") . ($count == 0 ? '' : "#post{$this->ID}");

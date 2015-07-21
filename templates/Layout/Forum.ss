@@ -18,12 +18,12 @@
 <% end_if %>
 
 <div class="forum-features">
-	<% if getStickyTopics(0) %>
+	<% if $getStickyTopics(0) %>
 		<table class="forum-sticky-topics" class="topicList" summary="List of sticky topics in this forum">
 			<tr class="category">
 				<td colspan="3"><% _t('Forum_ss.ANNOUNCEMENTS', 'Announcements') %></td>
 			</tr>
-			<% loop getStickyTopics(0) %>
+			<% loop $getStickyTopics(0) %>
 				<% include TopicListing %>
 			<% end_loop %>
 		</table>
@@ -38,8 +38,8 @@
 			<th class="odd"><% _t('Forum_ss.POSTS','Posts') %></th>
 			<th class="even"><% _t('Forum_ss.LASTPOST','Last Post') %></th>
 		</tr>
-		<% if Topics %>
-			<% loop Topics %>
+		<% if $Topics %>
+			<% loop $Topics %>
 				<% include TopicListing %>
 			<% end_loop %>
 		<% else %>
@@ -49,13 +49,13 @@
 		<% end_if %>
 	</table>
 
-	<% if Topics.MoreThanOnePage %>
+	<% if $Topics.MoreThanOnePage %>
 		<p>
-			<% if Topics.PrevLink %><a style="float: left" href="$Topics.PrevLink">	&lt; <% _t('Forum_ss.PREVLNK','Previous Page') %></a><% end_if %>
-			<% if Topics.NextLink %><a style="float: right" href="$Topics.NextLink"><% _t('Forum_ss.NEXTLNK','Next Page') %> &gt;</a><% end_if %>
-			
-			<% loop Topics.Pages %>
-				<% if CurrentBool %>
+			<% if $Topics.PrevLink %><a style="float: left" href="$Topics.PrevLink">	&lt; <% _t('Forum_ss.PREVLNK','Previous Page') %></a><% end_if %>
+			<% if $Topics.NextLink %><a style="float: right" href="$Topics.NextLink"><% _t('Forum_ss.NEXTLNK','Next Page') %> &gt;</a><% end_if %>
+
+			<% loop $Topics.Pages %>
+				<% if $CurrentBool %>
 					<strong>$PageNum</strong>
 				<% else %>
 					<a href="$Link">$PageNum</a>
@@ -63,7 +63,7 @@
 			<% end_loop %>
 		</p>
 	<% end_if %>
-	
+
 </div><!-- forum-features. -->
 
 <% include ForumFooter %>

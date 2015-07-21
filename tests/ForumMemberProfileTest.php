@@ -1,24 +1,28 @@
 <?php
 
 class ForumMemberProfileTest extends FunctionalTest {
-	
+
 	static $fixture_file = "forum/tests/ForumTest.yml";
 	static $use_draft_site = true;
-	
+
 	function testRegistrationWithHoneyPot() {
+		$controller = new ForumMemberProfile();
+		$controller->init();
+		$form = $controller->RegistrationForm();
+
 		$origHoneypot = ForumHolder::$use_honeypot_on_register;
 		$origSpamprotection = ForumHolder::$use_spamprotection_on_register;
-		
+
 		ForumHolder::$use_spamprotection_on_register = false;
-		
+
 		ForumHolder::$use_honeypot_on_register = false;
 		$response = $this->get('ForumMemberProfile/register');
 		$this->assertNotContains('RegistrationForm_username', $response->getBody(), 'Honeypot is disabled by default');
-		
+
 		ForumHolder::$use_honeypot_on_register = true;
 		$response = $this->get('ForumMemberProfile/register');
 		$this->assertContains('RegistrationForm_username', $response->getBody(), 'Honeypot can be enabled');
-		
+
 		// TODO Will fail if Member is decorated with further *required* fields,
 		// through updateForumFields() or updateForumValidator()
 		$baseData = array(
@@ -27,18 +31,19 @@ class ForumMemberProfileTest extends FunctionalTest {
 				'_ConfirmPassword' => 'text'
 			),
 			"Nickname" => 'test',
-			"Email" => 'test@test.com', 
+			"Email" => 'test@test.com',
 		);
-		
-		$invalidData = array_merge($baseData, array('action_doregister' => 1, 'username' => 'spamtastic'));
-		$response = $this->post('ForumMemberProfile/RegistrationForm', $invalidData);
+
+		$invalidData = array_merge($baseData, array('username' => 'spamtastic'));
+		$response = $this->submitForm($form->FormName(), $form->Actions()->first()->getName(), $invalidData);
 		$this->assertEquals(403, $response->getStatusCode());
-		
-		$validData = array_merge($baseData, array('action_doregister' => 1));
-		$response = $this->post('ForumMemberProfile/RegistrationForm', $validData);
+
+		$validData = $baseData;
+		$this->get('ForumMemberProfile/register');
+		$response = $this->submitForm($form->FormName(), $form->Actions()->first()->getName(), $validData);
 		// Weak check (registration might still fail), but good enough to know if the honeypot is working
-		$this->assertEquals(200, $response->getStatusCode());
-		
+		$this->assertNotEquals(403, $response->getStatusCode());
+
 		ForumHolder::$use_honeypot_on_register = $origHoneypot;
 		ForumHolder::$use_spamprotection_on_register = $origSpamprotection;
 	}
@@ -67,16 +72,16 @@ class ForumMemberProfileTest extends FunctionalTest {
 
 		SS_Datetime::clear_mock_now();
 	}
-	
+
 	function testMemberProfileDisplays() {
 		/* Get the profile of a secretive member */
 		$this->get('ForumMemberProfile/show/' . $this->idFromFixture('Member', 'test1'));
-		
-		/* Check that it just contains the bare minimum 
-		 
+
+		/* Check that it just contains the bare minimum
+
 		Commented out by wrossiter since this was breaking with custom themes. A test like this should not fail
 		because of a custom theme. Will reenable these tests when we tackle the new Member functionality
-		
+
 		$this->assertExactMatchBySelector("div#UserProfile label", array(
 			"Nickname:",
 			"Number of posts:",
@@ -93,8 +98,8 @@ class ForumMemberProfileTest extends FunctionalTest {
 		/* Get the profile of a public member */
 		$this->get('ForumMemberProfile/show/' . $this->idFromFixture('Member', 'test2'));
 
-		/* Check that it just contains everything 
-		
+		/* Check that it just contains everything
+
 		$this->assertExactMatchBySelector("div#UserProfile label", array(
 			"Nickname:",
 			'First Name:',

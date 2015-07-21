@@ -1,6 +1,6 @@
 <p><% sprintf(_t('ForumMember_NotifyModerator_ss.HI',"Hi %s,"),$Author.Nickname) %>,</p>
 
-<% if NewThread %>
+<% if $NewThread %>
 	<p><% _t('ForumMember_NotifyModerator_ss.MODERATORNEWTHREADMESSAGE', "New forum thread has been started") %>.</p>
 <% else %>
 	<p><% _t('ForumMember_NotifyModerator_ss.MODERATORNEWPOSTMESSAGE',"A forum post has been added or edited") %>.</p>
@@ -10,11 +10,11 @@
 <blockquote>
 	<p>
 		<strong>$Post.Title</strong><br/>
-		<% if Author %> <% _t('ForumMember_NotifyModerator_ss.BY', "by") %> <em>$Author.Nickname</em><% end_if %>
+		<% if $Author %> <% _t('ForumMember_NotifyModerator_ss.BY', "by") %> <em>$Author.Nickname</em><% end_if %>
 		<% _t('ForumMember_NotifyModerator_ss.DATEON', "on") %> {$Post.LastEdited.Nice}.
 	</p>
-	<% loop Post %>
-		<p>$Content.Parse(BBCodeParser)</p>
+	<% loop $Post %>
+		<p>$Content.Parse('BBCodeParser')</p>
 	<% end_loop %>
 </blockquote>
 

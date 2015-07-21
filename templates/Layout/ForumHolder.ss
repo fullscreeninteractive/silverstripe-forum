@@ -2,16 +2,16 @@
 
 <table class="forum-topics">
 
-	<% if GlobalAnnouncements %>
+	<% if $GlobalAnnouncements %>
 		<tr class="category">
 			<td colspan="4"><% _t('ForumHolder_ss.ANNOUNCEMENTS', 'Announcements') %></td>
 		</tr>
-		<% loop GlobalAnnouncements %>
+		<% loop $GlobalAnnouncements %>
 			<% include ForumHolder_List %>
 		<% end_loop %>
 	<% end_if %>
 
-	<% if ShowInCategories %>
+	<% if $ShowInCategories %>
 		<% loop Forums %>
 			<tr class="category"><td colspan="4">$Title</td></tr>
 			<tr class="category">
@@ -20,7 +20,7 @@
 				<th><% _t('ForumHolder_ss.POSTS','Posts') %></th>
 				<th><% _t('ForumHolder_ss.LASTPOST','Last Post') %></th>
 			</tr>
-			<% loop CategoryForums %>
+			<% loop $CategoryForums %>
 				<% include ForumHolder_List %>
 			<% end_loop %>
 		<% end_loop %>
@@ -31,7 +31,7 @@
 			<td><% _t('ForumHolder_ss.POSTS','Posts') %></td>
 			<td><% _t('ForumHolder_ss.LASTPOST','Last Post') %></td>
 		</tr>
-		<% loop Forums %>
+		<% loop $Forums %>
 			<% include ForumHolder_List %>
 		<% end_loop %>
 	<% end_if %>

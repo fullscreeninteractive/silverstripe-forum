@@ -1,314 +1,314 @@
 Permission:
-	admin:
-		Code: ADMIN
+  admin:
+    Code: ADMIN
 Group:
-	members:
-		Title: Forum Members
-		Code: forum-members
-	admins:
-		Title: Administrators
-		Code: administrators
-		Permissions: =>Permission.admin
-	special:
-		Title: Special Members who can see a forum
-		Code: special-group
+  members:
+    Title: Forum Members
+    Code: forum-members
+  admins:
+    Title: Administrators
+    Code: administrators
+    Permissions: =>Permission.admin
+  special:
+    Title: Special Members who can see a forum
+    Code: special-group
 Member:
-	test1:
-		Nickname: test1
-		FirstName: Test
-		Email: test1@example.com
-		Surname: One
-		Occupation: TestUser
-		Country: NZ
-		FirstNamePublic: 0
-		SurnamePublic: 0
-		OccupationPublic: 0
-		CountryPublic: 0
-		EmailPublic: 0
-		ForumRank: n00b
-	test2:
-		Nickname: test2
-		FirstName: Test
-		Surname: Two
-		Email: test2@example.com
-		Occupation: OtherUser
-		Country: AU
-		FirstNamePublic: 1
-		SurnamePublic: 1
-		OccupationPublic: 1
-		CountryPublic: 1
-		EmailPublic: 1
-		ForumRank: l33t
-		Groups: =>Group.special
-	moderator:
-		Nickname: Moderator
-		FirstName: Moderator
-		Surname: Guy
-		Email: test3@example.com
-		ForumRank: l33t
-	spammer:
-		Nickname: Spam
-		Email: spam@test.org		
-	spammer2:
-		Nickname: Spam2
-		Email: spam2@test.org
-	suspendedexpired:
-	    SuspendedUntil: 2011-10-09
-	    Groups: =>Group.special
-	suspended:
-	    SuspendedUntil: 2011-10-11
-	    Groups: =>Group.special
-	admin:
-		Email: admin@example.com
-		Groups: =>Group.admins
+  test1:
+    Nickname: test1
+    FirstName: Test
+    Email: test1@example.com
+    Surname: One
+    Occupation: TestUser
+    Country: NZ
+    FirstNamePublic: 0
+    SurnamePublic: 0
+    OccupationPublic: 0
+    CountryPublic: 0
+    EmailPublic: 0
+    ForumRank: n00b
+  test2:
+    Nickname: test2
+    FirstName: Test
+    Surname: Two
+    Email: test2@example.com
+    Occupation: OtherUser
+    Country: AU
+    FirstNamePublic: 1
+    SurnamePublic: 1
+    OccupationPublic: 1
+    CountryPublic: 1
+    EmailPublic: 1
+    ForumRank: l33t
+    Groups: =>Group.special
+  moderator:
+    Nickname: Moderator
+    FirstName: Moderator
+    Surname: Guy
+    Email: test3@example.com
+    ForumRank: l33t
+  spammer:
+    Nickname: Spam
+    Email: spam@test.org    
+  spammer2:
+    Nickname: Spam2
+    Email: spam2@test.org
+  suspendedexpired:
+    SuspendedUntil: 2011-10-09
+    Groups: =>Group.special
+  suspended:
+    SuspendedUntil: 2011-10-11
+    Groups: =>Group.special
+  admin:
+    Email: admin@example.com
+    Groups: =>Group.admins
 ForumHolder:
-	fh:
-		Title: Forum
-		ForbiddenWords: shit,fuck
-		ShowInCategories: true
-	fh2:
-		Title: Forum 2
-		ShowInCategories: true      
-	fhNoCategories:
-		Title: Forum Without Categories
-		ShowInCategories: false
-	fhPermissions:
-		Title: Forum For Testing Threads with Permissions
-		ShowInCategories: true
-		CanViewType: OnlyTheseUsers
-		CanPostType: NoOne
-	loggedInUserOnly:
-	    Title: Forum holder in which forums are logged-in-user-only
-	    CanViewType: LoggedInUsers
-		CanPostType: LoggedInUsers
+  fh:
+    Title: Forum
+    ForbiddenWords: shit,fuck
+    ShowInCategories: true
+  fh2:
+    Title: Forum 2
+    ShowInCategories: true      
+  fhNoCategories:
+    Title: Forum Without Categories
+    ShowInCategories: false
+  fhPermissions:
+    Title: Forum For Testing Threads with Permissions
+    ShowInCategories: true
+    CanViewType: OnlyTheseUsers
+    CanPostType: NoOne
+  loggedInUserOnly:
+    Title: Forum holder in which forums are logged-in-user-only
+    CanViewType: LoggedInUsers
+    CanPostType: LoggedInUsers
 ForumCategory:
-	fh1cat1:
-		Title: cat1
-		StackableOrder: 1
-		ForumHolderID: =>ForumHolder.fh
-	fh1cat2:
-		Title: cat2
-		StackableOrder: 2
-		ForumHolderID: =>ForumHolder.fh
-	fh2cat3:
-		Title: cat3
-		StackableOrder: 3
-		ForumHolderID: =>ForumHolder.fh2
-	fh2cat4:
-		Title: cat4
-		StackableOrder: 4
-		ForumHolderID: =>ForumHolder.fh2
+  fh1cat1:
+    Title: cat1
+    StackableOrder: 1
+    ForumHolderID: =>ForumHolder.fh
+  fh1cat2:
+    Title: cat2
+    StackableOrder: 2
+    ForumHolderID: =>ForumHolder.fh
+  fh2cat3:
+    Title: cat3
+    StackableOrder: 3
+    ForumHolderID: =>ForumHolder.fh2
+  fh2cat4:
+    Title: cat4
+    StackableOrder: 4
+    ForumHolderID: =>ForumHolder.fh2
 Forum:
-	general:
-		Title: General Discussion
-		ParentID: =>ForumHolder.fh
-		CategoryID: =>ForumCategory.fh1cat1
-		CanViewType: Anyone
-		CanPostType: Anyone
-		CanAttachFiles: true
-		Moderators: =>Member.moderator
-	forum1cat2:
-		Title: forum1cat2
-		ParentID: =>ForumHolder.fh
-		CategoryID: =>ForumCategory.fh1cat1
-		CanAttachFiles: false
-	forum2cat3:
-		Title: forum2cat3
-		ParentID: =>ForumHolder.fh2
-		CategoryID: =>ForumCategory.fh2cat3
-	forum2cat4:
-		Title: forum2cat4
-		ParentID: =>ForumHolder.fh2
-		CategoryID: =>ForumCategory.fh2cat4
-	forum5:
-		Title: Forum Without Category
-		ParentID: =>ForumHolder.fhNoCategories
-	loggedInOnly:
-		Title: Limited to Logged In Posting and Viewing
-		ParentID: =>ForumHolder.fhPermissions
-		CanViewType: LoggedInUsers
-		CanPostType: LoggedInUsers
-		Moderators: =>Member.moderator
-	limitedToGroup:
-		Title: Limited to a Specific Group
-		ParentID: =>ForumHolder.fhPermissions
-		CanViewType: OnlyTheseUsers
-		CanPostType: OnlyTheseUsers
-		ViewerGroups: =>Group.special
-		PosterGroups: =>Group.special
-		Moderators: =>Member.moderator
-	noPostingForum:
-		Title: This Forum is Readonly
-		ParentID: =>ForumHolder.fhPermissions
-		CanViewType: Anyone
-		CanPostType: NoOne
-		Moderators: =>Member.moderator
-	inheritedForum:
-		Title: This Forum is Readonly
-		ParentID: =>ForumHolder.fhPermissions
-		CanViewType: Inherit
-		CanPostType: Inherit
-		Moderators: =>Member.moderator
-	inheritedForum_loggedInOnly:
-	    Title: This Forum is logged-in-user-only-inherited
-	    ParentID: =>ForumHolder.loggedInUserOnly
-	    CanViewType: Inherit
-	    CanPostType: Inherit
+  general:
+    Title: General Discussion
+    ParentID: =>ForumHolder.fh
+    CategoryID: =>ForumCategory.fh1cat1
+    CanViewType: Anyone
+    CanPostType: Anyone
+    CanAttachFiles: true
+    Moderators: =>Member.moderator
+  forum1cat2:
+    Title: forum1cat2
+    ParentID: =>ForumHolder.fh
+    CategoryID: =>ForumCategory.fh1cat1
+    CanAttachFiles: false
+  forum2cat3:
+    Title: forum2cat3
+    ParentID: =>ForumHolder.fh2
+    CategoryID: =>ForumCategory.fh2cat3
+  forum2cat4:
+    Title: forum2cat4
+    ParentID: =>ForumHolder.fh2
+    CategoryID: =>ForumCategory.fh2cat4
+  forum5:
+    Title: Forum Without Category
+    ParentID: =>ForumHolder.fhNoCategories
+  loggedInOnly:
+    Title: Limited to Logged In Posting and Viewing
+    ParentID: =>ForumHolder.fhPermissions
+    CanViewType: LoggedInUsers
+    CanPostType: LoggedInUsers
+    Moderators: =>Member.moderator
+  limitedToGroup:
+    Title: Limited to a Specific Group
+    ParentID: =>ForumHolder.fhPermissions
+    CanViewType: OnlyTheseUsers
+    CanPostType: OnlyTheseUsers
+    ViewerGroups: =>Group.special
+    PosterGroups: =>Group.special
+    Moderators: =>Member.moderator
+  noPostingForum:
+    Title: This Forum is Readonly
+    ParentID: =>ForumHolder.fhPermissions
+    CanViewType: Anyone
+    CanPostType: NoOne
+    Moderators: =>Member.moderator
+  inheritedForum:
+    Title: This Forum is Readonly
+    ParentID: =>ForumHolder.fhPermissions
+    CanViewType: Inherit
+    CanPostType: Inherit
+    Moderators: =>Member.moderator
+  inheritedForum_loggedInOnly:
+      Title: This Forum is logged-in-user-only-inherited
+      ParentID: =>ForumHolder.loggedInUserOnly
+      CanViewType: Inherit
+      CanPostType: Inherit
 ForumThread:
-	Thread1:
-		Title: Test Thread
-		NumViews: 10
-		Forum: =>Forum.general
-	Thread2:
-		Title: Another Test Thread
-		NumViews: 20
-		Forum: =>Forum.general
-	StickyThread1:
-		Title: Sticky Thread
-		IsSticky: true
-		Forum: =>Forum.general
-	GlobalStickyThread1:
-		Title: Global Sticky Thread
-		IsGlobalSticky: true
-		Forum: =>Forum.general
-	ReadonlyThread:
-		Title: Readonly Thread
-		IsReadOnly: true
-		Forum: =>Forum.general
-	ThreadWhichIsInReadonlyForum:
-		Title: Thread is set to a readonly forum but you can edit this because its not readonly
-		Forum: =>Forum.noPostingForum
-	ThreadWhichIsInInheritedForum:
-		Title: The thread is in a forum that inherits NoOne permission for viewing and posting
-		Forum: =>Forum.inheritedForum
-	ThreadCreatedBySpammer:
-		Title: Thread Created By Spammer
-		Forum: =>Forum.general
+  Thread1:
+    Title: Test Thread
+    NumViews: 10
+    Forum: =>Forum.general
+  Thread2:
+    Title: Another Test Thread
+    NumViews: 20
+    Forum: =>Forum.general
+  StickyThread1:
+    Title: Sticky Thread
+    IsSticky: true
+    Forum: =>Forum.general
+  GlobalStickyThread1:
+    Title: Global Sticky Thread
+    IsGlobalSticky: true
+    Forum: =>Forum.general
+  ReadonlyThread:
+    Title: Readonly Thread
+    IsReadOnly: true
+    Forum: =>Forum.general
+  ThreadWhichIsInReadonlyForum:
+    Title: Thread is set to a readonly forum but you can edit this because its not readonly
+    Forum: =>Forum.noPostingForum
+  ThreadWhichIsInInheritedForum:
+    Title: The thread is in a forum that inherits NoOne permission for viewing and posting
+    Forum: =>Forum.inheritedForum
+  ThreadCreatedBySpammer:
+    Title: Thread Created By Spammer
+    Forum: =>Forum.general
 ForumThread_Subscription:
-	Subscription1: 
-		Thread: =>ForumThread.Thread1
-		Member: =>Member.test1
-	Subscription2:
-		Thread: =>ForumThread.Thread1
-		Member: =>Member.test2
-Post:	
-	SpamFirstPost:
-		Content: SPAM SPAM SPAM
-		Thread: =>ForumThread.ThreadCreatedBySpammer
-		Author: =>Member.spammer
-		Forum: =>Forum.general
-	SpamSecondPost:
-		Content: SPAM SPAM SPAM
-		Thread: =>ForumThread.ThreadCreatedBySpammer
-		Author: =>Member.spammer2
-		Forum: =>Forum.general
-	StickyPost:
-		Content: This is a sticky post
-		Thread: =>ForumThread.StickyThread1
-		Author: =>Member.test1
-		Forum: =>Forum.general
-	StickyGlobal:
-		Content: This is a global sticky
-		Thread: =>ForumThread.GlobalStickyThread1
-		Author: =>Member.test1
-		Forum: =>Forum.general
-	StickyReply:
-		Content: This is a reply to sticky
-		Thread: =>ForumThread.StickyThread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post1:
-		Content: This is my first post
-		Thread: =>ForumThread.Thread1
-		Forum: =>Forum.general
-		Author: =>Member.test1
-	Post2:
-		Content: This is a reply to the first post
-		Thread: =>ForumThread.Thread1
-		Forum: =>Forum.general
-		Author: =>Member.test2
-	Post3:
-		Content: This is a post without a reply
-		Thread: =>ForumThread.Thread2
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post4:
-		Content: This is a post to a long thread
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test1
-		Forum: =>Forum.general
-	Post5:
-		Content: This is a post to a long thread
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post6:
-		Content: This is a post to a long thread
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post7:
-		Content: This is a post to a long thread
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test1
-		Forum: =>Forum.general
-	Post8:
-		Content: This is a post to a long thread
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post9:
-		Content: This is a post to a long thread. On an 8 displayed forum. This will be the last
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post10:
-		Content: This is post 1 on page 2
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post11:
-		Content: This is post 2 on page 2
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test1
-		Forum: =>Forum.general
-	Post12:
-		Content: This is post 3 on page 2
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post13:
-		Content: This is post 4 on page 2
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post14:
-		Content: This is post 5 on page 2
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test1
-		Forum: =>Forum.general
-	Post15:
-		Content: This is post 6 on page 2
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post16:
-		Content: This is post 7 on page 2
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	Post17:
-		Content: This is a post to a long thread. On an 8 displayed forum. This will be the last
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
-	ReadonlyThreadPost:
-		Content: ReadonlyThreadPost
-		Thread: =>ForumThread.ReadonlyThread
-		Author: =>Member.test1
-		Forum: =>Forum.general
-	Post18:
-		Content: This is the last post to a long thread
-		Thread: =>ForumThread.Thread1
-		Author: =>Member.test2
-		Forum: =>Forum.general
+  Subscription1: 
+    Thread: =>ForumThread.Thread1
+    Member: =>Member.test1
+  Subscription2:
+    Thread: =>ForumThread.Thread1
+    Member: =>Member.test2
+Post:  
+  SpamFirstPost:
+    Content: SPAM SPAM SPAM
+    Thread: =>ForumThread.ThreadCreatedBySpammer
+    Author: =>Member.spammer
+    Forum: =>Forum.general
+  SpamSecondPost:
+    Content: SPAM SPAM SPAM
+    Thread: =>ForumThread.ThreadCreatedBySpammer
+    Author: =>Member.spammer2
+    Forum: =>Forum.general
+  StickyPost:
+    Content: This is a sticky post
+    Thread: =>ForumThread.StickyThread1
+    Author: =>Member.test1
+    Forum: =>Forum.general
+  StickyGlobal:
+    Content: This is a global sticky
+    Thread: =>ForumThread.GlobalStickyThread1
+    Author: =>Member.test1
+    Forum: =>Forum.general
+  StickyReply:
+    Content: This is a reply to sticky
+    Thread: =>ForumThread.StickyThread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post1:
+    Content: This is my first post
+    Thread: =>ForumThread.Thread1
+    Forum: =>Forum.general
+    Author: =>Member.test1
+  Post2:
+    Content: This is a reply to the first post
+    Thread: =>ForumThread.Thread1
+    Forum: =>Forum.general
+    Author: =>Member.test2
+  Post3:
+    Content: This is a post without a reply
+    Thread: =>ForumThread.Thread2
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post4:
+    Content: This is a post to a long thread
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test1
+    Forum: =>Forum.general
+  Post5:
+    Content: This is a post to a long thread
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post6:
+    Content: This is a post to a long thread
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post7:
+    Content: This is a post to a long thread
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test1
+    Forum: =>Forum.general
+  Post8:
+    Content: This is a post to a long thread
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post9:
+    Content: This is a post to a long thread. On an 8 displayed forum. This will be the last
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post10:
+    Content: This is post 1 on page 2
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post11:
+    Content: This is post 2 on page 2
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test1
+    Forum: =>Forum.general
+  Post12:
+    Content: This is post 3 on page 2
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post13:
+    Content: This is post 4 on page 2
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post14:
+    Content: This is post 5 on page 2
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test1
+    Forum: =>Forum.general
+  Post15:
+    Content: This is post 6 on page 2
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post16:
+    Content: This is post 7 on page 2
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  Post17:
+    Content: This is a post to a long thread. On an 8 displayed forum. This will be the last
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general
+  ReadonlyThreadPost:
+    Content: ReadonlyThreadPost
+    Thread: =>ForumThread.ReadonlyThread
+    Author: =>Member.test1
+    Forum: =>Forum.general
+  Post18:
+    Content: This is the last post to a long thread
+    Thread: =>ForumThread.Thread1
+    Author: =>Member.test2
+    Forum: =>Forum.general

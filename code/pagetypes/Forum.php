@@ -109,7 +109,7 @@ class Forum extends Page {
 		if(!$member) return false;
 
 		// Admins
-		if (Permission::checkMember($member, 'ADMIN')) return true;
+		if ($this->canEdit($member)) return true;
 
 		// Moderators
 		if ($member->isModeratingForum($this)) return true;
@@ -127,12 +127,12 @@ class Forum extends Page {
 		return $this->CanAttachFiles ? true : false;
 	}
 
-	function requireTable() {
+	public function requireTable() {
 		// Migrate permission columns
-		if(DB::getConn()->hasTable('Forum')) {
-			$fields = DB::getConn()->fieldList('Forum');
+		if(DB::get_schema()->hasTable('Forum')) {
+			$fields = DB::get_schema()->fieldList('Forum');
 			if(in_array('ForumPosters', array_keys($fields)) && !in_array('CanPostType', array_keys($fields))) {
-				DB::getConn()->renameField('Forum', 'ForumPosters', 'CanPostType');
+				DB::get_schema()->renameField('Forum', 'ForumPosters', 'CanPostType');
 				DB::alteration_message('Migrated forum permissions from "ForumPosters" to "CanPostType"', "created");
 			}
 		}
@@ -209,73 +209,89 @@ class Forum extends Page {
 	 * @return FieldList The fields to be displayed in the CMS.
 	 */
 	function getCMSFields() {
-		Requirements::javascript("forum/javascript/ForumAccess.js");
-		Requirements::css("forum/css/Forum_CMS.css");
+		$self = $this;
 
-	  	$fields = parent::getCMSFields();
+		$this->beforeUpdateCMSFields(function ($fields) use ($self) {
+			Requirements::javascript("forum/javascript/ForumAccess.js");
+			Requirements::css("forum/css/Forum_CMS.css");
 
-		$fields->addFieldToTab("Root.Access", new HeaderField(_t('Forum.ACCESSPOST','Who can post to the forum?'), 2));
-		$fields->addFieldToTab("Root.Access", $optionSetField = new OptionsetField("CanPostType", "", array(
-			"Inherit" => "Inherit",
-		  	"Anyone" => _t('Forum.READANYONE', 'Anyone'),
-		  	"LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
-		  	"OnlyTheseUsers" => _t('Forum.READLIST', 'Only these people (choose from list)'),
-			"NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
-		)));
-
-		$optionSetField->addExtraClass('ForumCanPostTypeSelector');
-
-		$fields->addFieldsToTab("Root.Access", array(
-			new TreeMultiselectField("PosterGroups", _t('Forum.GROUPS',"Groups")),
-			new OptionsetField("CanAttachFiles", _t('Forum.ACCESSATTACH','Can users attach files?'), array(
-				"1" => _t('Forum.YES','Yes'),
-				"0" => _t('Forum.NO','No')
-			))
-		));
-
-
-		//Dropdown of forum category selection.
-		$categories = ForumCategory::get()->map();
-
-		$fields->addFieldsToTab(
-			"Root.Main",
-			DropdownField::create('CategoryID', _t('Forum.FORUMCATEGORY', 'Forum Category'), $categories),
-			'Content'
-		);
-
-		//GridField Config - only need to attach or detach Moderators with existing Member accounts.
-		$moderatorsConfig = GridFieldConfig::create()
-			->addComponent(new GridFieldButtonRow('before'))
-			->addComponent(new GridFieldAddExistingAutocompleter('buttons-before-right'))
-			->addComponent(new GridFieldToolbarHeader())
-			->addComponent($sort = new GridFieldSortableHeader())
-			->addComponent($columns = new GridFieldDataColumns())
-			->addComponent(new GridFieldDeleteAction(true))
-			->addComponent(new GridFieldPageCount('toolbar-header-right'))
-			->addComponent($pagination = new GridFieldPaginator());
-
-		// Use GridField for Moderator management
-		$moderators = GridField::create(
-			'Moderators',
-			_t('MODERATORS', 'Moderators for this forum'),
-			$this->Moderators(),
-			$moderatorsConfig
+			$fields->addFieldToTab(
+				"Root.Access",
+				new HeaderField(_t('Forum.ACCESSPOST', 'Who can post to the forum?'), 2)
 			);
 
-		$columns->setDisplayFields(array(
-			'Nickname' => 'Nickname',
-			'FirstName' => 'First name',
-			'Surname' => 'Surname',
-			'Email'=> 'Email',
-			'LastVisited.Long' => 'Last Visit'
-		));
+			$fields->addFieldToTab(
+				"Root.Access",
+				new HeaderField(_t('Forum.ACCESSPOST', 'Who can post to the forum?'), 2)
+			);
+			$fields->addFieldToTab(
+				"Root.Access",
+				$optionSetField = new OptionsetField("CanPostType", "", array(
+					"Inherit" => "Inherit",
+					"Anyone" => _t('Forum.READANYONE', 'Anyone'),
+					"LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
+					"OnlyTheseUsers" => _t('Forum.READLIST', 'Only these people (choose from list)'),
+					"NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
+				))
+			);
 
-		$sort->setThrowExceptionOnBadDataType(false);
-		$pagination->setThrowExceptionOnBadDataType(false);
+			$optionSetField->addExtraClass('ForumCanPostTypeSelector');
 
-		$fields->addFieldToTab('Root.Moderators', $moderators);
+			$fields->addFieldsToTab("Root.Access", array(
+				new TreeMultiselectField("PosterGroups", _t('Forum.GROUPS', "Groups")),
+				new OptionsetField(
+					"CanAttachFiles", _t('Forum.ACCESSATTACH', 'Can users attach files?'), array(
+					"1" => _t('Forum.YES', 'Yes'),
+					"0" => _t('Forum.NO', 'No')
+				))
+			));
 
-		return $fields;
+
+			//Dropdown of forum category selection.
+			$categories = ForumCategory::get()->map();
+
+			$fields->addFieldsToTab(
+				"Root.Main",
+				DropdownField::create('CategoryID', _t('Forum.FORUMCATEGORY', 'Forum Category'), $categories),
+				'Content'
+			);
+
+			//GridField Config - only need to attach or detach Moderators with existing Member accounts.
+			$moderatorsConfig = GridFieldConfig::create()
+               ->addComponent(new GridFieldButtonRow('before'))
+               ->addComponent(
+                   new GridFieldAddExistingAutocompleter('buttons-before-right')
+               )
+               ->addComponent(new GridFieldToolbarHeader())
+               ->addComponent($sort = new GridFieldSortableHeader())
+               ->addComponent($columns = new GridFieldDataColumns())
+               ->addComponent(new GridFieldDeleteAction(true))
+               ->addComponent(new GridFieldPageCount('toolbar-header-right'))
+               ->addComponent($pagination = new GridFieldPaginator());
+
+			// Use GridField for Moderator management
+			$moderators = GridField::create(
+				'Moderators',
+				_t('MODERATORS', 'Moderators for this forum'),
+				$self->Moderators(),
+				$moderatorsConfig
+			);
+
+			$columns->setDisplayFields(array(
+				'Nickname' => 'Nickname',
+				'FirstName' => 'First name',
+				'Surname' => 'Surname',
+				'Email' => 'Email',
+				'LastVisited.Long' => 'Last Visit'
+			));
+
+			$sort->setThrowExceptionOnBadDataType(false);
+			$pagination->setThrowExceptionOnBadDataType(false);
+
+			$fields->addFieldToTab('Root.Moderators', $moderators);
+		});
+
+		return parent::getCMSFields();
 	}
 
 	/**
@@ -350,8 +366,11 @@ class Forum extends Page {
 	 *
 	 * @return int Returns the number of topics (threads)
 	 */
-	function getNumTopics() {
-		return DB::query(sprintf('SELECT COUNT("ID") FROM "ForumThread" WHERE "ForumID" = \'%s\'', $this->ID))->value();
+	public function getNumTopics() {
+		return (int)DB::prepared_query(
+			'SELECT COUNT("ID") FROM "ForumThread" WHERE "ForumID" = ?',
+			array($this->ID)
+		)->value();
 	}
 
 	/**
@@ -359,8 +378,11 @@ class Forum extends Page {
 	 *
 	 * @return int
 	 */
-	function getNumPosts() {
-		return DB::query(sprintf('SELECT COUNT("ID") FROM "Post" WHERE "ForumID" = \'%s\'', $this->ID))->value();
+	public function getNumPosts() {
+		return (int)DB::prepared_query(
+			'SELECT COUNT("ID") FROM "Post" WHERE "ForumID" = ?',
+			array($this->ID)
+		)->value();
 	}
 
 	/**
@@ -368,15 +390,18 @@ class Forum extends Page {
 	 *
 	 * @return int
 	 */
-	function getNumAuthors() {
-		return DB::query(sprintf('SELECT COUNT(DISTINCT "AuthorID") FROM "Post" WHERE "ForumID" = \'%s\'', $this->ID))->value();
+	public function getNumAuthors() {
+		return (int)DB::prepared_query(
+			'SELECT COUNT(DISTINCT "AuthorID") FROM "Post" WHERE "ForumID" = ?',
+			array($this->ID)
+		)->value();
 	}
 
 	/**
 	 * Returns the Topics (the first Post of each Thread) for this Forum
 	 * @return DataList
 	 */
-	function getTopics() {
+	public function getTopics() {
 		// Get a list of Posts
 		$posts = Post::get();
 
@@ -390,8 +415,9 @@ class Forum extends Page {
 			->selectField('MAX("Post"."ID")', 'PostIDMax')
 			->selectField('"ThreadID"')
 			->setGroupBy('"ThreadID"')
-			->addWhere(sprintf('"ForumID" = \'%s\'', $this->ID))
+			->addWhere(array('"ForumID" = ?' => $this->ID))
 			->setDistinct(false);
+		$postSQL = $postQuery->sql($postParameters);
 
 		// Get a list of forum threads inside this forum that aren't sticky
 		$threads = ForumThread::get()->filter(array(
@@ -405,7 +431,13 @@ class Forum extends Page {
 		$threadQuery = $threads->dataQuery()->query();
 		$threadQuery
 			->addSelect(array('"PostMax"."PostCreatedMax", "PostMax"."PostIDMax"'))
-			->addFrom('INNER JOIN ('.$postQuery->sql().') AS "PostMax" ON ("PostMax"."ThreadID" = "ForumThread"."ID")')
+			->addInnerJoin(
+				'('.$postSQL.')',
+				'"PostMax"."ThreadID" = "ForumThread"."ID"',
+				'PostMax',
+				20,
+				$postParameters
+			)
 			->addOrderBy(array('"PostMax"."PostCreatedMax" DESC', '"PostMax"."PostIDMax" DESC'))
 			->setDistinct(false);
 
@@ -413,7 +445,7 @@ class Forum extends Page {
 		$threads = $threads->setDataQuery(new Forum_DataQuery('ForumThread', $threadQuery));
 
 		// And return the results
-		return $threads->exists() ? new PaginatedList($threads, $_GET) : null;
+		return new PaginatedList($threads, Controller::curr()->getRequest());
 	}
 
 
@@ -570,17 +602,19 @@ class Forum_Controller extends Page_Controller {
 	 *
 	 * @return bool
 	 */
-	function unsubscribe(SS_HTTPRequest $request) {
+	public function unsubscribe(SS_HTTPRequest $request) {
 		$member = Member::currentUser();
 
 		if(!$member) Security::permissionFailure($this, _t('LOGINTOUNSUBSCRIBE', 'To unsubscribe from that thread, please log in first.'));
 
 		if(ForumThread_Subscription::already_subscribed($this->urlParams['ID'], $member->ID)) {
 
-			DB::query("
+			DB::prepared_query("
 				DELETE FROM \"ForumThread_Subscription\"
-				WHERE \"ThreadID\" = '". Convert::raw2sql($this->urlParams['ID']) ."'
-				AND \"MemberID\" = '$member->ID'");
+				WHERE \"ThreadID\" = ?
+				AND \"MemberID\" = ?",
+				array($this->urlParams['ID'], $member->ID)
+			);
 
 			die('1');
 		}
@@ -734,6 +768,10 @@ class Forum_Controller extends Page_Controller {
 	function PostMessageForm($addMode = false, $post = false) {
 		$thread = false;
 
+		if ($addMode && strtolower($addMode) == 'false') {
+			$addMode = false;
+		}
+
 		if($post) {
 			$thread = $post->Thread();
 		} else if(isset($this->urlParams['ID']) && is_numeric($this->urlParams['ID'])) {
@@ -862,6 +900,10 @@ class Forum_Controller extends Page_Controller {
 	 */
 	function doPostMessageForm($data, $form) {
 		$member = Member::currentUser();
+
+		//Allows interception of a Member posting content to perform some action before the post is made.
+		$this->extend('beforePostMessage', $data, $member);
+
 		$content = (isset($data['Content'])) ? $this->filterLanguage($data["Content"]) : "";
 		$title = (isset($data['Title'])) ? $this->filterLanguage($data["Title"]) : false;
 
@@ -989,7 +1031,10 @@ class Forum_Controller extends Page_Controller {
 			}
 		} elseif($isSubscribed) {
 			// See if the member wanted to remove themselves
-			DB::query("DELETE FROM \"ForumThread_Subscription\" WHERE \"ThreadID\" = '$post->ThreadID' AND \"MemberID\" = '$member->ID'");
+			DB::prepared_query(
+				'DELETE FROM "ForumThread_Subscription" WHERE "ThreadID" = ? AND "MemberID" = ?',
+				array($post->ThreadID, $member->ID)
+			);
 		}
 
 		// Send any notifications that need to be sent
@@ -1216,7 +1261,6 @@ class Forum_Controller extends Page_Controller {
 
 		return $this->PostMessageForm(false, $post);
 	}
-
 
 	/**
 	 * Delete a post via the url.

@@ -21,10 +21,14 @@ class ForumSpamPostExtension extends DataExtension {
 
 		$query->addInnerJoin("Member", "\"AuthorStatusCheck\".\"ID\" = \"Post\".\"AuthorID\"", "AuthorStatusCheck");
 
-		$authorStatusFilter = '"AuthorStatusCheck"."ForumStatus" = \'Normal\'';
-		if ($member && $member->ForumStatus == 'Ghost') $authorStatusFilter .= ' OR "Post"."AuthorID" = '. $member->ID;
+		$authorStatusFilter = array(
+			array('"AuthorStatusCheck"."ForumStatus"' => 'Normal')
+		);
+		if ($member && $member->ForumStatus === 'Ghost') {
+			$authorStatusFilter[] =  array('"Post"."AuthorID" = ?', $member->ID);
+		}
 
-		$query->addWhere($authorStatusFilter);
+		$query->addWhereAny($authorStatusFilter);
 		$query->setDistinct(false);
 	}
 

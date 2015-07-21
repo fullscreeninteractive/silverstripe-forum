@@ -9,25 +9,20 @@ php:
 
 env:
   global:
-    - CORE_RELEASE=3.1
+    - CORE_RELEASE=3.2
   matrix:
     - DB=MYSQL
     - DB=SQLITE
     - DB=PGSQL 
 
 matrix:
-  allow_failures:
-    - php: 5.6
   include:
-
     - php: 5.6
-      env: DB=MYSQL CORE_RELEASE=3.1
+      env: DB=MYSQL
     - php: 5.5
-      env: DB=MYSQL CORE_RELEASE=3.1
-    - php: 5.4
-      env: DB=MYSQL CORE_RELEASE=3.1
+      env: DB=MYSQL
     - php: 5.3
-      env: DB=MYSQL CORE_RELEASE=3.1
+      env: DB=MYSQL
 
 before_script:
  - composer self-update || true
@@ -36,4 +31,4 @@ before_script:
  - cd ~/builds/ss
 
 script: 
- - phpunit forum/tests/
+ - vendor/bin/phpunit forum/tests/

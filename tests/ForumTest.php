@@ -222,8 +222,8 @@ class ForumTest extends FunctionalTest {
 		$this->assertEquals($forumWithPosts->getTopics()->Count(), '4');
 		
 		$forumWithoutPosts = $this->objFromFixture("Forum", "forum1cat2");
-		
-		$this->assertNull($forumWithoutPosts->getTopics());
+		$result = $forumWithoutPosts->getTopics();
+		$this->assertEquals(0, $result->count());
 	}
 	
 	function testGetLatestPost() {
@@ -259,8 +259,9 @@ class ForumTest extends FunctionalTest {
 	/**
 	 * Note: See {@link testCanModerate()} for detailed permission tests.
 	 */
-	function testMarkAsSpamLink() {
+	public function testMarkAsSpamLink() {
 		$spampost = $this->objFromFixture('Post', 'SpamSecondPost');
+		$this->assertFalse($spampost->isFirstPost());
 		$forum = $spampost->Forum();
 		$author = $spampost->Author();
 		$moderator = $this->objFromFixture('Member', 'moderator'); // moderator for "general" forum
@@ -281,7 +282,7 @@ class ForumTest extends FunctionalTest {
 		$c = new Forum_Controller($forum);
 		$response = $c->handleRequest(new SS_HTTPRequest('GET', 'markasspam/'. $spampost->ID), DataModel::inst());
 		$this->assertFalse($response->isError());
-		
+
 		// removes the post
 		$this->assertNull(Post::get()->byID($spampost->ID));
 		

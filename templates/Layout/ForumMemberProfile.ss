@@ -1,6 +1,6 @@
 <% include ForumHeader %>
 $Content
-<% if Form %>
+<% if $Form %>
 	<div id="UserProfile">
 		$Form
 	</div>

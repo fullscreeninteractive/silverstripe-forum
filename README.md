@@ -1,6 +1,6 @@
 # Forum Module
 
-[![Build Status](https://secure.travis-ci.org/silverstripe/silverstripe-forum.png?branch=0.7)](http://travis-ci.org/silverstripe/silverstripe-forum)
+[![Build Status](https://secure.travis-ci.org/silverstripe/silverstripe-forum.png?branch=master)](http://travis-ci.org/silverstripe/silverstripe-forum)
 
 ## Maintainer Contact
 
@@ -10,7 +10,7 @@
 
 ## Requirements
 
- * SilverStripe 3.1.0+
+ * SilverStripe 3.2
 
 ## Installation & Documentation
 
