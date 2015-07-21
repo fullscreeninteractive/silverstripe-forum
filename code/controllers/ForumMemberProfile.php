@@ -1,7 +1,7 @@
 <?php
 /**
  * ForumMemberProfile is the profile pages for a given ForumMember
- * 
+ *
  * @package forum
  */
 class ForumMemberProfile extends Page_Controller {
@@ -18,7 +18,7 @@ class ForumMemberProfile extends Page_Controller {
 		'thanks',
 	);
 
-	public $URLSegment = "ForumMemberProfile"; 
+	public $URLSegment = "ForumMemberProfile";
 
 	/**
 	 * Return a set of {@link Forum} objects that
@@ -30,7 +30,7 @@ class ForumMemberProfile extends Page_Controller {
 		$member = $this->Member();
 		return $member ? $member->ModeratedForums() : null;
 	}
-	
+
 	/**
 	 * Create breadcrumbs (just shows a forum holder link and name of user)
 	 * @return string HTML code to display breadcrumbs
@@ -41,13 +41,13 @@ class ForumMemberProfile extends Page_Controller {
 
 		$forumHolder = $this->getForumHolder();
 		$member = $this->Member();
-		
+
 		$parts[] = '<a href="' . $forumHolder->Link() . '">' . $forumHolder->Title . '</a>';
 		$nonPageParts[] = _t('ForumMemberProfile.USERPROFILE', 'User Profile');
-		
+
 		return implode(" &raquo; ", array_reverse(array_merge($nonPageParts, $parts)));
 	}
-	
+
 	/**
 	 * Initialise the controller
 	 */
@@ -55,17 +55,17 @@ class ForumMemberProfile extends Page_Controller {
 		Requirements::themedCSS('Forum','forum','all');
 		$member = $this->Member() ? $this->Member() : null;
 		$nicknameText = ($member) ? ($member->Nickname . '\'s ') : '';
-		
+
 		//$this->Title = DBField::create('HTMLText',Convert::raw2xml($nicknameText) . _t('ForumMemberProfile.USERPROFILE', 'User Profile'));
 		$this->Title = DBField::create_field('HTMLText', Convert::raw2xml($nicknameText) . _t('ForumMemberProfile.USERPROFILE', 'User Profile'));
-		
+
 		parent::init();
  	}
 
 	function show($request) {
 		$member = $this->Member();
 		if(!$member) return $this->httpError(404);
-		
+
 		return $this->renderWith(array('ForumMemberProfile_show', 'Page'));
 	}
 
@@ -88,7 +88,7 @@ class ForumMemberProfile extends Page_Controller {
 	 */
 	function register() {
 		return array(
-			"Title" => _t('ForumMemberProfile.FORUMREGTITLE','Forum Registration'), 
+			"Title" => _t('ForumMemberProfile.FORUMREGTITLE','Forum Registration'),
 		 	"Subtitle" => _t('ForumMemberProfile.REGISTER','Register'),
 			"Abstract" => $this->getForumHolder()->ProfileAbstract,
 		);
@@ -119,7 +119,7 @@ class ForumMemberProfile extends Page_Controller {
 			new FieldList(new FormAction("doregister", _t('ForumMemberProfile.REGISTER','Register'))),
 			$validator
 		);
-		
+
 		// Guard against automated spam registrations by optionally adding a field
 		// that is supposed to stay blank (and is hidden from most humans).
 		// The label and field name are intentionally common ("username"),
@@ -128,7 +128,7 @@ class ForumMemberProfile extends Page_Controller {
 		if(ForumHolder::$use_honeypot_on_register) {
 			$form->Fields()->push(
 				new LiteralField(
-					'HoneyPot', 
+					'HoneyPot',
 					'<div style="position: absolute; left: -9999px;">' .
 					// We're super paranoid and don't mention "ignore" or "blank" in the label either
 					'<label for="RegistrationForm_username">' . _t('ForumMemberProfile.LeaveBlank', 'Don\'t enter anything here'). '</label>' .
@@ -163,7 +163,7 @@ class ForumMemberProfile extends Page_Controller {
 
 		// Check if the honeypot has been filled out
 		if(ForumHolder::$use_honeypot_on_register) {
-			if(@$data['username']) {
+			if(!empty($data['username'])) {
 				SS_Log::log(sprintf(
 					'Forum honeypot triggered (data: %s)',
 					http_build_query($data)
@@ -179,12 +179,12 @@ class ForumMemberProfile extends Page_Controller {
   				$form->addErrorMessage("Blurb",
 					_t('ForumMemberProfile.EMAILEXISTS','Sorry, that email address already exists. Please choose another.'),
 					"bad");
-				
+
   				// Load errors into session and post back
 				Session::set("FormInfo.Form_RegistrationForm.data", $data);
 				return $this->redirectBack();
   			}
-  		} 
+  		}
   		elseif(
   			   $this->getForumHolder()->OpenIDAvailable()
   			   && isset($data['IdentityURL'])
@@ -209,7 +209,7 @@ class ForumMemberProfile extends Page_Controller {
 		// create the new member
 		$member = Object::create('Member');
 		$form->saveInto($member);
-  		
+
 		$member->write();
 		$member->login();
 
@@ -478,10 +478,10 @@ class ForumMemberProfile extends Page_Controller {
 	 */
 	function dosave($data, $form) {
 		$member = Member::currentUser();
-		
+
 		$SQL_email = Convert::raw2sql($data['Email']);
 		$forumGroup = DataObject::get_one('Group', "\"Code\" = 'forum-members'");
-		
+
 		// An existing member may have the requested email that doesn't belong to the
 		// person who is editing their profile - if so, throw an error
 		$existingMember = DataObject::get_one('Member', "\"Email\" = '$SQL_email'");
@@ -494,7 +494,7 @@ class ForumMemberProfile extends Page_Controller {
 					),
 					'bad'
 				);
-				
+
   				return $this->redirectBack();
 			}
 		}
@@ -517,13 +517,13 @@ class ForumMemberProfile extends Page_Controller {
 
 		$form->saveInto($member);
 		$member->write();
-		
+
 		if(!$member->inGroup($forumGroup)) {
 			$forumGroup->Members()->add($member);
 		}
 
 		$member->extend('onForumUpdateProfile', $this->request);
-		
+
 		return $this->redirect('thanks');
 	}
 
@@ -566,13 +566,13 @@ class ForumMemberProfile extends Page_Controller {
 		} else {
 			$member = Member::currentUser();
 		}
-		
+
 		return $member;
 	}
 
 	/**
 	 * Get the forum holder controller. Sadly we can't work out which forum holder
-	 * 
+	 *
 	 * @return ForumHolder Returns the forum holder controller.
 	 */
 	function getForumHolder() {
@@ -582,7 +582,7 @@ class ForumMemberProfile extends Page_Controller {
 				if($holder->canView()) return $holder;
 			}
 		}
-		
+
 		// no usable forums
 		$messageSet = array(
 			'default' => _t('Forum.LOGINTOPOST','You\'ll need to login before you can post to that forum. Please do so below.'),
@@ -616,9 +616,9 @@ class ForumMemberProfile extends Page_Controller {
 	function MetaTags($includeTitle = true) {
 		$tags = "";
 		$title = _t('ForumMemberProfile.FORUMUSERPROFILE','Forum User Profile');
-		
+
 		if(isset($this->urlParams['Action'])) {
-			if($this->urlParams['Action'] == "register") { 
+			if($this->urlParams['Action'] == "register") {
 				$title = _t('ForumMemberProfile.FORUMUSERREGISTER','Forum Registration');
 			}
 		}
