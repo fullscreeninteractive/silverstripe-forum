@@ -31,6 +31,14 @@ class Post extends DataObject {
 		"Attachments" => "Post_Attachment"
 	);
 
+	private static $summary_fields = array(
+		"Content.LimitWordCount" => "Summary",
+		"Created" => "Created",
+		"Status" => "Status",
+		"Thread.Title" => "Thread",
+		"Forum.Title" => "Forum"
+	);
+
 	/**
 	 * Update all the posts to have a forum ID of their thread ID. 
 	 */

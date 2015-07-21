@@ -1,8 +1,12 @@
 Search
 ================================
 
-Search for the forum module is going to rely on the Silverstripe Full Text Search module so both of these will need to be installed.
+A basic forum specific search is implemented using the SilverStripe ORM layer.
 
-As the Full Text search module is still in development search will not work at present in the forum module the previous version of
-SilverStripe 2.4 used MyISAM as the default database engine, SilverStripe 3.0 uses InnoDB as the default MySql database engine which
-is the reason why it will have to rely on the Full Text module to be present
+The search form is part of the ForumHeader.ss include, override this in your theme of you need to customise this.
+
+The forum search results can be styled by creating `ForumHolder_search.ss` layout for your theme.
+
+For a more advanced search implementation you may wish to look into the [fulltextsearch module](https://github.com/silverstripe-labs/silverstripe-fulltextsearch). 
+
+

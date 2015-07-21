@@ -58,6 +58,10 @@ class ForumRole extends DataExtension {
 		'Avatar' => 'Image'
 	);
 
+	private static $has_many = array(
+		'ForumPosts' => 'Post'
+	);
+
 	private static $belongs_many_many = array(
 		'ModeratedForums' => 'Forum'
 	);
@@ -130,13 +134,13 @@ class ForumRole extends DataExtension {
 	 */
 	public function NumPosts() {
 		if(!$this->owner->exists()) return 0;
-		
+
 		return (int)DB::prepared_query(
 			"SELECT count(*) FROM \"Post\" WHERE \"AuthorID\" = ?",
 			array($this->owner->ID)
 		)->value();
 	}
-	
+
 	/**
 	 * Checks if the current user is a moderator of the
 	 * given forum by looking in the moderator ID list.
@@ -172,9 +176,9 @@ class ForumRole extends DataExtension {
 
 		$personalDetailsFields = new CompositeField(
 			new HeaderField("PersonalDetails", _t('ForumRole.PERSONAL','Personal Details')),
-	
+
 			new LiteralField("Blurb","<p id=\"helpful\">" . _t('ForumRole.TICK', 'Tick the fields to show in public profile') . "</p>"),
-	
+
 			new TextField("Nickname", _t('ForumRole.NICKNAME','Nickname')),
 			new CheckableOption("FirstNamePublic", new TextField("FirstName", _t('ForumRole.FIRSTNAME','First name'))),
 			new CheckableOption("SurnamePublic", new TextField("Surname", _t('ForumRole.SURNAME','Surname'))),
@@ -193,7 +197,7 @@ class ForumRole extends DataExtension {
 			);
 		}
 		$personalDetailsFields->setID('PersonalDetailsFields');
-		
+
 		$fieldset = new FieldList(
 			$personalDetailsFields
 		);
@@ -215,18 +219,18 @@ class ForumRole extends DataExtension {
 		if($this->owner->IsSuspended()) {
 			$fieldset->insertAfter(
 				new LiteralField(
-					'SuspensionNote', 
+					'SuspensionNote',
 					'<p class="message warning suspensionWarning">' . $this->ForumSuspensionMessage() . '</p>'
 				),
 				'Blurb'
 			);
 		}
-		
+
 		$this->owner->extend('updateForumFields', $fieldset);
 
 		return $fieldset;
 	}
-	
+
 	/**
 	 * Get the fields needed by the forum module
 	 *
@@ -264,12 +268,12 @@ class ForumRole extends DataExtension {
 			$fields->addFieldToTab('Root.Forum', $this->owner->dbObject('ForumStatus')->scaffoldFormField());
 		}
 	}
-	
+
 	public function IsSuspended() {
 		if($this->owner->SuspendedUntil) {
 			return strtotime(SS_Datetime::now()->Format('Y-m-d')) < strtotime($this->owner->SuspendedUntil);
 		} else {
-			return false; 
+			return false;
 		}
 	}
 
@@ -288,7 +292,7 @@ class ForumRole extends DataExtension {
 	 */
 	function canEdit($member = null) {
 		if(!$member) $member = Member::currentUser();
-		
+
 		if($this->owner->ID == Member::currentUserID()) return true;
 
 		if($member) return $member->can('AdminCMS');
@@ -308,12 +312,12 @@ class ForumRole extends DataExtension {
 		elseif($this->owner->FirstNamePublic && $this->owner->FirstName) return $this->owner->FirstName;
 		else return _t('ForumRole.ANONYMOUS','Anonymous user');
 	}
-	
-	/** 
+
+	/**
 	 * Return the url of the avatar or gravatar of the selected user.
 	 * Checks to see if the current user has an avatar, if they do use it
 	 * otherwise query gravatar.com
-	 * 
+	 *
 	 * @return String
 	 */
 	function getFormattedAvatar() {
@@ -327,16 +331,16 @@ class ForumRole extends DataExtension {
 		if($this->owner->AvatarID) {
 			$avatar = Image::get()->byID($this->owner->AvatarID);
 			if(!$avatar) return $default;
-			
+
 			$resizedAvatar = $avatar->SetWidth(80);
 			if(!$resizedAvatar) return $default;
-			
+
 			return $resizedAvatar->URL;
 		}
 
 		//If Gravatar is enabled, allow the selection of the type of default Gravatar.
 		if($holder = ForumHolder::get()->filter('AllowGravatars',1)->first()) {
-			// If the GravatarType is one of the special types, then set it otherwise use the 
+			// If the GravatarType is one of the special types, then set it otherwise use the
 			//default image from above forummember_holder.gif
 			if($holder->GravatarType){
  				$default = $holder->GravatarType;
@@ -352,10 +356,10 @@ class ForumRole extends DataExtension {
 	}
 
 	/**
-	 * Conditionally includes admin email address (hence we can't simply generate this 
-	 * message in templates). We don't need to spam protect the email address as 
+	 * Conditionally includes admin email address (hence we can't simply generate this
+	 * message in templates). We don't need to spam protect the email address as
 	 * the note only shows to logged-in users.
-	 * 
+	 *
 	 * @return String
 	 */
 	function ForumSuspensionMessage() {
