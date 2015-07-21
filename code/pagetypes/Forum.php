@@ -778,6 +778,12 @@ class Forum_Controller extends Page_Controller {
 			$thread = DataObject::get_by_id('ForumThread', $this->urlParams['ID']);
 		}
 
+		if (!$thread) {
+			$addMode = true;
+		} elseif ($addMode && strtolower($addMode) == 'false') {
+			$addMode = false;
+		}
+
 		// Check permissions
 		$messageSet = array(
 			'default' => _t('Forum.LOGINTOPOST','You\'ll need to login before you can post to that forum. Please do so below.'),
