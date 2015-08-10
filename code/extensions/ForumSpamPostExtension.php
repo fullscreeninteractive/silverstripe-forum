@@ -16,15 +16,7 @@ class ForumSpamPostExtension extends DataExtension {
 		}
 
 		$query->addWhere($filter);
-
-		// Filter out posts where the author is in some sort of banned / suspended status
-
-		$query->addInnerJoin("Member", "\"AuthorStatusCheck\".\"ID\" = \"Post\".\"AuthorID\"", "AuthorStatusCheck");
-
-		$authorStatusFilter = '"AuthorStatusCheck"."ForumStatus" = \'Normal\'';
-		if ($member && $member->ForumStatus == 'Ghost') $authorStatusFilter .= ' OR "Post"."AuthorID" = '. $member->ID;
-
-		$query->addWhere($authorStatusFilter);
+		
 		$query->setDistinct(false);
 	}
 

@@ -709,6 +709,26 @@ class Forum_Controller extends Page_Controller {
 
 		if(!isset($_GET['start'])) $_GET['start'] = 0;
 
+		/*
+		 * Don't show posts of banned or ghost members, unless current Member
+		 * is a ghost member and owner of current post
+		 */
+
+		$posts = $posts->exclude(array(
+			'Author.ForumStatus' => 'Banned'
+		));
+
+		if($member) {
+			$posts = $posts->exclude(array(
+				'Author.ForumStatus' => 'Ghost',
+				'Author.ID:not' => $member->ID
+			));
+		} else {
+			$posts = $posts->exclude(array(
+				'Author.ForumStatus' => 'Ghost'
+			));
+		}
+
 		$paginated = new PaginatedList($posts, $_GET);
 		$paginated->setPageLength(Forum::$posts_per_page);
 		return $paginated;
@@ -1285,9 +1305,9 @@ class Forum_Controller extends Page_Controller {
 			$thread = ForumThread::get()->byID($id);
 			$form->loadDataFrom($thread);
 		}
-		
+
 		$this->extend('updateAdminFormFeatures', $form);
-		
+
 		return $form;
 	}
 
