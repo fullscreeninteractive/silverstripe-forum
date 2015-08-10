@@ -68,6 +68,13 @@ class Post extends DataObject {
 	 */
 	function canView($member = null) {
 		if(!$member) $member = Member::currentUser();
+		
+		if($this->Author()->ForumStatus != 'Normal') {
+			if($this->AuthorID != $member->ID || $member->ForumStatus != 'Ghost') {
+				return false;
+			}
+		}
+
 		return $this->Thread()->canView($member);
 	}
 
