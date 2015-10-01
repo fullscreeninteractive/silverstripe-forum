@@ -30,6 +30,14 @@ class Post extends DataObject {
 	private static $has_many = array(
 		"Attachments" => "Post_Attachment"
 	);
+	
+	private static $summary_fields = array(
+		"Content.LimitWordCount" => "Summary",
+		"Created" => "Created",
+		"Status" => "Status",
+		"Thread.Title" => "Thread",
+		"Forum.Title" => "Forum"
+	);
 
 	/**
 	 * Update all the posts to have a forum ID of their thread ID. 
@@ -68,6 +76,13 @@ class Post extends DataObject {
 	 */
 	function canView($member = null) {
 		if(!$member) $member = Member::currentUser();
+		
+		if($this->Author()->ForumStatus != 'Normal') {
+			if($this->AuthorID != $member->ID || $member->ForumStatus != 'Ghost') {
+				return false;
+			}
+		}
+
 		return $this->Thread()->canView($member);
 	}
 

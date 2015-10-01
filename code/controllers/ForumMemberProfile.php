@@ -12,7 +12,6 @@ class ForumMemberProfile extends Page_Controller {
 		'RegistrationForm',
 		'registerwithopenid',
 		'RegistrationWithOpenIDForm',
-		'doregister',
 		'edit',
 		'EditProfileForm',
 		'thanks',

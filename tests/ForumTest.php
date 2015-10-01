@@ -235,25 +235,54 @@ class ForumTest extends FunctionalTest {
 
 		$this->assertNull($forumWithoutPosts->getLatestPost());
 	}
+
+	function testGetNumPosts() {
+		$forumWithPosts = $this->objFromFixture("Forum", "general");
+
+		$this->assertEquals(24, $forumWithPosts->getNumPosts());
+
+		//Mark spammer accounts and retest the posts count
+		$this->markGhosts();
+		$this->assertEquals(22, $forumWithPosts->getNumPosts());
+	}
 	
 	function testGetNumTopics() {
 		$forumWithPosts = $this->objFromFixture("Forum", "general");
 		
-		$this->assertEquals($forumWithPosts->getNumTopics(), 6);
+		$this->assertEquals(6, $forumWithPosts->getNumTopics());
 		
 		$forumWithoutPosts = $this->objFromFixture("Forum", "forum1cat2");
 
-		$this->assertEquals($forumWithoutPosts->getNumTopics(), 0);
+		$this->assertEquals(0, $forumWithoutPosts->getNumTopics());
+
+		//Mark spammer accounts and retest the threads count
+		$this->markGhosts();
+		$this->assertEquals(5, $forumWithPosts->getNumTopics());
 	}
 	
 	function testGetTotalAuthors() {
 		$forumWithPosts = $this->objFromFixture("Forum", "general");
 		
-		$this->assertEquals($forumWithPosts->getNumAuthors(), 4);
+		$this->assertEquals(4, $forumWithPosts->getNumAuthors());
 		
 		$forumWithoutPosts = $this->objFromFixture("Forum", "forum1cat2");
 
-		$this->assertEquals($forumWithoutPosts->getNumAuthors(), 0);
+		$this->assertEquals(0, $forumWithoutPosts->getNumAuthors());
+
+		//Mark spammer accounts and retest the authors count
+		$this->markGhosts();
+		$this->assertEquals(2, $forumWithPosts->getNumAuthors());
+	}
+
+	protected function markGhosts() {
+		//Mark a members as a spammers
+		$spammer = $this->objFromFixture("Member", "spammer");
+		$spammer->ForumStatus = 'Ghost';
+		$spammer->write();
+
+		$spammer2 = $this->objFromFixture("Member", "spammer2");
+		$spammer2->ForumStatus = 'Ghost';
+		$spammer2->write();
 	}
 
 	/**
@@ -414,5 +443,30 @@ class ForumTest extends FunctionalTest {
 		$this->clearEmails();
 
 		Forum::$notify_moderators = $notifyModerators;
+	}
+
+	/**
+	 * Confirm that when a post is deleted, Member with corresponding ID still exists
+	 *
+	 * @throws ValidationException
+	 * @throws null
+	 */
+	function testPostDeletionMemberIntegrity()
+	{
+		$checkID = 100012;
+
+		$post = new Post();
+		$post->ID = $checkID;
+		$post->write();
+
+		$user = new Member();
+		$user->ID = $checkID;
+		$user->FirstName = 'TestUser100012';
+		$user->write();
+
+		$post->delete();
+
+		$member = DataObject::get_by_id('Member', $checkID);
+		$this->assertTrue($member->ID == $checkID);
 	}
 }

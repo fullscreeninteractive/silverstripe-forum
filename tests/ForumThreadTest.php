@@ -14,7 +14,7 @@ class ForumThreadTest extends FunctionalTest {
 	function testGetNumPosts() {
 		$thread = $this->objFromFixture("ForumThread", "Thread1");
 		
-		$this->assertEquals($thread->getNumPosts(), 17);
+		$this->assertEquals(17, $thread->getNumPosts());
 	}
 	
 	function testIncViews() {

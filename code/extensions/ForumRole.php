@@ -10,6 +10,12 @@
 class ForumRole extends DataExtension {
 
 	/**
+	 * Edit the given query object to support queries for this extension
+	 */
+	function augmentSQL(SQLQuery &$query) {}
+
+
+	/**
 	 * Update the database schema as required by this extension
 	 */
 	public function augmentDatabase() {
@@ -56,6 +62,10 @@ class ForumRole extends DataExtension {
 
 	private static $has_one = array(
 		'Avatar' => 'Image'
+	);
+
+	private static $has_many = array(
+		'ForumPosts' => 'Post'
 	);
 
 	private static $belongs_many_many = array(

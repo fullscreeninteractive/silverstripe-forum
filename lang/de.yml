@@ -180,6 +180,7 @@ de:
     RESPONSE: "Re: %s"
     SHOWLINK: "Zeige Thema"
     SINGULARNAME: "Beitrag"
+    NEWREPLY: "Neue Antwort zu"
   SinglePost_ss:
     ATTACHED: "Anhänge"
     GOTOPROFILE: "Gehe zum Profil dieses Benutzers"

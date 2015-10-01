@@ -83,66 +83,73 @@ class ForumHolder extends Page {
 	private static $currently_online_enabled = true;
 
 	function getCMSFields() {
-		$fields = parent::getCMSFields();
-		$fields->addFieldsToTab("Root.Messages", array(
-			TextField::create("HolderSubtitle","Forum Holder Subtitle"),
-			HTMLEditorField::create("HolderAbstract","Forum Holder Abstract"),
-			TextField::create("ProfileSubtitle","Member Profile Subtitle"),
-			HTMLEditorField::create("ProfileAbstract","Member Profile Abstract"),
-			TextField::create("ForumSubtitle","Create topic Subtitle"),
-			HTMLEditorField::create("ForumAbstract","Create topic Abstract"),
-			HTMLEditorField::create("ProfileModify","Create message after modifing forum member"),
-			HTMLEditorField::create("ProfileAdd","Create message after adding forum member")
-		));
-		$fields->addFieldsToTab("Root.Settings", array(
-			CheckboxField::create("DisplaySignatures", "Display Member Signatures?"),
-			CheckboxField::create("ShowInCategories", "Show Forums In Categories?"),
-			CheckboxField::create("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
-			DropdownField::create("GravatarType", "Gravatar Type", array(
- 		  		"standard" => _t('Forum.STANDARD','Standard'),
- 		  		"identicon" => _t('Forum.IDENTICON','Identicon'),
-		  		"wavatar" => _t('Forum.WAVATAR', 'Wavatar'),
-				"monsterid" => _t('Forum.MONSTERID', 'Monsterid'),
-				"retro" => _t('Forum.RETRO', 'Retro'),
- 				"mm" => _t('Forum.MM', 'Mystery Man'),
- 			))->setEmptyString('Use Forum Default')
-		));
+		$self = $this;
 
-		// add a grid field to the category tab with all the categories
-		$categoryConfig = GridFieldConfig::create()
-			->addComponents(
-				new GridFieldSortableHeader(),
-				new GridFieldButtonRow(),
-				new GridFieldDataColumns(),
-				new GridFieldEditButton(),
-				new GridFieldViewButton(),
-				new GridFieldDeleteAction(),
-				new GridFieldAddNewButton('buttons-before-left'),
-				new GridFieldPaginator(),
-				new GridFieldDetailForm()
+		$this->beforeUpdateCMSFields(function($fields) use ($self) {
+
+			$fields->addFieldsToTab("Root.Messages", array(
+				TextField::create("HolderSubtitle","Forum Holder Subtitle"),
+				HTMLEditorField::create("HolderAbstract","Forum Holder Abstract"),
+				TextField::create("ProfileSubtitle","Member Profile Subtitle"),
+				HTMLEditorField::create("ProfileAbstract","Member Profile Abstract"),
+				TextField::create("ForumSubtitle","Create topic Subtitle"),
+				HTMLEditorField::create("ForumAbstract","Create topic Abstract"),
+				HTMLEditorField::create("ProfileModify","Create message after modifing forum member"),
+				HTMLEditorField::create("ProfileAdd","Create message after adding forum member")
+			));
+			$fields->addFieldsToTab("Root.Settings", array(
+				CheckboxField::create("DisplaySignatures", "Display Member Signatures?"),
+				CheckboxField::create("ShowInCategories", "Show Forums In Categories?"),
+				CheckboxField::create("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
+				DropdownField::create("GravatarType", "Gravatar Type", array(
+					"standard" => _t('Forum.STANDARD','Standard'),
+					"identicon" => _t('Forum.IDENTICON','Identicon'),
+					"wavatar" => _t('Forum.WAVATAR', 'Wavatar'),
+					"monsterid" => _t('Forum.MONSTERID', 'Monsterid'),
+					"retro" => _t('Forum.RETRO', 'Retro'),
+					"mm" => _t('Forum.MM', 'Mystery Man'),
+				))->setEmptyString('Use Forum Default')
+			));
+
+			// add a grid field to the category tab with all the categories
+			$categoryConfig = GridFieldConfig::create()
+				->addComponents(
+					new GridFieldSortableHeader(),
+					new GridFieldButtonRow(),
+					new GridFieldDataColumns(),
+					new GridFieldEditButton(),
+					new GridFieldViewButton(),
+					new GridFieldDeleteAction(),
+					new GridFieldAddNewButton('buttons-before-left'),
+					new GridFieldPaginator(),
+					new GridFieldDetailForm()
+				);
+
+			$categories = GridField::create(
+				'Category',
+				_t('Forum.FORUMCATEGORY', 'Forum Category'),
+				$self->Categories(),
+				$categoryConfig
 			);
 
-		$categories = GridField::create(
-			'Category',
-			_t('Forum.FORUMCATEGORY', 'Forum Category'),
-			$this->Categories(),
-			$categoryConfig
-		);
-
-		$fields->addFieldsToTab("Root.Categories", $categories);
+			$fields->addFieldsToTab("Root.Categories", $categories);
 
 
-		$fields->addFieldsToTab("Root.LanguageFilter", array(
-			TextField::create("ForbiddenWords", "Forbidden words (comma separated)"),
-			LiteralField::create("FWLabel","These words will be replaced by an asterisk")
-		));
+			$fields->addFieldsToTab("Root.LanguageFilter", array(
+				TextField::create("ForbiddenWords", "Forbidden words (comma separated)"),
+				LiteralField::create("FWLabel","These words will be replaced by an asterisk")
+			));
 
-		$fields->addFieldToTab("Root.Access", HeaderField::create(_t('Forum.ACCESSPOST','Who can post to the forum?'), 2));
-		$fields->addFieldToTab("Root.Access", OptionsetField::create("CanPostType", "", array(
-		  	"Anyone" => _t('Forum.READANYONE', 'Anyone'),
-		  	"LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
-			"NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
-		)));
+			$fields->addFieldToTab("Root.Access", HeaderField::create(_t('Forum.ACCESSPOST','Who can post to the forum?'), 2));
+			$fields->addFieldToTab("Root.Access", OptionsetField::create("CanPostType", "", array(
+				"Anyone" => _t('Forum.READANYONE', 'Anyone'),
+				"LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
+				"NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
+			)));
+
+		});
+
+		$fields = parent::getCMSFields();
 
 		return $fields;
 	}
@@ -211,48 +218,52 @@ class ForumHolder extends Page {
 
 	/**
 	 * Get the number of total posts
-	 *
+	 * @TODO rework as prepared query
 	 * @return int Returns the number of posts
 	 */
 	public function getNumPosts() {
-		return Post::get()
-			->innerJoin(ForumHolder::baseForumTable(),"\"Post\".\"ForumID\" = \"ForumPage\".\"ID\"" , "ForumPage")
-			->filter(array(
-				"ForumPage.ParentID" => $this->ID
-			))
-			->count();
+			$sqlQuery = new SQLQuery();
+			$sqlQuery->setFrom('"Post"');
+			$sqlQuery->setSelect('COUNT("Post"."ID")');
+			$sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
+			$sqlQuery->addInnerJoin('SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
+			$sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
+			$sqlQuery->addWhere('"SiteTree"."ParentID" = ' . $this->ID);
+			return $sqlQuery->execute()->value();
 	}
 
 
 	/**
 	 * Get the number of total topics (threads)
-	 *
+	 * @TODO rework as prepared query
 	 * @return int Returns the number of topics (threads)
 	 */
 	function getNumTopics() {
-		return ForumThread::get()
-			->innerJoin(ForumHolder::baseForumTable(),"\"ForumThread\".\"ForumID\" = \"ForumPage\".\"ID\"","ForumPage")
-			->filter(array(
-				"ForumPage.ParentID" => $this->ID
-			))
-			->count();
+		$sqlQuery = new SQLQuery();
+		$sqlQuery->setFrom('"Post"');
+		$sqlQuery->setSelect('COUNT(DISTINCT("ThreadID"))');
+		$sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
+		$sqlQuery->addInnerJoin('SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
+		$sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
+		$sqlQuery->addWhere('"SiteTree"."ParentID" = ' . $this->ID);
+		return $sqlQuery->execute()->value();
 	}
 
 
 	/**
 	 * Get the number of distinct authors
-	 *
+	 * @TODO rework as prepared query
 	 * @return int Returns the number of distinct authors
 	 */
 	public function getNumAuthors() {
-		$baseTable = ForumHolder::baseForumTable();
-		return (int)DB::prepared_query("
-			SELECT COUNT(DISTINCT \"Post\".\"AuthorID\")
-			FROM \"Post\"
-			JOIN \"{$baseTable}\" AS \"ForumPage\" ON \"Post\".\"ForumID\" = \"ForumPage\".\"ID\"
-			AND \"ForumPage\".\"ParentID\" = ?",
-			array($this->ID)
-		)->value();
+		$sqlQuery = new SQLQuery();
+		$sqlQuery->setFrom('"Post"');
+		$sqlQuery->setSelect('COUNT(DISTINCT("AuthorID"))');
+		$sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
+		$sqlQuery->addInnerJoin('SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
+		$sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
+		$sqlQuery->addWhere('"SiteTree"."ParentID" = ' . $this->ID);
+		return $sqlQuery->execute()->value();
 	}
 
 	/**
