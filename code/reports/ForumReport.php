@@ -20,11 +20,11 @@ class ForumReport_MemberSignups extends SS_Report {
 
 	public function sourceRecords($params = array()) {
 		$membersQuery = new SQLQuery();
-		$membersQuery->setFrom('Member');
+		$membersQuery->setFrom('"Member"');
 		$membersQuery->selectField(DB::getConn()->formattedDatetimeClause('"Created"', '%Y %m'), 'Month');
 		$membersQuery->selectField('COUNT("Created")', 'Signups');
-		$membersQuery->setGroupBy('Month');
-		$membersQuery->setOrderBy('Created', 'DESC');
+		$membersQuery->setGroupBy('"Month"');
+		$membersQuery->setOrderBy('"Created"', 'DESC');
 		$members = $membersQuery->execute();
 
 		$output = ArrayList::create();
@@ -62,11 +62,11 @@ class ForumReport_MonthlyPosts extends SS_Report {
 
 	public function sourceRecords($params = array()) {
 		$postsQuery = new SQLQuery();
-		$postsQuery->setFrom('Post');
+		$postsQuery->setFrom('"Post"');
 		$postsQuery->selectField(DB::getConn()->formattedDatetimeClause('"Created"', '%Y %m'), 'Month');
 		$postsQuery->selectField('COUNT("Created")', 'Posts');
-		$postsQuery->setGroupBy('Month');
-		$postsQuery->setOrderBy('Created', 'DESC');
+		$postsQuery->setGroupBy('"Month"');
+		$postsQuery->setOrderBy('"Created"', 'DESC');
 		$posts = $postsQuery->execute();
 
 		$output = ArrayList::create();
