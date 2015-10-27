@@ -222,6 +222,7 @@ Post:
 		Thread: =>ForumThread.Thread1
 		Forum: =>Forum.general
 		Author: =>Member.test1
+		Created: '2015-04-23 01:00:00'
 	Post2:
 		Content: This is a reply to the first post
 		Thread: =>ForumThread.Thread1
