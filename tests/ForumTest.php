@@ -285,52 +285,6 @@ class ForumTest extends FunctionalTest {
 		$spammer2->write();
 	}
 
-	/**
-	 * Note: See {@link testCanModerate()} for detailed permission tests.
-	 */
-	function testMarkAsSpamLink() {
-		$spampost = $this->objFromFixture('Post', 'SpamSecondPost');
-		$forum = $spampost->Forum();
-		$author = $spampost->Author();
-		$moderator = $this->objFromFixture('Member', 'moderator'); // moderator for "general" forum
-		
-		// without a logged-in moderator
-		$this->assertFalse($spampost->MarkAsSpamLink(), 'Link not present by default');
-
-		$c = new Forum_Controller($forum);
-		$response = $c->handleRequest(new SS_HTTPRequest('GET', 'markasspam/'. $spampost->ID), DataModel::inst());
-		$this->assertEquals(403, $response->getStatusCode());
-
-		// with logged-in moderator
-		$moderator->logIn();
-		$this->assertNotEquals(false, $spampost->MarkAsSpamLink(), 'Link present for moderators on this forum');
-
-		$this->assertNull($author->SuspendedUntil);
-
-		$c = new Forum_Controller($forum);
-		$response = $c->handleRequest(new SS_HTTPRequest('GET', 'markasspam/'. $spampost->ID), DataModel::inst());
-		$this->assertFalse($response->isError());
-		
-		// removes the post
-		$this->assertNull(Post::get()->byID($spampost->ID));
-		
-		// suspends the member
-		$author = Member::get()->byID($author->ID);
-		$this->assertNotNull($author->SuspendedUntil);
-		
-		// does not effect the thread
-		$thread = ForumThread::get()->byID($spampost->Thread()->ID);
-		$this->assertEquals('1', $thread->getNumPosts());
-		
-		// mark the first post in that now as spam
-		$spamfirst = $this->objFromFixture('Post', 'SpamFirstPost');
-
-		$response = $c->handleRequest(new SS_HTTPRequest('GET', 'markasspam/'. $spamfirst->ID), DataModel::inst());
-
-		// removes the thread
-		$this->assertNull(ForumThread::get()->byID($spamfirst->Thread()->ID));
-	}
-
 	function testBanLink() {
 		$spampost = $this->objFromFixture('Post', 'SpamSecondPost');
 		$forum = $spampost->Forum();

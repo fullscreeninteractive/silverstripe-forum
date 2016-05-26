@@ -190,52 +190,6 @@ class PostTest extends FunctionalTest {
 
 	}
 
-	function testMarkAsSpamLink() {
-		$post = $this->objFromFixture('Post', 'Post1');
-
-		//enable token
-		SecurityToken::enable();
-
-		// should be false since we're not logged in.
-		if($member = Member::currentUser()) $member->logOut();
-
-		$this->assertFalse($post->EditLink());
-		$this->assertFalse($post->MarkAsSpamLink());
-
-		// logged in as the moderator. Should be able to mark the post as spam.
-		$member = $this->objFromFixture('Member', 'moderator');
-		$member->logIn();
-
-		$this->assertContains($post->Thread()->URLSegment .'/markasspam/'. $post->ID, $post->MarkAsSpamLink());
-
-		// because this is the first post test for the class which is used in javascript
-		$this->assertContains("class=\"markAsSpamLink firstPost\"", $post->MarkAsSpamLink());
-
-		$member->logOut();
-
-		// log in as another member who is not in a position to mark post as spam this post
-		$member = $this->objFromFixture('Member', 'test2');
-		$member->logIn();
-
-		$this->assertFalse($post->MarkAsSpamLink());
-
-		// log in as someone who can moderate this post (and therefore mark as spam)
-		$member = $this->objFromFixture('Member', 'moderator');
-		$member->logIn();
-
-
-		//check for the existance of a CSRF token
-		$this->assertContains("SecurityID=", $post->MarkAsSpamLink());
-
-		// should be able to edit post since they're moderators
-		$this->assertContains($post->Thread()->URLSegment .'/markasspam/'. $post->ID, $post->MarkAsSpamLink());
-
-		// test that a 2nd post doesn't have the first post ID hook
-		$memberOthersPost = $this->objFromFixture('Post', 'Post2');
-
-		$this->assertFalse(strstr($memberOthersPost->MarkAsSpamLink(), "firstPost"));
-	}
-
 	public function testBanAndGhostLink() {
 		$post = $this->objFromFixture('Post', 'Post1');
 

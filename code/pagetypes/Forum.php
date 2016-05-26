@@ -487,7 +487,6 @@ class Forum_Controller extends Page_Controller {
 		'deleteattachment',
 		'deletepost',
 		'editpost',
-		'markasspam',
 		'PostMessageForm',
 		'reply',
 		'show',
@@ -608,59 +607,6 @@ class Forum_Controller extends Page_Controller {
 
 		return false;
 	}
-
-	/**
-	 * Mark a post as spam. Deletes any posts or threads created by that user
-	 * and removes their user account from the site
-	 *
-	 * Must be logged in and have the correct permissions to do marking
-	 */
-	function markasspam(SS_HTTPRequest $request) {
-		$currentUser = Member::currentUser();
-		if(!isset($this->urlParams['ID'])) return $this->httpError(400);
-		if(!$this->canModerate()) return $this->httpError(403);
-
-		// Check CSRF token
-		if (!SecurityToken::inst()->checkRequest($request)) {
-			return $this->httpError(400);
-		}
-
-		$post = Post::get()->byID($this->urlParams['ID']);
-		if($post) {
-			// post was the start of a thread, Delete the whole thing
-			if($post->isFirstPost()) $post->Thread()->delete();
-
-			// Delete the current post
-			$post->delete();
-			$post->extend('onAfterMarkAsSpam');
-
-			// Log deletion event
-			SS_Log::log(sprintf(
-				'Marked post #%d as spam, by moderator %s (#%d)',
-				$post->ID,
-				$currentUser->Email,
-				$currentUser->ID
-			), SS_Log::NOTICE);
-
-			// Suspend the member (rather than deleting him),
-			// which gives him or a moderator the chance to revoke a decision.
-			if($author = $post->Author()) {
-				$author->SuspendedUntil = date('Y-m-d', strtotime('+99 years', SS_Datetime::now()->Format('U')));
-				$author->write();
-			}
-
-			SS_Log::log(sprintf(
-				'Suspended member %s (#%d) for spam activity, by moderator %s (#%d)',
-				$author->Email,
-				$author->ID,
-				$currentUser->Email,
-				$currentUser->ID
-			), SS_Log::NOTICE);
-		}
-
-		return (Director::is_ajax()) ? true : $this->redirect($this->Link());
-	}
-
 
 	public function ban(SS_HTTPRequest $r) {
 		if(!$r->param('ID')) return $this->httpError(404);

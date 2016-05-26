@@ -224,28 +224,6 @@ class Post extends DataObject {
 		return '<a href="' . $url . '" class="showLink">' . _t('Post.SHOWLINK','Show Thread') . "</a>";
 	}
 	
-	/**
-	 * Return a link to mark this post as spam.
-	 * used for the spamprotection module
-	 *
-	 * @return String
-	 */
-	function MarkAsSpamLink() {
-		if($this->Thread()->canModerate()) {
-			$member = Member::currentUser();
-		 	if($member->ID != $this->AuthorID) {
-			    $url = Controller::join_links($this->Forum()->Link('markasspam'),$this->ID);
-				$token = SecurityToken::inst();
-				$url = $token->addToUrl($url);
-
-				$firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
-				
-				return '<a href="' . $url .'" class="markAsSpamLink' . $firstPost . '" rel="' . $this->ID . '">'. _t('Post.MARKASSPAM', 'Mark as Spam') . '</a>';
-			}
-		}
-		return false;
-	}
-
 	public function BanLink() {
 		$thread = $this->Thread();
 		if($thread->canModerate()) {

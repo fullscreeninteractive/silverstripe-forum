@@ -40,10 +40,6 @@
 					$DeleteLink
 				<% end_if %>
 
-				<% if $MarkAsSpamLink %>
-					$MarkAsSpamLink
-				<% end_if %>
-
 				<% if $BanLink || $GhostLink %>
 					|
 					<% if $BanLink %>$BanLink<% end_if %>

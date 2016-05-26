@@ -162,7 +162,7 @@ class ForumMemberProfile extends Page_Controller {
 
 		// Check if the honeypot has been filled out
 		if(ForumHolder::$use_honeypot_on_register) {
-			if(@$data['username']) {
+			if(!empty($data['username'])) {
 				SS_Log::log(sprintf(
 					'Forum honeypot triggered (data: %s)',
 					http_build_query($data)

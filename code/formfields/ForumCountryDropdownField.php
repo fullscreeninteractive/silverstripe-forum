@@ -49,6 +49,7 @@ class ForumCountryDropdownField extends DropdownField {
 		}
 
 		parent::__construct($name, ($title===null) ? $name : $title, $source, $value, $form);
+		$this->setEmptyString(_t('FORUMCOUNTRYDROPDOWN.EmptyString', 'Pick a country'));
 	}
 
 	function Field($properties = array()) {
