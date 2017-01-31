@@ -21,7 +21,7 @@
 
 		<div class="quick-reply">
 			<% if $Thread.canPost %>
-				<p>$Top.ReplyLink</p>
+				<p><a href="$Top.ReplyLink" class="replyLink"><% _t('Post.REPLYLINK', 'Post Reply') %></a></p>
 			<% end_if %>
 		</div>
 		<h4><a href="$Link">$Title <img src="forum/images/right.png" alt="Link to this post" title="Link to this post" /></a></h4>
@@ -33,21 +33,24 @@
 		<% if $EditLink || $DeleteLink %>
 			<div class="post-modifiers">
 				<% if $EditLink %>
-					$EditLink
+		                	<a href="$EditLink" class="editPostLink"><% _t('Post.EDIT', 'Edit') %></a>
 				<% end_if %>
 
 				<% if $DeleteLink %>
-					$DeleteLink
+					<a href="$DeleteLink" class="deleteLink"><% _t('Post.DELETE', 'Delete') %></a>
 				<% end_if %>
 
 				<% if $MarkAsSpamLink %>
-					$MarkAsSpamLink
+                    			<a href="$MarkAsSpamLink" class="markAsSpamLink" rel="$ID"><% _t('Post.MARKASSPAM', 'Mark as Spam') %></a>
 				<% end_if %>
 
 				<% if $BanLink || $GhostLink %>
-					|
-					<% if $BanLink %>$BanLink<% end_if %>
-					<% if $GhostLink %>$GhostLink<% end_if %>
+					<% if $BanLink %>
+                        			<a class="banLink" href="$BanLink" rel="$AuthorID"><% _t('Post.BANUSER', 'Ban User') %></a>
+                    			<% end_if %>
+					<% if $GhostLink %>
+                        			<a class="ghostLink" href="$GhostLink" rel="$AuthorID"><% _t('Post.GHOSTUSER', 'Ghost User') %></a>
+                    			<% end_if %>
 				<% end_if %>
 
 			</div>
