@@ -1,5 +1,20 @@
 <?php
 
+namespace SilverStripe\Forum\Tests;
+
+use SilverStripe\Security\Member;
+use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\ORM\DataModel;
+use SilverStripe\Security\SecurityToken;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Dev\FunctionalTest;
+use Forum_Controller;
+use Post;
+use ForumThread;
+use Forum;
+
 /**
  * @todo Write Tests for doPostMessageForm()
  */
@@ -29,7 +44,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canView());
 
         // try logging in a member
-        $member = $this->objFromFixture('Member', 'test1');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test1');
         $member->logIn();
 
         $this->assertTrue($public->canView());
@@ -39,7 +54,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canView());
 
         // login as a person with access to restricted forum
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2');
         $member->logIn();
 
         $this->assertTrue($public->canView());
@@ -49,7 +64,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canView());
 
         // Moderator should be able to view his own forums
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
         $this->assertTrue($public->canView());
@@ -79,7 +94,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canPost());
 
         // try logging in a member
-        $member = $this->objFromFixture('Member', 'test1');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test1');
         $member->logIn();
 
         $this->assertTrue($public->canPost());
@@ -89,7 +104,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canPost());
 
         // login as a person with access to restricted forum
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2');
         $member->logIn();
 
         $this->assertTrue($public->canPost());
@@ -99,7 +114,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canPost());
 
         // Moderator should be able to view his own forums
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
         $this->assertTrue($public->canPost());
@@ -114,10 +129,10 @@ class ForumTest extends FunctionalTest
         $private = $this->objFromFixture('Forum', 'loggedInOnly');
         $limited = $this->objFromFixture('Forum', 'limitedToGroup');
         $inheritedForum_loggedInOnly = $this->objFromFixture('Forum', 'inheritedForum_loggedInOnly');
-        SS_Datetime::set_mock_now('2011-10-10 12:00:00');
+        DBDatetime::set_mock_now('2011-10-10 12:00:00');
 
         // try logging in a member suspendedexpired
-        $suspendedexpired = $this->objFromFixture('Member', 'suspendedexpired');
+        $suspendedexpired = $this->objFromFixture('SilverStripe\\Security\\Member', 'suspendedexpired');
         $this->assertFalse($suspendedexpired->IsSuspended());
         $suspendedexpired->logIn();
         $this->assertTrue($private->canPost());
@@ -125,7 +140,7 @@ class ForumTest extends FunctionalTest
         $this->assertTrue($inheritedForum_loggedInOnly->canPost());
 
         // try logging in a member suspended
-        $suspended = $this->objFromFixture('Member', 'suspended');
+        $suspended = $this->objFromFixture('SilverStripe\\Security\\Member', 'suspended');
         $this->assertTrue($suspended->IsSuspended());
         $suspended->logIn();
         $this->assertFalse($private->canPost());
@@ -153,7 +168,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canModerate());
 
         // try logging in a member
-        $member = $this->objFromFixture('Member', 'test1');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test1');
         $member->logIn();
 
         $this->assertFalse($public->canModerate());
@@ -163,7 +178,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canModerate());
 
         // login as a person with access to restricted forum
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2');
         $member->logIn();
 
         $this->assertFalse($public->canModerate());
@@ -173,7 +188,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canModerate());
 
         // Moderator should be able to view his own forums
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
         $this->assertTrue($public->canModerate());
@@ -297,11 +312,11 @@ class ForumTest extends FunctionalTest
     protected function markGhosts()
     {
         //Mark a members as a spammers
-        $spammer = $this->objFromFixture("Member", "spammer");
+        $spammer = $this->objFromFixture("SilverStripe\\Security\\Member", "spammer");
         $spammer->ForumStatus = 'Ghost';
         $spammer->write();
 
-        $spammer2 = $this->objFromFixture("Member", "spammer2");
+        $spammer2 = $this->objFromFixture("SilverStripe\\Security\\Member", "spammer2");
         $spammer2->ForumStatus = 'Ghost';
         $spammer2->write();
     }
@@ -314,13 +329,13 @@ class ForumTest extends FunctionalTest
         $spampost = $this->objFromFixture('Post', 'SpamSecondPost');
         $forum = $spampost->Forum();
         $author = $spampost->Author();
-        $moderator = $this->objFromFixture('Member', 'moderator'); // moderator for "general" forum
+        $moderator = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator'); // moderator for "general" forum
 
         // without a logged-in moderator
         $this->assertFalse($spampost->MarkAsSpamLink(), 'Link not present by default');
 
         $c = new Forum_Controller($forum);
-        $response = $c->handleRequest(new SS_HTTPRequest('GET', 'markasspam/'. $spampost->ID), DataModel::inst());
+        $response = $c->handleRequest(new HTTPRequest('GET', 'markasspam/'. $spampost->ID), DataModel::inst());
         $this->assertEquals(403, $response->getStatusCode());
 
         // with logged-in moderator
@@ -330,7 +345,7 @@ class ForumTest extends FunctionalTest
         $this->assertNull($author->SuspendedUntil);
 
         $c = new Forum_Controller($forum);
-        $response = $c->handleRequest(new SS_HTTPRequest('GET', 'markasspam/'. $spampost->ID), DataModel::inst());
+        $response = $c->handleRequest(new HTTPRequest('GET', 'markasspam/'. $spampost->ID), DataModel::inst());
         $this->assertFalse($response->isError());
 
         // removes the post
@@ -347,7 +362,7 @@ class ForumTest extends FunctionalTest
         // mark the first post in that now as spam
         $spamfirst = $this->objFromFixture('Post', 'SpamFirstPost');
 
-        $response = $c->handleRequest(new SS_HTTPRequest('GET', 'markasspam/'. $spamfirst->ID), DataModel::inst());
+        $response = $c->handleRequest(new HTTPRequest('GET', 'markasspam/'. $spamfirst->ID), DataModel::inst());
 
         // removes the thread
         $this->assertNull(ForumThread::get()->byID($spamfirst->Thread()->ID));
@@ -358,13 +373,13 @@ class ForumTest extends FunctionalTest
         $spampost = $this->objFromFixture('Post', 'SpamSecondPost');
         $forum = $spampost->Forum();
         $author = $spampost->Author();
-        $moderator = $this->objFromFixture('Member', 'moderator'); // moderator for "general" forum
+        $moderator = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator'); // moderator for "general" forum
 
         // without a logged-in moderator
         $this->assertFalse($spampost->BanLink(), 'Link not present by default');
 
         $c = new Forum_Controller($forum);
-        $response = $c->handleRequest(new SS_HTTPRequest('GET', 'ban/'. $spampost->AuthorID), DataModel::inst());
+        $response = $c->handleRequest(new HTTPRequest('GET', 'ban/'. $spampost->AuthorID), DataModel::inst());
         $this->assertEquals(403, $response->getStatusCode());
 
         // with logged-in moderator
@@ -372,7 +387,7 @@ class ForumTest extends FunctionalTest
         $this->assertNotEquals(false, $spampost->BanLink(), 'Link present for moderators on this forum');
 
         $c = new Forum_Controller($forum);
-        $response = $c->handleRequest(new SS_HTTPRequest('GET', 'ban/'. $spampost->AuthorID), DataModel::inst());
+        $response = $c->handleRequest(new HTTPRequest('GET', 'ban/'. $spampost->AuthorID), DataModel::inst());
         $this->assertFalse($response->isError());
 
         // user is banned
@@ -385,13 +400,13 @@ class ForumTest extends FunctionalTest
         $spampost = $this->objFromFixture('Post', 'SpamSecondPost');
         $forum = $spampost->Forum();
         $author = $spampost->Author();
-        $moderator = $this->objFromFixture('Member', 'moderator'); // moderator for "general" forum
+        $moderator = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator'); // moderator for "general" forum
 
         // without a logged-in moderator
         $this->assertFalse($spampost->GhostLink(), 'Link not present by default');
 
         $c = new Forum_Controller($forum);
-        $response = $c->handleRequest(new SS_HTTPRequest('GET', 'ghost/'. $spampost->AuthorID), DataModel::inst());
+        $response = $c->handleRequest(new HTTPRequest('GET', 'ghost/'. $spampost->AuthorID), DataModel::inst());
         $this->assertEquals(403, $response->getStatusCode());
 
         // with logged-in moderator
@@ -399,7 +414,7 @@ class ForumTest extends FunctionalTest
         $this->assertNotEquals(false, $spampost->GhostLink(), 'Link present for moderators on this forum');
 
         $c = new Forum_Controller($forum);
-        $response = $c->handleRequest(new SS_HTTPRequest('GET', 'ghost/'. $spampost->AuthorID), DataModel::inst());
+        $response = $c->handleRequest(new HTTPRequest('GET', 'ghost/'. $spampost->AuthorID), DataModel::inst());
         $this->assertFalse($response->isError());
 
         // post isn't available anymore in normal queries. {@link ForumSpamPostExtension}
@@ -419,7 +434,7 @@ class ForumTest extends FunctionalTest
 
         $forum = $this->objFromFixture('Forum', 'general');
         $controller = new Forum_Controller($forum);
-        $user = $this->objFromFixture('Member', 'test1');
+        $user = $this->objFromFixture('SilverStripe\\Security\\Member', 'test1');
         $this->session()->inst_set('loggedInAs', $user->ID);
 
         // New thread
@@ -432,7 +447,7 @@ class ForumTest extends FunctionalTest
             )
         );
 
-        $adminEmail = Config::inst()->get('Email', 'admin_email');
+        $adminEmail = Config::inst()->get('SilverStripe\\Control\\Email\\Email', 'admin_email');
 
         $this->assertEmailSent('test3@example.com', $adminEmail, "New thread \"New thread\" in forum [General Discussion]");
         $this->clearEmails();
@@ -490,7 +505,7 @@ class ForumTest extends FunctionalTest
 
         $post->delete();
 
-        $member = DataObject::get_by_id('Member', $checkID);
+        $member = DataObject::get_by_id('SilverStripe\\Security\\Member', $checkID);
         $this->assertTrue($member->ID == $checkID);
     }
 }

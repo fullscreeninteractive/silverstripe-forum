@@ -1,5 +1,67 @@
 <?php
 
+namespace SilverStripe\Forum\Pages;
+
+use SilverStripe\Security\Member;
+use SilverStripe\Security\Permission;
+use SilverStripe\ORM\DB;
+use SilverStripe\Security\Group;
+use SilverStripe\View\Requirements;
+use SilverStripe\Forms\HeaderField;
+use SilverStripe\Forms\OptionsetField;
+use SilverStripe\Forms\TreeMultiselectField;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\GridField\GridFieldConfig;
+use SilverStripe\Forms\GridField\GridFieldButtonRow;
+use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
+use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
+use SilverStripe\Forms\GridField\GridFieldSortableHeader;
+use SilverStripe\Forms\GridField\GridFieldDataColumns;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\GridField\GridFieldPageCount;
+use SilverStripe\Forms\GridField\GridFieldPaginator;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Control\Controller;
+use SilverStripe\Core\Convert;
+use SilverStripe\ORM\PaginatedList;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\Control\RSS\RSSFeed;
+use SilverStripe\Security\Security;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Control\Session;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Security\SecurityToken;
+use SilverStripe\Logging\Log;
+use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\Control\Director;
+use SilverStripe\View\Parsers\BBCodeParser;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\ReadonlyField;
+use SilverStripe\Forms\TextareaField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\HiddenField;
+use SilverStripe\Forms\FileField;
+use SilverStripe\Forms\FormAction;
+use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Form;
+use SilverStripe\Assets\Upload;
+use SilverStripe\ORM\ValidationException;
+use SilverStripe\Control\Email\Email;
+use SilverStripe\View\ArrayData;
+use SilverStripe\ORM\FieldType\DBField;
+use PageController;
+use SilverStripe\ORM\DataQuery;
+use Page;
+use ForumCategory;
+use ForumThread;
+use Post;
+use SQLQuery;
+use ForumThread_Subscription;
+use Post_Attachment;
+
 /**
  * Forum represents a collection of forum threads. Each thread is a different topic on
  * the site. You can customize permissions on a per forum basis in the CMS.
@@ -29,13 +91,13 @@ class Forum extends Page
     );
 
     private static $has_one = array(
-        "Moderator" => "Member",
+        "Moderator" => "SilverStripe\\Security\\Member",
         "Category" => "ForumCategory"
     );
 
     private static $many_many = array(
-        'Moderators' => 'Member',
-        'PosterGroups' => 'Group'
+        'Moderators' => 'SilverStripe\\Security\\Member',
+        'PosterGroups' => 'SilverStripe\\Security\\Group'
     );
 
     private static $defaults = array(
@@ -299,7 +361,7 @@ class Forum extends Page
                 'Nickname' => 'Nickname',
                 'FirstName' => 'First name',
                 'Surname' => 'Surname',
-                'Email'=> 'Email',
+                'Email'=> 'SilverStripe\\Control\\Email\\Email',
                 'LastVisited.Long' => 'Last Visit'
             ));
 
@@ -397,7 +459,7 @@ class Forum extends Page
         $sqlQuery = new SQLQuery();
         $sqlQuery->setFrom('"Post"');
         $sqlQuery->setSelect('COUNT(DISTINCT("ThreadID"))');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
+        $sqlQuery->addInnerJoin('SilverStripe\\Security\\Member', '"Post"."AuthorID" = "Member"."ID"');
         $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
         $sqlQuery->addWhere('"ForumID" = ' . $this->ID);
         return $sqlQuery->execute()->value();
@@ -413,7 +475,7 @@ class Forum extends Page
         $sqlQuery = new SQLQuery();
         $sqlQuery->setFrom('"Post"');
         $sqlQuery->setSelect('COUNT("Post"."ID")');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
+        $sqlQuery->addInnerJoin('SilverStripe\\Security\\Member', '"Post"."AuthorID" = "Member"."ID"');
         $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
         $sqlQuery->addWhere('"ForumID" = ' . $this->ID);
         return $sqlQuery->execute()->value();
@@ -430,7 +492,7 @@ class Forum extends Page
         $sqlQuery = new SQLQuery();
         $sqlQuery->setFrom('"Post"');
         $sqlQuery->setSelect('COUNT(DISTINCT("AuthorID"))');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
+        $sqlQuery->addInnerJoin('SilverStripe\\Security\\Member', '"Post"."AuthorID" = "Member"."ID"');
         $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
         $sqlQuery->addWhere('"ForumID" = ' . $this->ID);
         return $sqlQuery->execute()->value();
@@ -529,7 +591,7 @@ class Forum extends Page
  *
  * @package forum
  */
-class Forum_Controller extends Page_Controller
+class Forum_Controller extends PageController
 {
 
     private static $allowed_actions = array(
@@ -620,7 +682,7 @@ class Forum_Controller extends Page_Controller
      *
      * @return bool
      */
-    public function subscribe(SS_HTTPRequest $request)
+    public function subscribe(HTTPRequest $request)
     {
         // Check CSRF
         if (!SecurityToken::inst()->checkRequest($request)) {
@@ -647,7 +709,7 @@ class Forum_Controller extends Page_Controller
      *
      * @return bool
      */
-    public function unsubscribe(SS_HTTPRequest $request)
+    public function unsubscribe(HTTPRequest $request)
     {
         $member = Member::currentUser();
 
@@ -673,7 +735,7 @@ class Forum_Controller extends Page_Controller
      *
      * Must be logged in and have the correct permissions to do marking
      */
-    public function markasspam(SS_HTTPRequest $request)
+    public function markasspam(HTTPRequest $request)
     {
         $currentUser = Member::currentUser();
         if (!isset($this->urlParams['ID'])) {
@@ -700,34 +762,34 @@ class Forum_Controller extends Page_Controller
             $post->extend('onAfterMarkAsSpam');
 
             // Log deletion event
-            SS_Log::log(sprintf(
+            Log::log(sprintf(
                 'Marked post #%d as spam, by moderator %s (#%d)',
                 $post->ID,
                 $currentUser->Email,
                 $currentUser->ID
-            ), SS_Log::NOTICE);
+            ), Log::NOTICE);
 
             // Suspend the member (rather than deleting him),
             // which gives him or a moderator the chance to revoke a decision.
             if ($author = $post->Author()) {
-                $author->SuspendedUntil = date('Y-m-d', strtotime('+99 years', SS_Datetime::now()->Format('U')));
+                $author->SuspendedUntil = date('Y-m-d', strtotime('+99 years', DBDatetime::now()->Format('U')));
                 $author->write();
             }
 
-            SS_Log::log(sprintf(
+            Log::log(sprintf(
                 'Suspended member %s (#%d) for spam activity, by moderator %s (#%d)',
                 $author->Email,
                 $author->ID,
                 $currentUser->Email,
                 $currentUser->ID
-            ), SS_Log::NOTICE);
+            ), Log::NOTICE);
         }
 
         return (Director::is_ajax()) ? true : $this->redirect($this->Link());
     }
 
 
-    public function ban(SS_HTTPRequest $r)
+    public function ban(HTTPRequest $r)
     {
         if (!$r->param('ID')) {
             return $this->httpError(404);
@@ -746,18 +808,18 @@ class Forum_Controller extends Page_Controller
 
         // Log event
         $currentUser = Member::currentUser();
-        SS_Log::log(sprintf(
+        Log::log(sprintf(
             'Banned member %s (#%d), by moderator %s (#%d)',
             $member->Email,
             $member->ID,
             $currentUser->Email,
             $currentUser->ID
-        ), SS_Log::NOTICE);
+        ), Log::NOTICE);
 
         return ($r->isAjax()) ? true : $this->redirectBack();
     }
 
-    public function ghost(SS_HTTPRequest $r)
+    public function ghost(HTTPRequest $r)
     {
         if (!$r->param('ID')) {
             return $this->httpError(400);
@@ -776,13 +838,13 @@ class Forum_Controller extends Page_Controller
 
         // Log event
         $currentUser = Member::currentUser();
-        SS_Log::log(sprintf(
+        Log::log(sprintf(
             'Ghosted member %s (#%d), by moderator %s (#%d)',
             $member->Email,
             $member->ID,
             $currentUser->Email,
             $currentUser->ID
-        ), SS_Log::NOTICE);
+        ), Log::NOTICE);
 
         return ($r->isAjax()) ? true : $this->redirectBack();
     }
@@ -1078,7 +1140,7 @@ class Forum_Controller extends Page_Controller
                         $attachments->push($file);
                     } catch (ValidationException $e) {
                         $message = _t('Forum.UPLOADVALIDATIONFAIL', 'Unallowed file uploaded. Please only upload files of the following: ');
-                        $message .= implode(', ', Config::inst()->get('File', 'allowed_extensions'));
+                        $message .= implode(', ', Config::inst()->get('SilverStripe\\Assets\\File', 'allowed_extensions'));
                         $form->addErrorMessage('Attachment', $message, 'bad');
 
                         Session::set("FormInfo.Form_PostMessageForm.data", $data);
@@ -1151,7 +1213,7 @@ class Forum_Controller extends Page_Controller
         if ($moderators && $moderators->exists()) {
             foreach ($moderators as $moderator) {
                 if ($moderator->Email) {
-                    $adminEmail = Config::inst()->get('Email', 'admin_email');
+                    $adminEmail = Config::inst()->get('SilverStripe\\Control\\Email\\Email', 'admin_email');
 
                     $email = new Email();
                     $email->setFrom($adminEmail);
@@ -1318,7 +1380,7 @@ class Forum_Controller extends Page_Controller
      *
      * @return boolean
      */
-    public function deleteattachment(SS_HTTPRequest $request)
+    public function deleteattachment(HTTPRequest $request)
     {
         // Check CSRF token
         if (!SecurityToken::inst()->checkRequest($request)) {
@@ -1372,7 +1434,7 @@ class Forum_Controller extends Page_Controller
      *
      * @return bool
      */
-    public function deletepost(SS_HTTPRequest $request)
+    public function deletepost(HTTPRequest $request)
     {
         // Check CSRF token
         if (!SecurityToken::inst()->checkRequest($request)) {

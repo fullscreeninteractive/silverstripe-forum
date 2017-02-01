@@ -1,10 +1,42 @@
 <?php
+
+namespace SilverStripe\Forum\Controllers;
+
+use SilverStripe\View\Requirements;
+use SilverStripe\Core\Convert;
+use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\Control\Session;
+use SilverStripe\Forms\HiddenField;
+use SilverStripe\Forms\FormAction;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\Form;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Security\Member;
+use SilverStripe\Logging\Log;
+use SilverStripe\Security\Group;
+use SilverStripe\Core\Object;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Control\Director;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\TextareaField;
+use SilverStripe\Security\Security;
+use PageController;
+use Post;
+use ForumHolder;
+use Auth_OpenID_Consumer;
+use OpenIDStorage;
+use SessionWrapper;
+use Auth_OpenID_SRegRequest;
+use Auth_OpenID;
+use Auth_OpenID_SRegResponse;
+
 /**
  * ForumMemberProfile is the profile pages for a given ForumMember
  *
  * @package forum
  */
-class ForumMemberProfile extends Page_Controller
+class ForumMemberProfile extends PageController
 {
 
     private static $allowed_actions = array(
@@ -117,7 +149,7 @@ class ForumMemberProfile extends Page_Controller
             (isset($data['IdentityURL']) && !empty($data['IdentityURL'])) ||
             (isset($_POST['IdentityURL']) && !empty($_POST['IdentityURL']));
 
-        $fields = singleton('Member')->getForumFields($use_openid, true);
+        $fields = singleton('SilverStripe\\Security\\Member')->getForumFields($use_openid, true);
 
         // If a BackURL is provided, make it hidden so the post-registration
         // can direct to it.
@@ -125,7 +157,7 @@ class ForumMemberProfile extends Page_Controller
             $fields->push(new HiddenField('BackURL', 'BackURL', $_REQUEST['BackURL']));
         }
 
-        $validator = singleton('Member')->getForumValidator(!$use_openid);
+        $validator = singleton('SilverStripe\\Security\\Member')->getForumValidator(!$use_openid);
         $form = new Form(
             $this,
             'RegistrationForm',
@@ -179,17 +211,17 @@ class ForumMemberProfile extends Page_Controller
         // Check if the honeypot has been filled out
         if (ForumHolder::$use_honeypot_on_register) {
             if (@$data['username']) {
-                SS_Log::log(sprintf(
+                Log::log(sprintf(
                     'Forum honeypot triggered (data: %s)',
                     http_build_query($data)
-                ), SS_Log::NOTICE);
+                ), Log::NOTICE);
                 return $this->httpError(403);
             }
         }
 
         $forumGroup = Group::get()->filter('Code', 'forum-members')->first();
 
-        if ($member = Member::get()->filter('Email', $data['Email'])->first()) {
+        if ($member = Member::get()->filter('SilverStripe\\Control\\Email\\Email', $data['SilverStripe\\Control\\Email\\Email'])->first()) {
             if ($member) {
                 $form->addErrorMessage(
                     "Blurb",
@@ -221,7 +253,7 @@ class ForumMemberProfile extends Page_Controller
         }
 
         // create the new member
-        $member = Object::create('Member');
+        $member = Object::create('SilverStripe\\Security\\Member');
         $form->saveInto($member);
 
         $member->write();
@@ -423,7 +455,7 @@ class ForumMemberProfile extends Page_Controller
                 $data['Country'] = $sreg['country'];
             }
             if (isset($sreg['email'])) {
-                $data['Email'] = $sreg['email'];
+                $data['SilverStripe\\Control\\Email\\Email'] = $sreg['email'];
             }
 
             Session::set("FormInfo.Form_RegistrationForm.data", $data);
@@ -485,8 +517,8 @@ class ForumMemberProfile extends Page_Controller
         $member = $this->Member();
         $show_openid = (isset($member->IdentityURL) && !empty($member->IdentityURL));
 
-        $fields = $member ? $member->getForumFields($show_openid) : singleton('Member')->getForumFields($show_openid);
-        $validator = $member ? $member->getForumValidator(false) : singleton('Member')->getForumValidator(false);
+        $fields = $member ? $member->getForumFields($show_openid) : singleton('SilverStripe\\Security\\Member')->getForumFields($show_openid);
+        $validator = $member ? $member->getForumValidator(false) : singleton('SilverStripe\\Security\\Member')->getForumValidator(false);
         if ($holder = DataObject::get_one('ForumHolder', "\"DisplaySignatures\" = '1'")) {
             $fields->push(new TextareaField('Signature', 'Forum Signature'));
         }
@@ -519,12 +551,12 @@ class ForumMemberProfile extends Page_Controller
     {
         $member = Member::currentUser();
 
-        $SQL_email = Convert::raw2sql($data['Email']);
-        $forumGroup = DataObject::get_one('Group', "\"Code\" = 'forum-members'");
+        $SQL_email = Convert::raw2sql($data['SilverStripe\\Control\\Email\\Email']);
+        $forumGroup = DataObject::get_one('SilverStripe\\Security\\Group', "\"Code\" = 'forum-members'");
 
         // An existing member may have the requested email that doesn't belong to the
         // person who is editing their profile - if so, throw an error
-        $existingMember = DataObject::get_one('Member', "\"Email\" = '$SQL_email'");
+        $existingMember = DataObject::get_one('SilverStripe\\Security\\Member', "\"Email\" = '$SQL_email'");
         if ($existingMember) {
             if ($existingMember->ID != $member->ID) {
                 $form->addErrorMessage(
@@ -541,7 +573,7 @@ class ForumMemberProfile extends Page_Controller
         }
 
         $nicknameCheck = DataObject::get_one(
-            "Member",
+            "SilverStripe\\Security\\Member",
             sprintf(
                 "\"Nickname\" = '%s' AND \"Member\".\"ID\" != '%d'",
                 Convert::raw2sql($data['Nickname']),
@@ -608,7 +640,7 @@ class ForumMemberProfile extends Page_Controller
     {
         $member = null;
         if (!empty($this->urlParams['ID']) && is_numeric($this->urlParams['ID'])) {
-            $member = DataObject::get_by_id('Member', $this->urlParams['ID']);
+            $member = DataObject::get_by_id('SilverStripe\\Security\\Member', $this->urlParams['ID']);
         } else {
             $member = Member::currentUser();
         }

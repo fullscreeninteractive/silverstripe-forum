@@ -1,5 +1,7 @@
 <?php
 
+namespace SilverStripe\Forum\Search;
+
 /**
  * Forum Search.
  *

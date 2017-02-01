@@ -1,5 +1,50 @@
 <?php
 
+namespace SilverStripe\Forum\Pages;
+
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\GridField\GridFieldConfig;
+use SilverStripe\Forms\GridField\GridFieldSortableHeader;
+use SilverStripe\Forms\GridField\GridFieldButtonRow;
+use SilverStripe\Forms\GridField\GridFieldDataColumns;
+use SilverStripe\Forms\GridField\GridFieldEditButton;
+use SilverStripe\Forms\GridField\GridFieldViewButton;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\GridField\GridFieldAddNewButton;
+use SilverStripe\Forms\GridField\GridFieldPaginator;
+use SilverStripe\Forms\GridField\GridFieldDetailForm;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\HeaderField;
+use SilverStripe\Forms\OptionsetField;
+use SilverStripe\Security\Member;
+use SilverStripe\Security\Group;
+use SilverStripe\ORM\DB;
+use SilverStripe\Dev\Deprecation;
+use SilverStripe\Core\Convert;
+use SilverStripe\Control\Controller;
+use SilverStripe\ORM\Versioning\Versioned;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Security\Authenticator;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\View\Requirements;
+use SilverStripe\Control\RSS\RSSFeed;
+use SilverStripe\Control\Session;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\PaginatedList;
+use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\Control\HTTP;
+use PageController;
+use Page;
+use ForumCategory;
+use SQLQuery;
+use Post;
+use ForumSearch;
+use ForumThread;
+
 /**
  * ForumHolder represents the top forum overview page. Its children
  * should be Forums. On this page you can also edit your global settings
@@ -248,8 +293,8 @@ class ForumHolder extends Page
             $sqlQuery = new SQLQuery();
             $sqlQuery->setFrom('"Post"');
             $sqlQuery->setSelect('COUNT("Post"."ID")');
-            $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
-            $sqlQuery->addInnerJoin('SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
+            $sqlQuery->addInnerJoin('SilverStripe\\Security\\Member', '"Post"."AuthorID" = "Member"."ID"');
+            $sqlQuery->addInnerJoin('SilverStripe\\CMS\\Model\\SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
             $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
             $sqlQuery->addWhere('"SiteTree"."ParentID" = ' . $this->ID);
             return $sqlQuery->execute()->value();
@@ -266,8 +311,8 @@ class ForumHolder extends Page
         $sqlQuery = new SQLQuery();
         $sqlQuery->setFrom('"Post"');
         $sqlQuery->setSelect('COUNT(DISTINCT("ThreadID"))');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
-        $sqlQuery->addInnerJoin('SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
+        $sqlQuery->addInnerJoin('SilverStripe\\Security\\Member', '"Post"."AuthorID" = "Member"."ID"');
+        $sqlQuery->addInnerJoin('SilverStripe\\CMS\\Model\\SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
         $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
         $sqlQuery->addWhere('"SiteTree"."ParentID" = ' . $this->ID);
         return $sqlQuery->execute()->value();
@@ -284,8 +329,8 @@ class ForumHolder extends Page
         $sqlQuery = new SQLQuery();
         $sqlQuery->setFrom('"Post"');
         $sqlQuery->setSelect('COUNT(DISTINCT("AuthorID"))');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
-        $sqlQuery->addInnerJoin('SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
+        $sqlQuery->addInnerJoin('SilverStripe\\Security\\Member', '"Post"."AuthorID" = "Member"."ID"');
+        $sqlQuery->addInnerJoin('SilverStripe\\CMS\\Model\\SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
         $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
         $sqlQuery->addWhere('"SiteTree"."ParentID" = ' . $this->ID);
         return $sqlQuery->execute()->value();
@@ -445,10 +490,10 @@ class ForumHolder extends Page
             $stage = Versioned::get_live_stage();
         }
 
-        if ((class_exists('SapphireTest', false) && SapphireTest::is_running_test())
+        if ((class_exists('SilverStripe\\Dev\\SapphireTest', false) && SapphireTest::is_running_test())
             || $stage == "Stage"
         ) {
-            return "SiteTree";
+            return "SilverStripe\\CMS\\Model\\SiteTree";
         } else {
             return "SiteTree_Live";
         }
@@ -465,7 +510,7 @@ class ForumHolder extends Page
      */
     public function OpenIDAvailable()
     {
-        if (class_exists('Authenticator') == false) {
+        if (class_exists('SilverStripe\\Security\\Authenticator') == false) {
             return false;
         }
 
@@ -621,7 +666,7 @@ class ForumHolder extends Page
 }
 
 
-class ForumHolder_Controller extends Page_Controller
+class ForumHolder_Controller extends PageController
 {
 
     private static $allowed_actions = array(
@@ -663,7 +708,7 @@ class ForumHolder_Controller extends Page_Controller
     {
         return $this->httpError(404);
 
-        $forumGroupID = (int) DataObject::get_one('Group', "\"Code\" = 'forum-members'")->ID;
+        $forumGroupID = (int) DataObject::get_one('SilverStripe\\Security\\Group', "\"Code\" = 'forum-members'")->ID;
 
         // If sort has been defined then save it as in the session
         $order = (isset($_GET['order'])) ? $_GET['order']: "";
@@ -700,10 +745,10 @@ class ForumHolder_Controller extends Page_Controller
                         ->limit($SQL_start . ',100');
                 break;
             case "posts":
-                $query = singleton('Member')->extendedSQL('', "\"NumPosts\" DESC", "{$SQL_start},100");
+                $query = singleton('SilverStripe\\Security\\Member')->extendedSQL('', "\"NumPosts\" DESC", "{$SQL_start},100");
                 $query->select[] = "(SELECT COUNT(*) FROM \"Post\" WHERE \"Post\".\"AuthorID\" = \"Member\".\"ID\") AS \"NumPosts\"";
                 $records = $query->execute();
-                $members = singleton('Member')->buildDataObjectSet($records, 'DataObjectSet', $query, 'Member');
+                $members = singleton('SilverStripe\\Security\\Member')->buildDataObjectSet($records, 'DataObjectSet', $query, 'SilverStripe\\Security\\Member');
                 $members->parseQueryLimit($query);
                 break;
             default:

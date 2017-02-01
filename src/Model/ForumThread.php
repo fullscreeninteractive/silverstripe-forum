@@ -1,5 +1,18 @@
 <?php
 
+namespace SilverStripe\Forum\Models;
+
+use SilverStripe\Security\Member;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Control\Session;
+use SilverStripe\Core\Convert;
+use SilverStripe\ORM\DB;
+use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Control\Email\Email;
+use SilverStripe\Control\Director;
+use SQLQuery;
+
 /**
  * A representation of a forum thread. A forum thread is 1 topic on the forum
  * which has multiple posts underneath it.
@@ -159,7 +172,7 @@ class ForumThread extends DataObject
         $sqlQuery = new SQLQuery();
         $sqlQuery->setFrom('"Post"');
         $sqlQuery->setSelect('COUNT("Post"."ID")');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
+        $sqlQuery->addInnerJoin('SilverStripe\\Security\\Member', '"Post"."AuthorID" = "Member"."ID"');
         $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
         $sqlQuery->addWhere('"ThreadID" = ' . $this->ID);
         return $sqlQuery->execute()->value();
@@ -269,7 +282,7 @@ class ForumThread_Subscription extends DataObject
 
     private static $has_one = array(
         "Thread" => "ForumThread",
-        "Member" => "Member"
+        "Member" => "SilverStripe\\Security\\Member"
     );
 
     /**
@@ -317,8 +330,8 @@ class ForumThread_Subscription extends DataObject
                 $SQL_id = Convert::raw2sql((int)$obj->MemberID);
 
                 // Get the members details
-                $member = DataObject::get_one("Member", "\"Member\".\"ID\" = '$SQL_id'");
-                $adminEmail = Config::inst()->get('Email', 'admin_email');
+                $member = DataObject::get_one("SilverStripe\\Security\\Member", "\"Member\".\"ID\" = '$SQL_id'");
+                $adminEmail = Config::inst()->get('SilverStripe\\Control\\Email\\Email', 'admin_email');
 
                 if ($member) {
                     $email = new Email();

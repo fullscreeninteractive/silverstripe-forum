@@ -1,5 +1,14 @@
 <?php
 
+namespace SilverStripe\Forum\Tests;
+
+use SilverStripe\Control\Session;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Dev\FunctionalTest;
+use ForumThread_Subscription;
+use ForumThread;
+use Post;
+
 /**
  * @todo Write some more complex tests for testing the can*() functionality
  */
@@ -52,8 +61,8 @@ class ForumThreadTest extends FunctionalTest
         $thread = $this->objFromFixture("ForumThread", "Thread1");
         $thread2 = $this->objFromFixture("ForumThread", "Thread2");
 
-        $member = $this->objFromFixture("Member", "test1");
-        $member2 = $this->objFromFixture("Member", "test2");
+        $member = $this->objFromFixture("SilverStripe\\Security\\Member", "test1");
+        $member2 = $this->objFromFixture("SilverStripe\\Security\\Member", "test2");
 
         $this->assertTrue(ForumThread_Subscription::already_subscribed($thread->ID, $member->ID));
         $this->assertTrue(ForumThread_Subscription::already_subscribed($thread->ID, $member2->ID));
@@ -81,7 +90,7 @@ class ForumThreadTest extends FunctionalTest
 
     public function testPermissions()
     {
-        $member = $this->objFromFixture('Member', 'test1');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test1');
         $this->session()->inst_set('loggedInAs', $member->ID);
 
         // read only thread. No one should be able to post to this (apart from the )
@@ -103,7 +112,7 @@ class ForumThreadTest extends FunctionalTest
         $this->assertFalse($disabledforum->canModerate());
 
         // Moderator can access threads nevertheless
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
         $this->assertFalse($disabledforum->canPost());

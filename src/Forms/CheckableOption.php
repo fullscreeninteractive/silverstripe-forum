@@ -1,5 +1,12 @@
 <?php
 
+namespace SilverStripe\Forum\Forms;
+
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\FormField;
+use SilverStripe\Forms\CompositeField;
+
 class CheckableOption extends CompositeField
 {
     protected $childField, $checkbox;

@@ -1,5 +1,11 @@
 <?php
 
+namespace SilverStripe\Forum\Search;
+
+use SilverStripe\Core\Object;
+use SilverStripe\ORM\DataObject;
+use SphinxSearch;
+
 /**
  * An extension to the default Forum search to use the {@link Sphinx} class instead
  * of the standard database search.
@@ -21,7 +27,7 @@ class ForumSphinxSearch implements ForumSearchProvider
     // These are classes that *may* be indexed by Sphinx. If they are,
     // we can search for them, and we may need to add extra sphinx
     // properties to them.
-    protected static $extra_search_classes = array('Forum', 'Member');
+    protected static $extra_search_classes = array('Forum', 'SilverStripe\\Security\\Member');
 
     /**
      * Get the results

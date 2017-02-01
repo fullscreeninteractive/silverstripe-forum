@@ -1,8 +1,15 @@
 <?php
 
+namespace SilverStripe\Forum\Tests;
+
+
+use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\Dev\FunctionalTest;
+use ForumHolder;
+
+
 class ForumMemberProfileTest extends FunctionalTest
 {
-
     static $fixture_file = "forum/tests/ForumTest.yml";
     static $use_draft_site = true;
 
@@ -47,9 +54,9 @@ class ForumMemberProfileTest extends FunctionalTest
 
     public function testMemberProfileSuspensionNote()
     {
-        SS_Datetime::set_mock_now('2011-10-10');
+        DBDatetime::set_mock_now('2011-10-10');
 
-        $normalMember = $this->objFromFixture('Member', 'test1');
+        $normalMember = $this->objFromFixture('SilverStripe\\Security\\Member', 'test1');
         $this->loginAs($normalMember);
         $response = $this->get('ForumMemberProfile/edit/' . $normalMember->ID);
 
@@ -59,7 +66,7 @@ class ForumMemberProfileTest extends FunctionalTest
             'Normal profiles don\'t show suspension note'
         );
 
-        $suspendedMember = $this->objFromFixture('Member', 'suspended');
+        $suspendedMember = $this->objFromFixture('SilverStripe\\Security\\Member', 'suspended');
         $this->loginAs($suspendedMember);
         $response = $this->get('ForumMemberProfile/edit/' . $suspendedMember->ID);
         $this->assertContains(
@@ -68,13 +75,13 @@ class ForumMemberProfileTest extends FunctionalTest
             'Suspended profiles show suspension note'
         );
 
-        SS_Datetime::clear_mock_now();
+        DBDatetime::clear_mock_now();
     }
 
     public function testMemberProfileDisplays()
     {
         /* Get the profile of a secretive member */
-        $this->get('ForumMemberProfile/show/' . $this->idFromFixture('Member', 'test1'));
+        $this->get('ForumMemberProfile/show/' . $this->idFromFixture('SilverStripe\\Security\\Member', 'test1'));
 
         /* Check that it just contains the bare minimum
 
@@ -95,7 +102,7 @@ class ForumMemberProfileTest extends FunctionalTest
 		));
 
 		/* Get the profile of a public member */
-        $this->get('ForumMemberProfile/show/' . $this->idFromFixture('Member', 'test2'));
+        $this->get('ForumMemberProfile/show/' . $this->idFromFixture('SilverStripe\\Security\\Member', 'test2'));
 
         /* Check that it just contains everything
 

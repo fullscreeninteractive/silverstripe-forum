@@ -1,5 +1,12 @@
 <?php
 
+namespace SilverStripe\Forum\Models;
+
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\ORM\DataObject;
+
 /**
  * A Forum Category is applied to each forum page in a has one relation.
  *

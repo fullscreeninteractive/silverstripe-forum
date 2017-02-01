@@ -1,5 +1,19 @@
 <?php
 
+namespace SilverStripe\Forum\Models;
+
+use SilverStripe\ORM\DB;
+use SilverStripe\Security\Member;
+use SilverStripe\Security\Permission;
+use SilverStripe\Control\Director;
+use SilverStripe\Control\Controller;
+use SilverStripe\Security\SecurityToken;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Core\Convert;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Assets\File;
+use Forum;
+
 /**
  * Forum Post Object. Contains a single post by the user. A thread is generated
  * with multiple posts.
@@ -23,7 +37,7 @@ class Post extends DataObject
     );
 
     private static $has_one = array(
-        "Author" => "Member",
+        "Author" => "SilverStripe\\Security\\Member",
         "Thread" => "ForumThread",
         "Forum" => "Forum" // denormalized data but used for read speed
     );
@@ -394,7 +408,7 @@ class Post_Attachment extends File
 
             if (is_numeric($SQL_ID)) {
                 $file = DataObject::get_by_id("Post_Attachment", $SQL_ID);
-                $response = SS_HTTPRequest::send_file(file_get_contents($file->getFullPath()), $file->Name);
+                $response = HTTPRequest::send_file(file_get_contents($file->getFullPath()), $file->Name);
                 $response->output();
             }
         }

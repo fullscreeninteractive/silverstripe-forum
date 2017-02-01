@@ -1,5 +1,13 @@
 <?php
 
+namespace SilverStripe\Forum\Forms;
+
+use SilverStripe\Security\Member;
+use SilverStripe\i18n\i18n;
+use SilverStripe\Forms\DropdownField;
+use Zend_Locale;
+use Collator;
+
 /**
  * A simple extension to dropdown field, pre-configured to list countries.
  * It will default to the country of the current visitor.
