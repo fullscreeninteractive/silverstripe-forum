@@ -1,5 +1,15 @@
 <?php
 
+namespace SilverStripe\Forum\Tests;
+
+
+use SilverStripe\Security\Member;
+use SilverStripe\Dev\FunctionalTest;
+use ForumReport_MemberSignups;
+use ForumReport_MonthlyPosts;
+use Post;
+
+
 class ForumReportTest extends FunctionalTest
 {
 
@@ -10,7 +20,7 @@ class ForumReportTest extends FunctionalTest
     {
         parent::setUp();
 
-        $member = $this->objFromFixture('Member', 'admin');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'admin');
         $member->logIn();
     }
 
@@ -52,7 +62,7 @@ class ForumReportTest extends FunctionalTest
 
         // Create a new post in current month
         $post = new Post();
-        $post->AuthorID = $this->objFromFixture('Member', 'test2')->ID;
+        $post->AuthorID = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2')->ID;
         $post->ThreadID = $this->objFromFixture('ForumThread', 'Thread2')->ID;
         $post->ForumID = $this->objFromFixture('Forum', 'forum5')->ID;
         $post->write();

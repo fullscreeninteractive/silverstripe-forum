@@ -1,5 +1,13 @@
 <?php
 
+namespace SilverStripe\Forum\Tests;
+
+use SilverStripe\Security\SecurityToken;
+use SilverStripe\Security\Member;
+use SilverStripe\Dev\FunctionalTest;
+use Forum;
+use Post;
+
 class PostTest extends FunctionalTest
 {
 
@@ -31,10 +39,10 @@ class PostTest extends FunctionalTest
 
     public function testPermissions()
     {
-        $member1 = $this->objFromFixture('Member', 'test1');
-        $member2 = $this->objFromFixture('Member', 'test2');
-        $moderator = $this->objFromFixture('Member', 'moderator');
-        $admin = $this->objFromFixture('Member', 'admin');
+        $member1 = $this->objFromFixture('SilverStripe\\Security\\Member', 'test1');
+        $member2 = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2');
+        $moderator = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
+        $admin = $this->objFromFixture('SilverStripe\\Security\\Member', 'admin');
 
         $postMember2 = $this->objFromFixture('Post', 'Post18');
 
@@ -139,7 +147,7 @@ class PostTest extends FunctionalTest
         $this->assertFalse($post->EditLink());
 
         // logged in as the member. Should be able to edit it
-        $member = $this->objFromFixture('Member', 'test1');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test1');
         $member->logIn();
 
         $this->assertContains($post->Thread()->URLSegment .'/editpost/'. $post->ID, $post->EditLink());
@@ -147,7 +155,7 @@ class PostTest extends FunctionalTest
         // log in as another member who is not
         $member->logOut();
 
-        $memberOther = $this->objFromFixture('Member', 'test2');
+        $memberOther = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2');
         $memberOther->logIn();
 
         $this->assertFalse($post->EditLink());
@@ -169,7 +177,7 @@ class PostTest extends FunctionalTest
         $this->assertFalse($post->DeleteLink());
 
         // logged in as the moderator. Should be able to delete the post.
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
         $this->assertContains($post->Thread()->URLSegment .'/deletepost/'. $post->ID, $post->DeleteLink());
@@ -180,13 +188,13 @@ class PostTest extends FunctionalTest
         $member->logOut();
 
         // log in as another member who is not in a position to delete this post
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2');
         $member->logIn();
 
         $this->assertFalse($post->DeleteLink());
 
         // log in as someone who can moderate this post (and therefore delete it)
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
 
@@ -218,7 +226,7 @@ class PostTest extends FunctionalTest
         $this->assertFalse($post->MarkAsSpamLink());
 
         // logged in as the moderator. Should be able to mark the post as spam.
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
         $this->assertContains($post->Thread()->URLSegment .'/markasspam/'. $post->ID, $post->MarkAsSpamLink());
@@ -229,13 +237,13 @@ class PostTest extends FunctionalTest
         $member->logOut();
 
         // log in as another member who is not in a position to mark post as spam this post
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2');
         $member->logIn();
 
         $this->assertFalse($post->MarkAsSpamLink());
 
         // log in as someone who can moderate this post (and therefore mark as spam)
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
 
@@ -265,7 +273,7 @@ class PostTest extends FunctionalTest
         $this->assertFalse($post->GhostLink());
 
         // logged in as the moderator. Should be able to mark the post as spam.
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'moderator');
         $member->logIn();
 
         $forum = $post->Thread()->Forum();
@@ -275,7 +283,7 @@ class PostTest extends FunctionalTest
         $member->logOut();
 
         // log in as another member who is not in a position to mark post as spam this post
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture('SilverStripe\\Security\\Member', 'test2');
         $member->logIn();
 
         $this->assertFalse($post->BanLink());

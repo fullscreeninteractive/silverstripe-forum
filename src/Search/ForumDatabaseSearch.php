@@ -1,5 +1,11 @@
 <?php
 
+namespace SilverStripe\Forum\Search;
+
+use SilverStripe\Core\Convert;
+use SilverStripe\ORM\DataList;
+use Post;
+
 /**
  * Basic Forum Database Search. For a better search try the {@link ForumSphinxSearch}
  *

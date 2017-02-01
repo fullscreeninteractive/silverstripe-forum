@@ -1,5 +1,11 @@
 <?php
 
+namespace SilverStripe\Forum\Tests;
+
+use SilverStripe\Dev\FunctionalTest;
+use ForumHolder_Controller;
+use ForumHolder;
+
 /**
  * @todo Write tests to cover the RSS feeds
  */
@@ -111,11 +117,11 @@ class ForumHolderTest extends FunctionalTest
     protected function markGhosts()
     {
         //Mark a members as a spammers
-        $spammer = $this->objFromFixture("Member", "spammer");
+        $spammer = $this->objFromFixture("SilverStripe\\Security\\Member", "spammer");
         $spammer->ForumStatus = 'Ghost';
         $spammer->write();
 
-        $spammer2 = $this->objFromFixture("Member", "spammer2");
+        $spammer2 = $this->objFromFixture("SilverStripe\\Security\\Member", "spammer2");
         $spammer2->ForumStatus = 'Ghost';
         $spammer2->write();
     }

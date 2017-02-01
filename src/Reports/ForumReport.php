@@ -1,4 +1,12 @@
 <?php
+
+namespace SilverStripe\Forum\Reports;
+
+use SilverStripe\ORM\DB;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\View\ArrayData;
+use SilverStripe\Reports\Report;
+
 /**
  * Forum Reports.
  * These are some basic reporting tools which sit in the CMS for the user to view.
@@ -12,7 +20,7 @@
  * Lists the Number of people who have signed up in the past months categorized
  * by month.
  */
-class ForumReport_MemberSignups extends SS_Report
+class ForumReport_MemberSignups extends Report
 {
 
     public function title()
@@ -61,7 +69,7 @@ class ForumReport_MemberSignups extends SS_Report
  * Lists the Number of Posts made in the forums in the past months categorized
  * by month.
  */
-class ForumReport_MonthlyPosts extends SS_Report
+class ForumReport_MonthlyPosts extends Report
 {
 
     public function title()

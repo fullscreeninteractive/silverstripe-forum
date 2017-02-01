@@ -1,4 +1,12 @@
 <?php
+
+namespace SilverStripe\Forum\Extensions;
+
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Security\Member;
+use SilverStripe\ORM\DataExtension;
+use SQLQuery;
+
 class ForumSpamPostExtension extends DataExtension
 {
 
