@@ -95,10 +95,9 @@ class ForumThreadSubscription extends DataObject
                     ->setTo($member->Email)
                     ->setSubject(_t('Post.NEWREPLY', 'New reply for {title}', array('title' => $post->Title)))
                     ->setHTMLTemplate('ForumMember_TopicNotification')
-                    ->todo()
-                    ->populateTemplate($member)
-                    ->populateTemplate($post)
-                    ->populateTemplate(
+                    ->setData($member)
+                    ->setData($post)
+                    ->setData(
                         [
                             'UnsubscribeLink' => Controller::join_links(Director::absoluteBaseURL(), $post->Thread()->Forum()->Link(), 'unsubscribe', $post->ID)
                         ]
