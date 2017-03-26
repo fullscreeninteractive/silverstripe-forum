@@ -719,9 +719,13 @@ class Forum_Controller extends Page_Controller {
 			new TextareaField("Content", _t('Forum.FORUMREPLYCONTENT', 'Content')),
 			new LiteralField(
 				"BBCodeHelper", 
-				"<div class=\"BBCodeHint\">[ <a href=\"#BBTagsHolder\" id=\"BBCodeHint\">" . 
-				_t('Forum.BBCODEHINT','View Formatting Help') . 
-				"</a> ]</div>" . 
+				"<div class=\"BBCodeHint\">[ <a href=\"#BBTagsHolder\" id=\"ViewBBCodeHint\">" . 
+				_t('Forum.VIEWBBCODEHINT','View Formatting Help') . 
+				"</a>".
+				"<a href=\"#BBTagsHolder\" id=\"HideBBCodeHint\">" . 
+				_t('Forum.HIDEBBCODEHINT','Hide Formatting Help') . 
+				"</a> ]".
+				"</div>" . 
 				$forumBBCodeHint
 			),
 			new CheckboxField("TopicSubscription", 

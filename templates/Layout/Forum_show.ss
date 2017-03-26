@@ -78,7 +78,7 @@
 
 <% if AdminFormFeatures %>
 <div class="forum-admin-features">
-	<h3>Forum Admin Features</h3>
+	<h3><% _t('Forum.ADMINFEATURES','Forum Admin Features') %></h3>
 	$AdminFormFeatures
 </div>
 <% end_if %>
