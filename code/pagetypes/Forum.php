@@ -274,6 +274,8 @@ class Forum extends Page {
 		$pagination->setThrowExceptionOnBadDataType(false);
 
 		$fields->addFieldToTab('Root.Moderators', $moderators);
+		
+		$this->extend('updateCMSFieldsEnd', $fields);
 
 		return $fields;
 	}
