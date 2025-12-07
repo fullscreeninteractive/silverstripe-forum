@@ -1,42 +1,41 @@
 <?php
 
-/**
- * A representation of a forum thread. A forum thread is 1 topic on the forum
- * which has multiple posts underneath it.
- *
- * @package forum
- */
+namespace SilverStripe\Forum\Model;
+
+use Post;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Forum\Model\Forum;
 
 class ForumThread extends DataObject
 {
 
-    private static $db = array(
-        "Title" => "Varchar(255)",
-        "NumViews" => "Int",
-        "IsSticky" => "Boolean",
-        "IsReadOnly" => "Boolean",
-        "IsGlobalSticky" => "Boolean"
-    );
+    private static $db = [
+        "Title" => 'Varchar(255)',
+        "NumViews" => 'Int',
+        "IsSticky" => 'Boolean',
+        "IsReadOnly" => 'Boolean',
+        "IsGlobalSticky" => 'Boolean'
+    ];
 
-    private static $has_one = array(
-        'Forum' => 'Forum'
-    );
+    private static $has_one = [
+        'Forum' => Forum::class
+    ];
 
-    private static $has_many = array(
-        'Posts' => 'Post'
-    );
+    private static $has_many = [
+        'Posts' => Post::class
+    ];
 
-    private static $defaults = array(
+    private static $defaults = [
         'NumViews' => 0,
         'IsSticky' => false,
         'IsReadOnly' => false,
         'IsGlobalSticky' => false
-    );
+    ];
 
-    private static $indexes = array(
+    private static $indexes = [
         'IsSticky' => true,
         'IsGlobalSticky' => true
-    );
+    ];
 
     /**
      * @var null|boolean Per-request cache, whether we should display signatures on a post.
@@ -195,7 +194,7 @@ class ForumThread extends DataObject
         $forum = DataObject::get_by_id("Forum", $this->ForumID);
         if ($forum) {
             $baseLink = $forum->Link();
-            $extra = ($showID) ? '/'.$this->ID : '';
+            $extra = ($showID) ? '/' . $this->ID : '';
             return ($action) ? $baseLink . $action . $extra : $baseLink;
         } else {
             user_error("Bad ForumID '$this->ForumID'", E_USER_WARNING);
@@ -235,7 +234,7 @@ class ForumThread extends DataObject
             $posts = $this->Posts();
             if ($posts && $posts->count()) {
                 foreach ($posts as $post) {
-                    $post->ForumID=$this->ForumID;
+                    $post->ForumID = $this->ForumID;
                     $post->write();
                 }
             }
@@ -288,7 +287,7 @@ class ForumThread_Subscription extends DataObject
         $SQL_threadID = Convert::raw2sql($threadID);
         $SQL_memberID = Convert::raw2sql($memberID);
 
-        if ($SQL_threadID=='' || $SQL_memberID=='') {
+        if ($SQL_threadID == '' || $SQL_memberID == '') {
             return false;
         }
 
@@ -309,7 +308,7 @@ class ForumThread_Subscription extends DataObject
     {
         $list = DataObject::get(
             "ForumThread_Subscription",
-            "\"ThreadID\" = '". $post->ThreadID ."' AND \"MemberID\" != '$post->AuthorID'"
+            "\"ThreadID\" = '" . $post->ThreadID . "' AND \"MemberID\" != '$post->AuthorID'"
         );
 
         if ($list) {

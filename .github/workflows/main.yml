@@ -1,14 +1,17 @@
-name: Build Docs
+name: CI
+
 on:
   push:
-    branches:
-      - '0.8'
-    paths:
-      - 'docs/en/userguide/**'
+  pull_request:
+  workflow_dispatch:
+
 jobs:
-  build:
-    name: build-docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run build hook
-        run: curl -X POST -d {} https://api.netlify.com/build_hooks/${{ secrets.NETLIFY_BUILD_HOOK }}
+  ci:
+    name: CI
+    uses: silverstripe/gha-ci/.github/workflows/ci.yml@v1
+    with:
+      dynamic_matrix: false
+      extra_jobs: |
+        - php: '8.4'
+          db: mysql80
+          phpunit: true

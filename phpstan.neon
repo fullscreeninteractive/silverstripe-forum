@@ -1,0 +1,9 @@
+includes:
+    - vendor/cambis/silverstan/extension.neon
+parameters:
+    level: 8
+    paths:
+        - src/
+    ignoreErrors:
+        - '#Call to an undefined method SilverStripe\\ORM\\DataObject::relObject\(\)#'
+        - '#Call to an undefined method SilverStripe\\ORM\\DataObject::relObject\(\)#'

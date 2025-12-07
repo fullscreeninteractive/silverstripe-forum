@@ -1,49 +1,16 @@
 <?php
-/**
- * ForumRole
- *
- * This decorator adds the needed fields and methods to the {@link Member}
- * object.
- *
- * @package forum
- */
-class ForumRole extends DataExtension
+
+namespace SilverStripe\Forum\Extensions;
+
+use Post;
+use SilverStripe\Core\Extension;
+use SilverStripe\Assets\Image;
+use SilverStripe\Forum\PageTypes\Forum;
+use SilverStripe\Security\Permission;
+
+class ForumRole extends Extension
 {
-
-    /**
-     * Edit the given query object to support queries for this extension
-     */
-    public function augmentSQL(SQLQuery &$query)
-    {
-    }
-
-
-    /**
-     * Update the database schema as required by this extension
-     */
-    public function augmentDatabase()
-    {
-        $exist = DB::tableList();
-        if (!empty($exist) && array_search('ForumMember', $exist) !== false) {
-            DB::query("UPDATE \"Member\", \"ForumMember\" " .
-                "SET \"Member\".\"ClassName\" = 'Member'," .
-                "\"Member\".\"ForumRank\" = \"ForumMember\".\"ForumRank\"," .
-                "\"Member\".\"Occupation\" = \"ForumMember\".\"Occupation\"," .
-                "\"Member\".\"Country\" = \"ForumMember\".\"Country\"," .
-                "\"Member\".\"Nickname\" = \"ForumMember\".\"Nickname\"," .
-                "\"Member\".\"FirstNamePublic\" = \"ForumMember\".\"FirstNamePublic\"," .
-                "\"Member\".\"SurnamePublic\" = \"ForumMember\".\"SurnamePublic\"," .
-                "\"Member\".\"OccupationPublic\" = \"ForumMember\".\"OccupationPublic\"," .
-                "\"Member\".\"CountryPublic\" = \"ForumMember\".\"CountryPublic\"," .
-                "\"Member\".\"EmailPublic\" = \"ForumMember\".\"EmailPublic\"," .
-                "\"Member\".\"AvatarID\" = \"ForumMember\".\"AvatarID\"," .
-                "\"Member\".\"LastViewed\" = \"ForumMember\".\"LastViewed\"" .
-                "WHERE \"Member\".\"ID\" = \"ForumMember\".\"ID\"");
-            echo("<div style=\"padding:5px; color:white; background-color:blue;\">" . _t('ForumRole.TRANSFERSUCCEEDED', 'The data transfer has succeeded. However, to complete it, you must delete the ForumMember table. To do this, execute the query \"DROP TABLE \'ForumMember\'\".') . "</div>" );
-        }
-    }
-
-    private static $db =  array(
+    private static $db =  [
         'ForumRank' => 'Varchar',
         'Occupation' => 'Varchar',
         'Company' => 'Varchar',
@@ -61,23 +28,23 @@ class ForumRole extends DataExtension
         'Signature' => 'Text',
         'ForumStatus' => 'Enum("Normal, Banned, Ghost", "Normal")',
         'SuspendedUntil' => 'Date'
-    );
+    ];
 
-    private static $has_one = array(
-        'Avatar' => 'Image'
-    );
+    private static $has_one = [
+        'Avatar' => Image::class
+    ];
 
-    private static $has_many = array(
-        'ForumPosts' => 'Post'
-    );
+    private static $has_many = [
+        'ForumPosts' => Post::class
+    ];
 
-    private static $belongs_many_many = array(
-        'ModeratedForums' => 'Forum'
-    );
+    private static $belongs_many_many = [
+        'ModeratedForums' => Forum::class
+    ];
 
-    private static $defaults = array(
+    private static $defaults = [
         'ForumRank' => 'Community Member'
-    );
+    ];
 
     private static $searchable_fields = array(
         'Nickname' => true
@@ -93,9 +60,8 @@ class ForumRole extends DataExtension
 
     public function onBeforeDelete()
     {
-        parent::onBeforeDelete();
-
         $avatar = $this->owner->Avatar();
+
         if ($avatar && $avatar->exists()) {
             $avatar->delete();
         }
@@ -104,6 +70,7 @@ class ForumRole extends DataExtension
     public function ForumRank()
     {
         $moderatedForums = $this->owner->ModeratedForums();
+
         if ($moderatedForums && $moderatedForums->Count() > 0) {
             return _t('MODERATOR', 'Forum Moderator');
         } else {
@@ -111,26 +78,37 @@ class ForumRole extends DataExtension
         }
     }
 
+
     public function FirstNamePublic()
     {
         return $this->owner->FirstNamePublic || Permission::check('ADMIN');
     }
+
+
     public function SurnamePublic()
     {
         return $this->owner->SurnamePublic || Permission::check('ADMIN');
     }
+
+
     public function OccupationPublic()
     {
         return $this->owner->OccupationPublic || Permission::check('ADMIN');
     }
+
+
     public function CompanyPublic()
     {
         return $this->owner->CompanyPublic || Permission::check('ADMIN');
     }
+
+
     public function CityPublic()
     {
         return $this->owner->CityPublic || Permission::check('ADMIN');
     }
+
+
     public function CountryPublic()
     {
         return $this->owner->CountryPublic || Permission::check('ADMIN');
@@ -186,10 +164,10 @@ class ForumRole extends DataExtension
      */
     public function getForumFields($showIdentityURL = false, $addmode = false)
     {
-        $gravatarText = (DataObject::get_one("ForumHolder", "\"AllowGravatars\" = 1")) ? '<small>'. _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') .'</small>' : "";
+        $gravatarText = (DataObject::get_one("ForumHolder", "\"AllowGravatars\" = 1")) ? '<small>' . _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') . '</small>' : "";
 
         //Sets the upload folder to the Configurable one set via the ForumHolder or overridden via Config::inst()->update().
-        $avatarField = new FileField('Avatar', _t('ForumRole.AVATAR', 'Avatar Image') .' '. $gravatarText);
+        $avatarField = new FileField('Avatar', _t('ForumRole.AVATAR', 'Avatar Image') . ' ' . $gravatarText);
         $avatarField->setFolderName(Config::inst()->get('ForumHolder', 'avatars_folder'));
         $avatarField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'gif', 'png'));
 
@@ -388,7 +366,7 @@ class ForumRole extends DataExtension
                 return $default;
             }
             // ok. no image but can we find a gravatar. Will return the default image as defined above if not.
-            return "http://www.gravatar.com/avatar/".md5($this->owner->Email)."?default=".urlencode($default)."&amp;size=80";
+            return "http://www.gravatar.com/avatar/" . md5($this->owner->Email) . "?default=" . urlencode($default) . "&amp;size=80";
         }
 
         return $default;
