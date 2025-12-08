@@ -2,4 +2,5 @@
 /vendor
 /composer.lock
 /public
+/app
 .phpunit.result.cache
