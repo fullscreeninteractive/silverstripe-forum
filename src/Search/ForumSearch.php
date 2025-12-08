@@ -1,5 +1,7 @@
 <?php
 
+namespace FullscreenInteractive\SilverStripe\Forum\Search;
+
 /**
  * Forum Search.
  *
@@ -10,7 +12,7 @@
 
 class ForumSearch
 {
-    
+
     /**
      * The search class engine to use for the forum. By default use the standard
      * Database Search but optionally allow other search engines. Must implement
@@ -19,7 +21,7 @@ class ForumSearch
      * @var String
      */
     private static $search_engine = 'ForumDatabaseSearch';
-    
+
     /**
      * Set the search class to use for the Forum search. Must implement the
      * {@link ForumSearch} interface
@@ -33,18 +35,18 @@ class ForumSearch
         if (!$engine) {
             $engine = 'ForumDatabaseSearch';
         }
-        
+
         $search = new $engine();
-        
+
         if ($search instanceof ForumSearchProvider) {
             self::$search_engine = $engine;
-            
+
             return $search->load();
         } else {
             user_error("$engine must implement the ForumSearchProvider interface");
         }
     }
-    
+
     /**
      * Return the search class for the forum search
      *

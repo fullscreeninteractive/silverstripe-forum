@@ -1,8 +1,12 @@
 <?php
 
-namespace SilverStripe\Forum\PageTypes;
+namespace FullscreenInteractive\SilverStripe\Forum\PageTypes;
 
 use PageController;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
+use FullscreenInteractive\SilverStripe\Forum\Model\PostAttachment;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 
 /**
  * The forum controller class
@@ -109,8 +113,8 @@ class ForumController extends PageController
 
         $subscribed = false;
 
-        if (Member::currentUser() && !ForumThread_Subscription::already_subscribed($this->urlParams['ID'])) {
-            $obj = new ForumThread_Subscription();
+        if (Member::currentUser() && !ForumThreadSubscription::already_subscribed($this->urlParams['ID'])) {
+            $obj = new ForumThreadSubscription();
             $obj->ThreadID = (int) $this->urlParams['ID'];
             $obj->MemberID = Member::currentUserID();
             $obj->LastSent = date("Y-m-d H:i:s");
@@ -138,7 +142,7 @@ class ForumController extends PageController
             Security::permissionFailure($this, _t('LOGINTOUNSUBSCRIBE', 'To unsubscribe from that thread, please log in first.'));
         }
 
-        if (ForumThread_Subscription::already_subscribed($this->urlParams['ID'], $member->ID)) {
+        if (ForumThreadSubscription::already_subscribed($this->urlParams['ID'], $member->ID)) {
             DB::query("
 DELETE FROM \"ForumThread_Subscription\"
 WHERE \"ThreadID\" = '" . Convert::raw2sql($this->urlParams['ID']) . "'
@@ -554,7 +558,7 @@ AND \"MemberID\" = '$member->ID'");
                 $image = $data['Attachment-' . $id];
 
                 if ($image && !empty($image['tmp_name'])) {
-                    $file = Post_Attachment::create();
+                    $file = PostAttachment::create();
                     $file->OwnerID = Member::currentUserID();
                     $folder = Config::inst()->get('ForumHolder', 'attachments_folder');
 
@@ -599,11 +603,11 @@ AND \"MemberID\" = '$member->ID'");
         }
 
         // Add a topic subscription entry if required
-        $isSubscribed = ForumThread_Subscription::already_subscribed($thread->ID);
+        $isSubscribed = ForumThreadSubscription::already_subscribed($thread->ID);
         if (isset($data['TopicSubscription'])) {
             if (!$isSubscribed) {
                 // Create a new topic subscription for this member
-                $obj = new ForumThread_Subscription();
+                $obj = new ForumThreadSubscription();
                 $obj->ThreadID = $thread->ID;
                 $obj->MemberID = Member::currentUserID();
                 $obj->write();
@@ -614,7 +618,7 @@ AND \"MemberID\" = '$member->ID'");
         }
 
         // Send any notifications that need to be sent
-        ForumThread_Subscription::notify($post);
+        ForumThreadSubscription::notify($post);
 
         // Send any notifications to moderators of the forum
         if (Forum::$notify_moderators) {
@@ -816,7 +820,7 @@ AND \"MemberID\" = '$member->ID'");
             return false;
         }
 
-        $file = DataObject::get_by_id("Post_Attachment", (int) $this->urlParams['ID']);
+        $file = DataObject::get_by_id(PostAttachment::class, (int) $this->urlParams['ID']);
 
         if ($file && $file->canDelete()) {
             $file->delete();

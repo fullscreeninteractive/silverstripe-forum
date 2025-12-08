@@ -1,0 +1,13 @@
+<phpunit bootstrap="vendor/silverstripe/cms/tests/bootstrap.php" colors="true">
+    <testsuite name="Default">
+        <directory>tests</directory>
+    </testsuite>
+    <coverage cacheDirectory="./"
+          includeUncoveredFiles="true"
+          processUncoveredFiles="true"
+          ignoreDeprecatedCodeUnits="true">
+          <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </coverage>
+</phpunit>

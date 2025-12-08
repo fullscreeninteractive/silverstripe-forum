@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\Forum\PageTypes;
+namespace FullscreenInteractive\SilverStripe\Forum\PageTypes;
 
 use Page;
 use SilverStripe\Forms\DropdownField;
@@ -16,9 +16,9 @@ use SilverStripe\Forms\GridField\GridFieldSortableHeader;
 use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
 use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Forms\TreeMultiselectField;
-use SilverStripe\Forum\Model\ForumThread;
-use SilverStripe\Forum\Model\ForumCategory;
-use SilverStripe\Forum\PageTypes\ForumHolder;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Model\List\PaginatedList;
 use SilverStripe\ORM\DB;
@@ -38,6 +38,13 @@ class Forum extends Page
      * or edited on his forums.
      */
     private static $notify_moderators = false;
+
+    /**
+     * The default avatar URL to use if no avatar is set for a user.
+     *
+     * @var string
+     */
+    private static $default_avatar_url = "https://via.placeholder.com/150";
 
     private static $db = [
         "Abstract" => "Text",

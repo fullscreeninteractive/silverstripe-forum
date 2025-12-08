@@ -1,15 +1,32 @@
 <?php
-class ForumSpamPostExtension extends DataExtension
+
+namespace FullscreenInteractive\SilverStripe\Forum\Extensions;
+
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+use SilverStripe\Core\Extension;
+use SilverStripe\ORM\DataQuery;
+use SilverStripe\Security\Security;
+
+/**
+ * Extension for the Post data object to add spam protection functionality.
+ */
+class ForumSpamPostExtension extends Extension
 {
 
-    public function augmentSQL(SQLQuery &$query)
+    /**
+     * Augment the SQL query to add spam protection functionality.
+     *
+     */
+    public function augmentSQL(DataQuery $query)
     {
-        if (Config::inst()->forClass('Post')->allow_reading_spam) {
+        $enabled = Post::config()->allow_reading_spam;
+
+        if (!$enabled) {
             return;
         }
 
-        $member = Member::currentUser();
-        $forum = $this->owner->Forum();
+        $member = Security::getCurrentUser();
+        $forum = $this->getOwner()->ForumID;
 
         // Do Status filtering
 

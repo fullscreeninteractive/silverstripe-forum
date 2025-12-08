@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\Forum\PageTypes;
+namespace FullscreenInteractive\SilverStripe\Forum\PageTypes;
 
 use Page;
 

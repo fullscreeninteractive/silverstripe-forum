@@ -1,46 +1,32 @@
 <?php
 
+namespace FullscreenInteractive\SilverStripe\Forum\Tests;
+
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use SilverStripe\Dev\FunctionalTest;
+use SilverStripe\Security\Member;
+use SilverStripe\Security\SecurityToken;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+use SilverStripe\Security\Security;
+
 class PostTest extends FunctionalTest
 {
-
-    static $fixture_file = "forum/tests/ForumTest.yml";
-
-    // fixes permission issues with these tests, we don't need to test versioning anyway.
-    // without this, SiteTree::canView() would always return false even though CanViewType == Anyone.
-    static $use_draft_site = true;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        //track the default state of tokens
-        $this->useToken = SecurityToken::is_enabled();
-    }
-
-    public function tearDown()
-    {
-        parent::tearDown();
-
-        //if the token is turned on reset it before the next test run
-        if ($this->useToken) {
-            SecurityToken::enable();
-        } else {
-            SecurityToken::disable();
-        }
-    }
+    protected static $fixture_file = [
+        'ForumTest.yml',
+    ];
 
     public function testPermissions()
     {
-        $member1 = $this->objFromFixture('Member', 'test1');
-        $member2 = $this->objFromFixture('Member', 'test2');
-        $moderator = $this->objFromFixture('Member', 'moderator');
-        $admin = $this->objFromFixture('Member', 'admin');
+        $member1 = $this->objFromFixture(Member::class, 'test1');
+        $member2 = $this->objFromFixture(Member::class, 'test2');
+        $moderator = $this->objFromFixture(Member::class, 'moderator');
+        $admin = $this->objFromFixture(Member::class, 'admin');
 
-        $postMember2 = $this->objFromFixture('Post', 'Post18');
+        $postMember2 = $this->objFromFixture(Post::class, 'Post18');
 
         // read only thread post
         $member1->logIn();
-        $postReadonly = $this->objFromFixture('Post', 'ReadonlyThreadPost');
+        $postReadonly = $this->objFromFixture(Post::class, 'ReadonlyThreadPost');
         $this->assertFalse($postReadonly->canEdit()); // Even though it's user's own
         $this->assertTrue($postReadonly->canView());
         $this->assertFalse($postReadonly->canCreate());
@@ -77,77 +63,83 @@ class PostTest extends FunctionalTest
 
     public function testGetTitle()
     {
-        $post = $this->objFromFixture('Post', 'Post1');
-        $reply = $this->objFromFixture('Post', 'Post2');
+        $post = $this->objFromFixture(Post::class, 'Post1');
+        $reply = $this->objFromFixture(Post::class, 'Post2');
 
         $this->assertEquals($post->Title, "Test Thread");
         $this->assertEquals($reply->Title, "Re: Test Thread");
 
-        $first = $this->objFromFixture('Post', 'Post3');
+        $first = $this->objFromFixture(Post::class, 'Post3');
         $this->assertEquals($first->Title, 'Another Test Thread');
     }
 
     public function testIssFirstPost()
     {
-        $first = $this->objFromFixture('Post', 'Post1');
+        $first = $this->objFromFixture(Post::class, 'Post1');
         $this->assertTrue($first->isFirstPost());
 
-        $notFirst = $this->objFromFixture('Post', 'Post2');
+        $notFirst = $this->objFromFixture(Post::class, 'Post2');
         $this->assertFalse($notFirst->isFirstPost());
     }
 
     public function testReplyLink()
     {
-        $post = $this->objFromFixture('Post', 'Post1');
-        $this->assertContains($post->Thread()->URLSegment .'/reply/'.$post->ThreadID, $post->ReplyLink());
+        $post = $this->objFromFixture(Post::class, 'Post1');
+        $this->assertStringContainsString((string) $post->Thread()->URLSegment . '/reply/' . $post->ThreadID, $post->ReplyLink());
     }
 
     public function testShowLink()
     {
-        $post = $this->objFromFixture('Post', 'Post1');
+        $post = $this->objFromFixture(Post::class, 'Post1');
         Forum::$posts_per_page = 8;
 
         // test for show link on first page
-        $this->assertContains($post->Thread()->URLSegment .'/show/'.$post->ThreadID, $post->ShowLink());
+        $this->assertStringContainsString((string) $post->Thread()->URLSegment . '/show/' . $post->ThreadID, $post->ShowLink());
 
         // test for link that should be last post on the first page
-        $eighthPost = $this->objFromFixture('Post', 'Post9');
-        $this->assertContains($eighthPost->Thread()->URLSegment .'/show/'.$eighthPost->ThreadID.'#post'.$eighthPost->ID, $eighthPost->ShowLink());
+        $eighthPost = $this->objFromFixture(Post::class, 'Post9');
+        $this->assertStringContainsString(
+            (string) $eighthPost->Thread()->URLSegment . '/show/' . $eighthPost->ThreadID . '#post' . $eighthPost->ID,
+            (string) $eighthPost->ShowLink()
+        );
 
         // test for a show link on a subpage
-        $lastPost = $this->objFromFixture('Post', 'Post10');
-        $this->assertContains($lastPost->Thread()->URLSegment .'/show/'. $lastPost->ThreadID . '?start=8#post'.$lastPost->ID, $lastPost->ShowLink());
+        $lastPost = $this->objFromFixture(Post::class, 'Post10');
+        $this->assertStringContainsString(
+            (string) $lastPost->Thread()->URLSegment . '/show/' . $lastPost->ThreadID . '?start=8#post' . $lastPost->ID,
+            $lastPost->ShowLink()
+        );
 
         // this is the last post on page 2
-        $lastPost = $this->objFromFixture('Post', 'Post17');
-        $this->assertContains($lastPost->Thread()->URLSegment .'/show/'. $lastPost->ThreadID . '?start=8#post'.$lastPost->ID, $lastPost->ShowLink());
+        $lastPost = $this->objFromFixture(Post::class, 'Post17');
+        $this->assertStringContainsString((string) $lastPost->Thread()->URLSegment . '/show/' . $lastPost->ThreadID . '?start=8#post' . $lastPost->ID, $lastPost->ShowLink());
 
         // test for a show link on the last subpage
-        $lastPost = $this->objFromFixture('Post', 'Post18');
-        $this->assertContains($lastPost->Thread()->URLSegment .'/show/'. $lastPost->ThreadID . '?start=16#post'.$lastPost->ID, $lastPost->ShowLink());
+        $lastPost = $this->objFromFixture(Post::class, 'Post18');
+        $this->assertStringContainsString((string) $lastPost->Thread()->URLSegment . '/show/' . $lastPost->ThreadID . '?start=16#post' . $lastPost->ID, $lastPost->ShowLink());
     }
 
     public function testEditLink()
     {
-        $post = $this->objFromFixture('Post', 'Post1');
+        $post = $this->objFromFixture(Post::class, 'Post1');
 
         // should be false since we're not logged in.
-        if ($member = Member::currentUser()) {
+        if ($member = Security::getCurrentUser()) {
             $member->logOut();
         }
 
         $this->assertFalse($post->EditLink());
 
         // logged in as the member. Should be able to edit it
-        $member = $this->objFromFixture('Member', 'test1');
+        $member = $this->objFromFixture(Member::class, 'test1');
         $member->logIn();
 
-        $this->assertContains($post->Thread()->URLSegment .'/editpost/'. $post->ID, $post->EditLink());
+        $this->assertContains($post->Thread()->URLSegment . '/editpost/' . $post->ID, $post->EditLink());
 
         // log in as another member who is not
         $member->logOut();
 
-        $memberOther = $this->objFromFixture('Member', 'test2');
+        $memberOther = $this->objFromFixture(Member::class, 'test2');
         $memberOther->logIn();
 
         $this->assertFalse($post->EditLink());
@@ -155,13 +147,13 @@ class PostTest extends FunctionalTest
 
     public function testDeleteLink()
     {
-        $post = $this->objFromFixture('Post', 'Post1');
+        $post = $this->objFromFixture(Post::class, 'Post1');
 
         //enable token
         SecurityToken::enable();
 
         // should be false since we're not logged in.
-        if ($member = Member::currentUser()) {
+        if ($member = Security::getCurrentUser()) {
             $member->logOut();
         }
 
@@ -169,10 +161,10 @@ class PostTest extends FunctionalTest
         $this->assertFalse($post->DeleteLink());
 
         // logged in as the moderator. Should be able to delete the post.
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
-        $this->assertContains($post->Thread()->URLSegment .'/deletepost/'. $post->ID, $post->DeleteLink());
+        $this->assertContains($post->Thread()->URLSegment . '/deletepost/' . $post->ID, $post->DeleteLink());
 
         // because this is the first post test for the class which is used in javascript
         $this->assertContains("class=\"deleteLink firstPost\"", $post->DeleteLink());
@@ -194,7 +186,7 @@ class PostTest extends FunctionalTest
         $this->assertContains("SecurityID=", $post->DeleteLink());
 
         // should be able to edit post since they're moderators
-        $this->assertContains($post->Thread()->URLSegment .'/deletepost/'. $post->ID, $post->DeleteLink());
+        $this->assertContains($post->Thread()->URLSegment . '/deletepost/' . $post->ID, $post->DeleteLink());
 
         // test that a 2nd post doesn't have the first post ID hook
         $memberOthersPost = $this->objFromFixture('Post', 'Post2');
@@ -206,11 +198,10 @@ class PostTest extends FunctionalTest
     {
         $post = $this->objFromFixture('Post', 'Post1');
 
-        //enable token
         SecurityToken::enable();
 
         // should be false since we're not logged in.
-        if ($member = Member::currentUser()) {
+        if ($member = Security::getCurrentUser()) {
             $member->logOut();
         }
 
@@ -221,7 +212,7 @@ class PostTest extends FunctionalTest
         $member = $this->objFromFixture('Member', 'moderator');
         $member->logIn();
 
-        $this->assertContains($post->Thread()->URLSegment .'/markasspam/'. $post->ID, $post->MarkAsSpamLink());
+        $this->assertContains($post->Thread()->URLSegment . '/markasspam/' . $post->ID, $post->MarkAsSpamLink());
 
         // because this is the first post test for the class which is used in javascript
         $this->assertContains("class=\"markAsSpamLink firstPost\"", $post->MarkAsSpamLink());
@@ -243,7 +234,7 @@ class PostTest extends FunctionalTest
         $this->assertContains("SecurityID=", $post->MarkAsSpamLink());
 
         // should be able to edit post since they're moderators
-        $this->assertContains($post->Thread()->URLSegment .'/markasspam/'. $post->ID, $post->MarkAsSpamLink());
+        $this->assertContains($post->Thread()->URLSegment . '/markasspam/' . $post->ID, $post->MarkAsSpamLink());
 
         // test that a 2nd post doesn't have the first post ID hook
         $memberOthersPost = $this->objFromFixture('Post', 'Post2');
@@ -256,7 +247,7 @@ class PostTest extends FunctionalTest
         $post = $this->objFromFixture('Post', 'Post1');
 
         // should be false since we're not logged in.
-        if ($member = Member::currentUser()) {
+        if ($member = Security::getCurrentUser()) {
             $member->logOut();
         }
 

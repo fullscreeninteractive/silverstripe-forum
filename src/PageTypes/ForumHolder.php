@@ -1,9 +1,9 @@
 <?php
 
-namespace SilverStripe\Forum\PageTypes;
+namespace FullscreenInteractive\SilverStripe\Forum\PageTypes;
 
 use Page;
-use SilverStripe\Forum\Model\Post;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
 use SilverStripe\Forms\CheckboxField;
@@ -13,7 +13,8 @@ use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
-use SilverStripe\Forum\Model\ForumCategory;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;

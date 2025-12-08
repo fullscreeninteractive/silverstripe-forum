@@ -1,36 +1,45 @@
 <?php
 
-/**
- * Forum Post Object. Contains a single post by the user. A thread is generated
- * with multiple posts.
- *
- * @package forum
- */
+namespace FullscreenInteractive\SilverStripe\Forum\Model;
+
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Member;
+use SilverStripe\Security\Permission;
+use SilverStripe\Security\SecurityToken;
+use SilverStripe\Control\Director;
+use SilverStripe\Control\Controller;
+use SilverStripe\ORM\DB;
+use SilverStripe\Security\Security;
 
 class Post extends DataObject
 {
 
-    private static $db = array(
+    private static $db = [
         "Content" => "Text",
         "Status" => "Enum('Awaiting, Moderated, Rejected, Archived', 'Moderated')",
-    );
+    ];
 
-    private static $casting = array(
-        "Updated" => "SS_Datetime",
+    private static $casting = [
+        "Updated" => "Datetime",
         "RSSContent" => "HTMLText",
         "RSSAuthor" => "Varchar",
         "Content" => "HTMLText"
-    );
+    ];
 
-    private static $has_one = array(
-        "Author" => "Member",
-        "Thread" => "ForumThread",
-        "Forum" => "Forum" // denormalized data but used for read speed
-    );
+    private static $has_one = [
+        "Author" => Member::class,
+        "Thread" => ForumThread::class,
+        "Forum" => Forum::class
+    ];
 
-    private static $has_many = array(
-        "Attachments" => "Post_Attachment"
-    );
+    private static $has_many = [
+        "Attachments" => PostAttachment::class
+    ];
+
+    private static $cascade_deletes = [
+        "Attachments"
+    ];
 
     private static $summary_fields = array(
         "Content.LimitWordCount" => "Summary",
@@ -59,20 +68,6 @@ class Post extends DataObject
         }
     }
 
-    /**
-     * Before deleting a post make sure all attachments are also deleted
-     */
-    public function onBeforeDelete()
-    {
-        parent::onBeforeDelete();
-
-        if ($attachments = $this->Attachments()) {
-            foreach ($attachments as $file) {
-                $file->delete();
-                $file->destroy();
-            }
-        }
-    }
 
     /**
      * Check if user can see the post
@@ -80,7 +75,7 @@ class Post extends DataObject
     public function canView($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
 
         if ($this->Author()->ForumStatus != 'Normal') {
@@ -98,7 +93,7 @@ class Post extends DataObject
     public function canEdit($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
 
         if ($member) {
@@ -123,7 +118,7 @@ class Post extends DataObject
     public function canDelete($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
         if ($this->canEdit($member)) {
             return true;
@@ -135,11 +130,12 @@ class Post extends DataObject
     /**
      * Check if user can add new posts - hook up into canPost.
      */
-    public function canCreate($member = null)
+    public function canCreate($member = null, $context = [])
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
+
         return $this->Thread()->canPost($member);
     }
 
@@ -155,13 +151,13 @@ class Post extends DataObject
 
     /**
      * Return the title of the post. Because we don't have to have the title
-     * on individual posts check with the topic
-     *
-     * @return String
+     * on individual posts check with the thread title
      */
-    public function getTitle()
+    public function getTitle(): string
     {
-        return ($this->isFirstPost()) ? $this->Thread()->Title : sprintf(_t('Post.RESPONSE', "Re: %s", 'Post Subject Prefix'), $this->Thread()->Title);
+        return ($this->isFirstPost())
+            ? $this->Thread()->Title
+            : DBField::create_field('Text', sprintf(_t('Post.RESPONSE', "Re: %s", 'Post Subject Prefix'), $this->Thread()->Title));
     }
 
     /**
@@ -257,14 +253,13 @@ class Post extends DataObject
 
     /**
      * Return a link to mark this post as spam.
-     * used for the spamprotection module
      *
      * @return String
      */
     public function MarkAsSpamLink()
     {
         if ($this->Thread()->canModerate()) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
             if ($member->ID != $this->AuthorID) {
                 $url = Controller::join_links($this->Forum()->Link('markasspam'), $this->ID);
                 $token = SecurityToken::inst();
@@ -272,7 +267,7 @@ class Post extends DataObject
 
                 $firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
 
-                return '<a href="' . $url .'" class="markAsSpamLink' . $firstPost . '" rel="' . $this->ID . '">'. _t('Post.MARKASSPAM', 'Mark as Spam') . '</a>';
+                return sprintf('<a href="%s" class="markAsSpamLink%s" rel="%d">%s</a>', $url, $firstPost, $this->ID, _t('Post.MARKASSPAM', 'Mark as Spam'));
             }
         }
         return false;
@@ -282,8 +277,8 @@ class Post extends DataObject
     {
         $thread = $this->Thread();
         if ($thread->canModerate()) {
-            $link = $thread->Forum()->Link('ban') .'/'. $this->AuthorID;
-            return "<a class='banLink' href=\"$link\" rel=\"$this->AuthorID\">". _t('Post.BANUSER', 'Ban User') ."</a>";
+            $link = $thread->Forum()->Link('ban') . '/' . $this->AuthorID;
+            return sprintf('<a class="banLink" href="%s" rel="%d">%s</a>', $link, $this->AuthorID, _t('Post.BANUSER', 'Ban User'));
         }
         return false;
     }
@@ -292,8 +287,8 @@ class Post extends DataObject
     {
         $thread = $this->Thread();
         if ($thread->canModerate()) {
-            $link = $thread->Forum()->Link('ghost') .'/'. $this->AuthorID;
-            return "<a class='ghostLink' href=\"$link\" rel=\"$this->AuthorID\">". _t('Post.GHOSTUSER', 'Ghost User') ."</a>";
+            $link = $thread->Forum()->Link('ghost') . '/' . $this->AuthorID;
+            return sprintf('<a class="ghostLink" href="%s" rel="%d">%s</a>', $link, $this->AuthorID, _t('Post.GHOSTUSER', 'Ghost User'));
         }
         return false;
     }
@@ -317,8 +312,6 @@ class Post extends DataObject
 
     /**
      * Return a link to show this post
-     *
-     * @return String
      */
     public function Link($action = "show")
     {
@@ -335,70 +328,11 @@ class Post extends DataObject
 			WHERE \"ThreadID\" = '$this->ThreadID' AND \"Status\" = 'Moderated' AND \"ID\" < $this->ID
 		")->value();
 
-        $start = ($count >= Forum::$posts_per_page) ? floor($count / Forum::$posts_per_page) * Forum::$posts_per_page : 0;
+        $postsPerPage = $this->Forum()->PostsPerPage || 10;
+
+        $start = ($count >= $postsPerPage) ? floor($count / $postsPerPage) * $postsPerPage : 0;
         $pos = ($start == 0 ? '' : "?start=$start") . ($count == 0 ? '' : "#post{$this->ID}");
 
         return ($action == "show") ? $link . $pos : $link;
-    }
-}
-
-/**
- * Attachments for posts (one post can have many attachments)
- *
- * @package forum
- */
-class Post_Attachment extends File
-{
-
-    private static $has_one = array(
-        "Post" => "Post"
-    );
-
-    private static $defaults = array(
-        'ShowInSearch' => 0
-    );
-
-    /**
-     * Can a user delete this attachment
-     *
-     * @return bool
-     */
-    public function canDelete($member = null)
-    {
-        if (!$member) {
-            $member = Member::currentUser();
-        }
-        return ($this->Post()) ? $this->Post()->canDelete($member) : true;
-    }
-
-    /**
-     * Can a user edit this attachement
-     *
-     * @return bool
-     */
-    public function canEdit($member = null)
-    {
-        if (!$member) {
-            $member = Member::currentUser();
-        }
-        return ($this->Post()) ? $this->Post()->canEdit($member) : true;
-    }
-
-    /**
-     * Allows the user to download a file without right-clicking
-     */
-    public function download()
-    {
-        if (isset($this->urlParams['ID'])) {
-            $SQL_ID = Convert::raw2sql($this->urlParams['ID']);
-
-            if (is_numeric($SQL_ID)) {
-                $file = DataObject::get_by_id("Post_Attachment", $SQL_ID);
-                $response = SS_HTTPRequest::send_file(file_get_contents($file->getFullPath()), $file->Name);
-                $response->output();
-            }
-        }
-
-        return $this->redirectBack();
     }
 }

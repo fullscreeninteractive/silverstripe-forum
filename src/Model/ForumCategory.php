@@ -1,11 +1,13 @@
 <?php
 
-namespace SilverStripe\Forum\Model;
+namespace FullscreenInteractive\SilverStripe\Forum\Model;
 
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\DropdownField;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
 
 class ForumCategory extends DataObject
 {

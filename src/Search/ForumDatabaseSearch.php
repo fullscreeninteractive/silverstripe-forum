@@ -1,5 +1,9 @@
 <?php
 
+namespace FullscreenInteractive\SilverStripe\Forum\Search;
+
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+
 /**
  * Basic Forum Database Search. For a better search try the {@link ForumSphinxSearch}
  *
@@ -8,7 +12,7 @@
 
 class ForumDatabaseSearch implements ForumSearchProvider
 {
-    
+
     /**
      * Get the results from the database
      *
@@ -68,10 +72,10 @@ class ForumDatabaseSearch implements ForumSearchProvider
                 ));
                 break;
         }
-        
+
         return $posts ? $posts: new DataList();
     }
-    
+
     /**
      * Callback when this Provider is loaded. For dealing with background processes
      */

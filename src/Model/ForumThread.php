@@ -1,10 +1,12 @@
 <?php
 
-namespace SilverStripe\Forum\Model;
+namespace FullscreenInteractive\SilverStripe\Forum\Model;
 
-use Post;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\Forum\Model\Forum;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use SilverStripe\ORM\DB;
+use SilverStripe\Security\Security;
 
 class ForumThread extends DataObject
 {
@@ -37,10 +39,6 @@ class ForumThread extends DataObject
         'IsGlobalSticky' => true
     ];
 
-    /**
-     * @var null|boolean Per-request cache, whether we should display signatures on a post.
-     */
-    private static $_cache_displaysignatures = null;
 
     /**
      * Check if the user can create new threads and add responses
@@ -48,10 +46,11 @@ class ForumThread extends DataObject
     public function canPost($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
         return ($this->Forum()->canPost($member) && !$this->IsReadOnly);
     }
+
 
     /**
      * Check if user can moderate this thread
@@ -59,10 +58,11 @@ class ForumThread extends DataObject
     public function canModerate($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
         return $this->Forum()->canModerate($member);
     }
+
 
     /**
      * Check if user can view the thread
@@ -70,10 +70,11 @@ class ForumThread extends DataObject
     public function canView($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
         return $this->Forum()->canView($member);
     }
+
 
     /**
      * Hook up into moderation.
@@ -81,10 +82,11 @@ class ForumThread extends DataObject
     public function canEdit($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
         return $this->canModerate($member);
     }
+
 
     /**
      * Hook up into moderation - users cannot delete their own posts/threads because
@@ -93,7 +95,7 @@ class ForumThread extends DataObject
     public function canDelete($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
         return $this->canModerate($member);
     }
@@ -101,12 +103,9 @@ class ForumThread extends DataObject
     /**
      * Hook up into canPost check
      */
-    public function canCreate($member = null)
+    public function canCreate($member = null, $context = [])
     {
-        if (!$member) {
-            $member = Member::currentUser();
-        }
-        return $this->canPost($member);
+        return $this->canPost($member, $context);
     }
 
     /**
@@ -117,12 +116,8 @@ class ForumThread extends DataObject
      */
     public function getDisplaySignatures()
     {
-        if (isset(self::$_cache_displaysignatures) && self::$_cache_displaysignatures !== null) {
-            return self::$_cache_displaysignatures;
-        }
-
         $result = $this->Forum()->Parent()->DisplaySignatures;
-        self::$_cache_displaysignatures = $result;
+
         return $result;
     }
 
@@ -134,7 +129,11 @@ class ForumThread extends DataObject
      */
     public function getLatestPost()
     {
-        return DataObject::get_one('Post', "\"ThreadID\" = '$this->ID'", true, '"ID" DESC');
+        return Post::get()->filter([
+            'ThreadID' => $this->ID
+        ])->sort([
+            'Created' => 'DESC'
+        ])->first();
     }
 
     /**
@@ -144,24 +143,23 @@ class ForumThread extends DataObject
      */
     public function getFirstPost()
     {
-        return DataObject::get_one('Post', "\"ThreadID\" = '$this->ID'", true, '"ID" ASC');
+        return Post::get()->filter([
+            'ThreadID' => $this->ID
+        ])->sort([
+            'Created' => 'ASC'
+        ])->first();
     }
 
     /**
-     * Return the number of posts in this thread. We could use count on
-     * the dataobject set but that is slower and causes a performance overhead
+     * Return the number of posts in this thread
      *
      * @return int
      */
     public function getNumPosts()
     {
-        $sqlQuery = new SQLQuery();
-        $sqlQuery->setFrom('"Post"');
-        $sqlQuery->setSelect('COUNT("Post"."ID")');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
-        $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
-        $sqlQuery->addWhere('"ThreadID" = ' . $this->ID);
-        return $sqlQuery->execute()->value();
+        return Post::get()->filter([
+            'ThreadID' => $this->ID
+        ])->count();
     }
 
     /**
@@ -172,33 +170,27 @@ class ForumThread extends DataObject
      */
     public function incNumViews()
     {
-        if (Session::get('ForumViewed-' . $this->ID)) {
+        $session = Controller::curr()->getRequest()->getSession();
+        if ($session->get('ForumViewed-' . $this->ID)) {
             return false;
         }
 
-        Session::set('ForumViewed-' . $this->ID, 'true');
+        $session->set('ForumViewed-' . $this->ID, 'true');
 
         $this->NumViews++;
-        $SQL_numViews = Convert::raw2sql($this->NumViews);
 
-        DB::query("UPDATE \"ForumThread\" SET \"NumViews\" = '$SQL_numViews' WHERE \"ID\" = $this->ID");
+        DB::query(sprintf("UPDATE \"ForumThread\" SET \"NumViews\" = '%s' WHERE \"ID\" = %s", $this->NumViews, $this->ID));
     }
 
     /**
-     * Link to this forum thread
-     *
-     * @return String
+     * Link to this forum thread.
      */
     public function Link($action = "show", $showID = true)
     {
-        $forum = DataObject::get_by_id("Forum", $this->ForumID);
-        if ($forum) {
-            $baseLink = $forum->Link();
-            $extra = ($showID) ? '/' . $this->ID : '';
-            return ($action) ? $baseLink . $action . $extra : $baseLink;
-        } else {
-            user_error("Bad ForumID '$this->ForumID'", E_USER_WARNING);
-        }
+        $forum = $this->Forum();
+        $baseLink = $forum->Link();
+        $extra = ($showID) ? '/' . $this->ID : '';
+        return ($action) ? $baseLink . $action . $extra : $baseLink;
     }
 
     /**
@@ -208,7 +200,7 @@ class ForumThread extends DataObject
      */
     public function getHasSubscribed()
     {
-        $member = Member::currentUser();
+        $member = Security::getCurrentUser();
 
         return ($member) ? ForumThread_Subscription::already_subscribed($this->ID, $member->ID) : false;
     }

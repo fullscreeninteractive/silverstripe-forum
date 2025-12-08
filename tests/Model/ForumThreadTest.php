@@ -1,30 +1,40 @@
 <?php
 
+namespace FullscreenInteractive\SilverStripe\Forum\Tests;
+
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+use SilverStripe\Dev\FunctionalTest;
+use SilverStripe\Security\Member;
+
 /**
  * @todo Write some more complex tests for testing the can*() functionality
  */
 class ForumThreadTest extends FunctionalTest
 {
 
-    static $fixture_file = "forum/tests/ForumTest.yml";
+    protected static $fixture_file = [
+        'ForumTest.yml',
+    ];
 
     // fixes permission issues with these tests, we don't need to test versioning anyway.
     // without this, SiteTree::canView() would always return false even though CanViewType == Anyone.
-    static $use_draft_site = true;
+    protected static $use_draft_site = true;
 
     public function testGetNumPosts()
     {
-        $thread = $this->objFromFixture("ForumThread", "Thread1");
+        $thread = $this->objFromFixture(ForumThread::class, "Thread1");
 
-        $this->assertEquals(17, $thread->getNumPosts());
+        $this->assertEquals(17, $thread->getNumPosts()->count());
     }
 
     public function testIncViews()
     {
-        $thread = $this->objFromFixture("ForumThread", "Thread1");
+        $thread = $this->objFromFixture(ForumThread::class, "Thread1");
 
         // clear session
-        Session::clear('ForumViewed-'.$thread->ID);
+        $this->getRequest()->getSession()->clear('ForumViewed-' . $thread->ID);
 
         $this->assertEquals($thread->NumViews, '10');
 
@@ -35,39 +45,51 @@ class ForumThreadTest extends FunctionalTest
 
     public function testGetLatestPost()
     {
-        $thread = $this->objFromFixture("ForumThread", "Thread1");
+        $thread = $this->objFromFixture(ForumThread::class, "Thread1");
 
         $this->assertEquals($thread->getLatestPost()->Content, "This is the last post to a long thread");
     }
 
     public function testGetFirstPost()
     {
-        $thread = $this->objFromFixture("ForumThread", "Thread1");
+        $thread = $this->objFromFixture(ForumThread::class, "Thread1");
 
         $this->assertEquals($thread->getFirstPost()->Content, "This is my first post");
     }
 
     public function testSubscription()
     {
-        $thread = $this->objFromFixture("ForumThread", "Thread1");
-        $thread2 = $this->objFromFixture("ForumThread", "Thread2");
+        $thread = $this->objFromFixture(ForumThread::class, "Thread1");
+        $thread2 = $this->objFromFixture(ForumThread::class, "Thread2");
 
-        $member = $this->objFromFixture("Member", "test1");
-        $member2 = $this->objFromFixture("Member", "test2");
+        $member = $this->objFromFixture(Member::class, "test1");
+        $member2 = $this->objFromFixture(Member::class, "test2");
 
-        $this->assertTrue(ForumThread_Subscription::already_subscribed($thread->ID, $member->ID));
-        $this->assertTrue(ForumThread_Subscription::already_subscribed($thread->ID, $member2->ID));
+        $this->assertTrue(ForumThreadSubscription::get()->filter([
+            'ThreadID' => $thread->ID,
+            'MemberID' => $member->ID
+        ])->exists());
+        $this->assertTrue(ForumThreadSubscription::get()->filter([
+            'ThreadID' => $thread->ID,
+            'MemberID' => $member2->ID
+        ])->exists());
 
-        $this->assertFalse(ForumThread_Subscription::already_subscribed($thread2->ID, $member->ID));
-        $this->assertFalse(ForumThread_Subscription::already_subscribed($thread2->ID, $member2->ID));
+        $this->assertFalse(ForumThreadSubscription::get()->filter([
+            'ThreadID' => $thread2->ID,
+            'MemberID' => $member->ID
+        ])->exists());
+        $this->assertFalse(ForumThreadSubscription::get()->filter([
+            'ThreadID' => $thread2->ID,
+            'MemberID' => $member2->ID
+        ])->exists());
     }
 
     public function testOnBeforeDelete()
     {
-        $thread = new ForumThread();
+        $thread = ForumThread::create();
         $thread->write();
 
-        $post = new Post();
+        $post = Post::create();
         $post->ThreadID = $thread->ID;
         $post->write();
 
@@ -75,8 +97,8 @@ class ForumThreadTest extends FunctionalTest
 
         $thread->delete();
 
-        $this->assertFalse(DataObject::get_by_id('Post', $postID));
-        $this->assertFalse(DataObject::get_by_id('ForumThread', $thread->ID));
+        $this->assertFalse(Post::get()->byID($postID));
+        $this->assertFalse(ForumThread::get()->byID($thread->ID));
     }
 
     public function testPermissions()

@@ -1,0 +1,8 @@
+SilverStripe\ORM\DatabaseAdmin:
+  classname_value_remapping:
+    ForumThread_Subscription: SilverStripe\Forum\Model\ForumThreadSubscription
+    ForumThread: SilverStripe\Forum\Model\ForumThread
+    Forum: SilverStripe\Forum\Model\Forum
+    ForumCategory: SilverStripe\Forum\Model\ForumCategory
+    ForumHolder: SilverStripe\Forum\Model\ForumHolder
+    ForumMemberProfile: SilverStripe\Forum\Model\ForumMemberProfile

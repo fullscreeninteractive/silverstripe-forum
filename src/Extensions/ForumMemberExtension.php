@@ -1,12 +1,20 @@
 <?php
 
-namespace SilverStripe\Forum\Extensions;
+namespace FullscreenInteractive\SilverStripe\Forum\Extensions;
 
-use Post;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use SilverStripe\Core\Extension;
 use SilverStripe\Assets\Image;
-use SilverStripe\Forum\PageTypes\Forum;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
+use SilverStripe\Control\Email\Email;
+use SilverStripe\Forms\CompositeField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\Security\Permission;
+use SilverStripe\Security\Security;
 
 class ForumRole extends Extension
 {
@@ -38,6 +46,14 @@ class ForumRole extends Extension
         'ForumPosts' => Post::class
     ];
 
+    private static $owns = [
+        'Avatar'
+    ];
+
+    private static $cascade_deletes = [
+        'Avatar'
+    ];
+
     private static $belongs_many_many = [
         'ModeratedForums' => Forum::class
     ];
@@ -46,26 +62,17 @@ class ForumRole extends Extension
         'ForumRank' => 'Community Member'
     ];
 
-    private static $searchable_fields = array(
+    private static $searchable_fields = [
         'Nickname' => true
-    );
+    ];
 
-    private static $indexes = array(
+    private static $indexes = [
         'Nickname' => true
-    );
+    ];
 
-    private static $field_labels = array(
+    private static $field_labels = [
         'SuspendedUntil' => "Suspend this member from writing on forums until the specified date"
-    );
-
-    public function onBeforeDelete()
-    {
-        $avatar = $this->owner->Avatar();
-
-        if ($avatar && $avatar->exists()) {
-            $avatar->delete();
-        }
-    }
+    ];
 
     public function ForumRank()
     {
@@ -117,15 +124,18 @@ class ForumRole extends Extension
     {
         return $this->owner->EmailPublic || Permission::check('ADMIN');
     }
+
     /**
      * Run the Country code through a converter to get the proper Country Name
      */
     public function FullCountry()
     {
-        $locale = new Zend_Locale();
+        $locale = new Locale();
         $locale->setLocale($this->owner->Country);
         return $locale->getRegion();
     }
+
+
     public function NumPosts()
     {
         if (is_numeric($this->owner->ID)) {
@@ -134,6 +144,7 @@ class ForumRole extends Extension
             return 0;
         }
     }
+
 
     /**
      * Checks if the current user is a moderator of the
@@ -162,48 +173,51 @@ class ForumRole extends Extension
      * @return FieldList Returns a FieldList containing all needed fields for
      *                  the registration of new users
      */
-    public function getForumFields($showIdentityURL = false, $addmode = false)
+    public function getForumFields($showIdentityURL = false, $addOnlyMode = false)
     {
-        $gravatarText = (DataObject::get_one("ForumHolder", "\"AllowGravatars\" = 1")) ? '<small>' . _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') . '</small>' : "";
+        $owner = $this->getOwner();
+        $gravatarText = ForumHolder::get()->filter([
+            "AllowGravatars" => 1
+        ])->exists() ? '<small>' . _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') . '</small>' : "";
 
         //Sets the upload folder to the Configurable one set via the ForumHolder or overridden via Config::inst()->update().
-        $avatarField = new FileField('Avatar', _t('ForumRole.AVATAR', 'Avatar Image') . ' ' . $gravatarText);
-        $avatarField->setFolderName(Config::inst()->get('ForumHolder', 'avatars_folder'));
+        $avatarField = FileField::create('Avatar', _t('ForumRole.AVATAR', 'Avatar Image') . ' ' . $gravatarText);
+        $avatarField->setFolderName(ForumHolder::config()->get('avatars_folder'));
         $avatarField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'gif', 'png'));
 
-        $personalDetailsFields = new CompositeField(
-            new HeaderField("PersonalDetails", _t('ForumRole.PERSONAL', 'Personal Details')),
-            new LiteralField("Blurb", "<p id=\"helpful\">" . _t('ForumRole.TICK', 'Tick the fields to show in public profile') . "</p>"),
-            new TextField("Nickname", _t('ForumRole.NICKNAME', 'Nickname')),
-            new CheckableOption("FirstNamePublic", new TextField("FirstName", _t('ForumRole.FIRSTNAME', 'First name'))),
-            new CheckableOption("SurnamePublic", new TextField("Surname", _t('ForumRole.SURNAME', 'Surname'))),
-            new CheckableOption("OccupationPublic", new TextField("Occupation", _t('ForumRole.OCCUPATION', 'Occupation')), true),
-            new CheckableOption('CompanyPublic', new TextField('Company', _t('ForumRole.COMPANY', 'Company')), true),
-            new CheckableOption('CityPublic', new TextField('City', _t('ForumRole.CITY', 'City')), true),
-            new CheckableOption("CountryPublic", new ForumCountryDropdownField("Country", _t('ForumRole.COUNTRY', 'Country')), true),
-            new CheckableOption("EmailPublic", new EmailField("Email", _t('ForumRole.EMAIL', 'Email'))),
-            new ConfirmedPasswordField("Password", _t('ForumRole.PASSWORD', 'Password')),
+        $personalDetailsFields = CompositeField::create([
+            LiteralField::create("PersonalDetails", "<h2>" . _t('ForumRole.PERSONAL', 'Personal Details') . "</h2>"),
+            LiteralField::create("Blurb", "<p id=\"helpful\">" . _t('ForumRole.TICK', 'Tick the fields to show in public profile') . "</p>"),
+            TextField::create("Nickname", _t('ForumRole.NICKNAME', 'Nickname')),
+            TextField::create("FirstName", _t('ForumRole.FIRSTNAME', 'First name')),
+            TextField::create("Surname", _t('ForumRole.SURNAME', 'Surname')),
+            TextField::create("Occupation", _t('ForumRole.OCCUPATION', 'Occupation')),
+            TextField::create('Company', _t('ForumRole.COMPANY', 'Company')),
+            TextField::create('City', _t('ForumRole.CITY', 'City')),
+            DropdownField::create("Country", _t('ForumRole.COUNTRY', 'Country')),
+            EmailField::create("Email", _t('ForumRole.EMAIL', 'Email')),
+            PasswordField::create("Password", _t('ForumRole.PASSWORD', 'Password')),
             $avatarField
-        );
+        ]);
         // Don't show 'forum rank' at registration
-        if (!$addmode) {
+        if (!$addOnlyMode) {
             $personalDetailsFields->push(
-                new ReadonlyField("ForumRank", _t('ForumRole.RATING', 'User rating'))
+                ReadonlyField::create("ForumRank", _t('ForumRole.RATING', 'User rating'))
             );
         }
         $personalDetailsFields->setID('PersonalDetailsFields');
 
-        $fieldset = new FieldList(
+        $fieldset = FieldList::create(
             $personalDetailsFields
         );
 
         if ($showIdentityURL) {
             $fieldset->insertBefore(
-                new ReadonlyField('IdentityURL', _t('ForumRole.OPENIDINAME', 'OpenID/i-name')),
+                ReadonlyField::create('IdentityURL', _t('ForumRole.OPENIDINAME', 'OpenID/i-name')),
                 'Password'
             );
             $fieldset->insertAfter(
-                new LiteralField(
+                LiteralField::create(
                     'PasswordOptionalMessage',
                     '<p>' . _t('ForumRole.PASSOPTMESSAGE', 'Since you provided an OpenID respectively an i-name the password is optional. If you enter one, you will be able to log in also with your e-mail address.') . '</p>'
                 ),
@@ -211,9 +225,10 @@ class ForumRole extends Extension
             );
         }
 
-        if ($this->owner->IsSuspended()) {
+        $isSuspended = $this->owner->IsSuspended();
+        if ($isSuspended) {
             $fieldset->insertAfter(
-                new LiteralField(
+                LiteralField::create(
                     'SuspensionNote',
                     '<p class="message warning suspensionWarning">' . $this->ForumSuspensionMessage() . '</p>'
                 ),
@@ -236,20 +251,22 @@ class ForumRole extends Extension
     public function getForumValidator($needPassword = true)
     {
         if ($needPassword) {
-            $validator = new RequiredFields("Nickname", "Email", "Password");
+            $validator = RequiredFields::create(["Nickname", "Email", "Password"]);
         } else {
-            $validator = new RequiredFields("Nickname", "Email");
+            $validator = RequiredFields::create(["Nickname", "Email"]);
         }
-        $this->owner->extend('updateForumValidator', $validator);
+
+        $this->getOwner()->extend('updateForumValidator', $validator);
 
         return $validator;
     }
 
+
     public function updateCMSFields(FieldList $fields)
     {
-        $allForums = DataObject::get('Forum');
+        $allForums = Forum::get();
         $fields->removeByName('ModeratedForums');
-        $fields->addFieldToTab('Root.ModeratedForums', new CheckboxSetField('ModeratedForums', _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'), ($allForums->exists() ? $allForums->map('ID', 'Title') : array())));
+        $fields->addFieldToTab('Root.ModeratedForums', CheckboxSetField::create('ModeratedForums', _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'), ($allForums->exists() ? $allForums->map('ID', 'Title') : array())));
         $suspend = $fields->dataFieldByName('SuspendedUntil');
         $suspend->setConfig('showcalendar', true);
         if (Permission::checkMember($this->owner->ID, "ACCESS_FORUM")) {
@@ -266,24 +283,27 @@ class ForumRole extends Extension
         }
     }
 
-    public function IsSuspended()
+    public function IsSuspended(): bool
     {
         if ($this->owner->SuspendedUntil) {
-            return strtotime(SS_Datetime::now()->Format('Y-m-d')) < strtotime($this->owner->SuspendedUntil);
+            return strtotime(DBDatetime::now()->Format('Y-m-d')) < strtotime($this->owner->SuspendedUntil);
         } else {
             return false;
         }
     }
 
-    public function IsBanned()
+
+    public function IsBanned(): bool
     {
         return $this->owner->ForumStatus == 'Banned';
     }
 
-    public function IsGhost()
+
+    public function IsGhost(): bool
     {
-        return $this->owner->ForumStatus == 'Ghost' && $this->owner->ID !== Member::currentUserID();
+        return $this->owner->ForumStatus == 'Ghost' && $this->owner->ID !== Security::getCurrentUser()->ID;
     }
+
 
     /**
      * Can the current user edit the given member?
@@ -293,10 +313,10 @@ class ForumRole extends Extension
     public function canEdit($member = null)
     {
         if (!$member) {
-            $member = Member::currentUser();
+            $member = Security::getCurrentUser();
         }
 
-        if ($this->owner->ID == Member::currentUserID()) {
+        if ($this->owner->ID == Security::getCurrentUser()->ID) {
             return true;
         }
 
@@ -329,27 +349,21 @@ class ForumRole extends Extension
      * Return the url of the avatar or gravatar of the selected user.
      * Checks to see if the current user has an avatar, if they do use it
      * otherwise query gravatar.com
-     *
-     * @return String
      */
-    public function getFormattedAvatar()
+    public function getFormattedAvatar(): string
     {
-        $default = "forum/images/forummember_holder.gif";
-        $currentTheme = Config::inst()->get('SSViewer', 'theme');
-
-        if (file_exists('themes/' . $currentTheme . '_forum/images/forummember_holder.gif')) {
-            $default = 'themes/' . $currentTheme . '_forum/images/forummember_holder.gif';
-        }
+        $default = Forum::config()->get('default_avatar_url');
         // if they have uploaded an image
         if ($this->owner->AvatarID) {
             $avatar = Image::get()->byID($this->owner->AvatarID);
+
             if (!$avatar) {
-                return $default;
+                return $default ?? "";
             }
 
             $resizedAvatar = $avatar->SetWidth(80);
             if (!$resizedAvatar) {
-                return $default;
+                return $default ?? "";
             }
 
             return $resizedAvatar->URL;
@@ -363,26 +377,24 @@ class ForumRole extends Extension
                 $default = $holder->GravatarType;
             } else {
                 // we need to get the absolute path for the default forum image
-                return $default;
+                return $default ?? "";
             }
             // ok. no image but can we find a gravatar. Will return the default image as defined above if not.
-            return "http://www.gravatar.com/avatar/" . md5($this->owner->Email) . "?default=" . urlencode($default) . "&amp;size=80";
+            return "http://www.gravatar.com/avatar/" . md5($this->owner->Email) . "?amp;size=80";
         }
 
-        return $default;
+        return $default ?? "";
     }
 
     /**
      * Conditionally includes admin email address (hence we can't simply generate this
      * message in templates). We don't need to spam protect the email address as
      * the note only shows to logged-in users.
-     *
-     * @return String
      */
-    public function ForumSuspensionMessage()
+    public function ForumSuspensionMessage(): string
     {
         $msg = _t('ForumRole.SUSPENSIONNOTE', 'This forum account has been suspended.');
-        $adminEmail = Config::inst()->get('Email', 'admin_email');
+        $adminEmail = Email::config()->get('admin_email');
 
         if ($adminEmail) {
             $msg .= ' ' . sprintf(
@@ -391,70 +403,5 @@ class ForumRole extends Extension
             );
         }
         return $msg;
-    }
-}
-
-
-
-/**
- * ForumRole_Validator
- *
- * This class is used to validate the new fields added by the
- * {@link ForumRole} decorator in the CMS backend.
- */
-class ForumRole_Validator extends Extension
-{
-
-    /**
-     * Client-side validation code
-     *
-     * @param string $js The javascript validation code
-     * @return string Returns the needed javascript code for client-side
-     *                validation.
-     */
-    public function updateJavascript(&$js, &$form)
-    {
-
-        $formID = $form->FormName();
-        $passwordFieldName = $form->dataFieldByName('Password')->id();
-
-        $passwordConfirmField = $form->dataFieldByName('ConfirmPassword');
-        if (!$passwordConfirmField) {
-            return;
-        }
-
-        $passwordConfirmFieldName = $passwordConfirmField->id();
-
-        $passwordcheck = <<<JS
-Behaviour.register({
-	"#$formID": {
-		validatePasswordConfirmation: function() {
-			var passEl = _CURRENT_FORM.elements['Password'];
-			var confEl = _CURRENT_FORM.elements['ConfirmPassword'];
-
-			if(passEl.value == confEl.value) {
-			  clearErrorMessage(confEl.parentNode);
-				return true;
-			} else {
-				validationError(confEl, "Passwords don't match.", "error");
-				return false;
-			}
-		},
-		initialize: function() {
-			var passEl = $('$passwordFieldName');
-			var confEl = $('$passwordConfirmFieldName');
-
-			confEl.value = passEl.value;
-		}
-	}
-});
-JS;
-        Requirements::customScript(
-            $passwordcheck,
-            'func_validatePasswordConfirmation'
-        );
-
-        $js .= "\$('$formID').validatePasswordConfirmation();";
-        return $js;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\Forum\Reports;
+namespace FullscreenInteractive\SilverStripe\Forum\Reports;
 
 use SilverStripe\ORM\DB;
 use SilverStripe\Reports\Report;

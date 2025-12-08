@@ -1,9 +1,9 @@
 <?php
 
-namespace SilverStripe\Forum\PageTypes;
+namespace FullscreenInteractive\SilverStripe\Forum\PageTypes;
 
 use PageController;
-use SilverStripe\Forum\Model\Post;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
 

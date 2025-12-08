@@ -1,35 +1,28 @@
 <?php
 
+namespace FullscreenInteractive\SilverStripe\Forum\Tests;
+
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+use FullscreenInteractive\SilverStripe\Forum\Reports\ForumMonthlyPosts;
+use SilverStripe\Dev\FunctionalTest;
+use SilverStripe\Security\Member;
+use SilverStripe\Security\Security;
+
 class ForumReportTest extends FunctionalTest
 {
+    protected static $fixture_file = [
+        'ForumTest.yml',
+    ];
 
-    protected static $fixture_file = 'forum/tests/ForumTest.yml';
     protected static $use_draft_site = true;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $member = $this->objFromFixture('Member', 'admin');
-        $member->logIn();
-    }
-
-    public function tearDown()
-    {
-        if ($member = Member::currentUser()) {
-            $member->logOut();
-        }
-
-        parent::tearDown();
-    }
 
     public function testMemberSignupsReport()
     {
-        $r = new ForumReport_MemberSignups();
-        $before = $r->records(array());
+        $r = new ForumMonthlyPosts();
+        $before = $r->sourceRecords(array());
 
         // Create a new Member in current month
-        $member = new Member();
+        $member = Member::create();
         $member->Email = 'testMemberSignupsReport';
         $member->write();
 
@@ -47,11 +40,11 @@ class ForumReportTest extends FunctionalTest
 
     public function testMonthlyPostsReport()
     {
-        $r = new ForumReport_MonthlyPosts();
-        $before = $r->records(array());
+        $r = new ForumMonthlyPosts();
+        $before = $r->sourceRecords([]);
 
         // Create a new post in current month
-        $post = new Post();
+        $post = Post::create();
         $post->AuthorID = $this->objFromFixture('Member', 'test2')->ID;
         $post->ThreadID = $this->objFromFixture('ForumThread', 'Thread2')->ID;
         $post->ForumID = $this->objFromFixture('Forum', 'forum5')->ID;

@@ -1,5 +1,5 @@
 {
-    "name": "silverstripe/forum",
+    "name": "fullscreeninteractive/silverstripe-forum",
     "description": "Forum module for SilverStripe.",
     "type": "silverstripe-module",
     "keywords": [
@@ -14,7 +14,9 @@
         }
     ],
     "require": {
-        "silverstripe/cms": "^6"
+        "silverstripe/cms": "^6",
+        "chriskonnertz/bbcode": "^1",
+        "league/commonmark": "^2"
     },
     "require-dev": {
         "phpunit/phpunit": "^11",
@@ -33,10 +35,13 @@
             "dev-main": "2.x-dev"
         }
     },
+    "replace": {
+        "silverstripe/forum": "self.version"
+    },
     "autoload": {
         "psr-4": {
-            "SilverStripe\\Forum\\": "src/",
-            "SilverStripe\\Forum\\Tests\\": "tests/"
+            "FullscreenInteractive\\SilverStripe\\Forum\\": "src/",
+            "FullscreenInteractive\\SilverStripe\\Forum\\Tests\\": "tests/"
         }
     },
     "prefer-stable": true,

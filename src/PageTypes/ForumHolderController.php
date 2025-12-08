@@ -1,13 +1,18 @@
 <?php
 
-namespace SilverStripe\Forum\PageTypes;
+namespace FullscreenInteractive\SilverStripe\Forum\PageTypes;
 
 use PageController;
 use SilverStripe\Control\RSS\RSSFeed;
-use SilverStripe\Forum\Model\ForumThread;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+use FullscreenInteractive\SilverStripe\Forum\Search\ForumSearch;
+use SilverStripe\Core\Convert;
+use SilverStripe\Model\List\PaginatedList;
+use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\View\Requirements;
-use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
+use SilverStripe\Security\Security;
 
 class ForumHolderController extends PageController
 {
@@ -54,7 +59,7 @@ class ForumHolderController extends PageController
         }
 
         if ($method == 'posts') {
-            $threadsQuery = singleton('ForumThread')->buildSQL(
+            $threadsQuery = ForumThread::get()->buildSQL(
                 "\"SiteTree\".\"ParentID\" = '" . $this->ID . "'",
                 "\"PostCount\" DESC",
                 "$start,$limit",
@@ -85,9 +90,8 @@ class ForumHolderController extends PageController
      */
     public function login()
     {
-        Session::set('Security.Message.message', _t('Forum.CREDENTIALS'));
-        Session::set('Security.Message.type', 'status');
-        Session::set("BackURL", $this->Link());
+        $this->getRequest()->getSession()
+            ->set('BackURL', $this->Link());
 
         $this->redirect('Security/login');
     }
@@ -95,11 +99,8 @@ class ForumHolderController extends PageController
 
     public function logout()
     {
-        if ($member = Member::currentUser()) {
-            $member->logOut();
-        }
-
-        $this->redirect($this->Link());
+        $url = Security::logout_url();
+        return $this->redirect($url);
     }
 
     /**
@@ -116,7 +117,7 @@ class ForumHolderController extends PageController
         $abstract = ($keywords) ? "<p>" . sprintf(_t('ForumHolder.SEARCHEDFOR', "You searched for '%s'."), $keywords) . "</p>" : null;
 
         // get the results of the query from the current search engine
-        $search = ForumSearch::get_search_engine();
+        $search = ForumSearch::getSearchEngine();
 
         if ($search) {
             $engine = new $search();
@@ -126,7 +127,6 @@ class ForumHolderController extends PageController
             $results = false;
         }
 
-        //Paginate the results
         $results = PaginatedList::create(
             $results,
             $this->request->getVars()
@@ -135,24 +135,36 @@ class ForumHolderController extends PageController
 
         // if the user has requested this search as an RSS feed then output the contents as xml
         // rather than passing it to the template
-        if (isset($_REQUEST['rss'])) {
-            $rss = new RSSFeed($results, $this->Link(), _t('ForumHolder.SEARCHRESULTS', 'Search results'), "", "Title", "RSSContent", "RSSAuthor");
+        if ($this->getRequest()->getVar('rss')) {
+            $rss = RSSFeed::create(
+                $results,
+                $this->Link(),
+                _t('ForumHolder.SEARCHRESULTS', 'Search results'),
+                "",
+                "Title",
+                "RSSContent",
+                "RSSAuthor"
+            );
 
             return $rss->outputToBrowser();
         }
 
-        // attach a link to a RSS feed version of the search results
-        $rssLink = $this->Link() . "search/?Search=" . urlencode($keywords) . "&amp;order=" . urlencode($order) . "&amp;rss";
+        $rssLink = sprintf(
+            $this->Link() . "search/?Search=%s&amp;order=%s&amp;rss",
+            urlencode($keywords),
+            urlencode($order)
+        );
+
         RSSFeed::linkToFeed($rssLink, _t('ForumHolder.SEARCHRESULTS', 'Search results'));
 
-        return array(
-            "Subtitle"      => DBField::create_field('Text', _t('ForumHolder.SEARCHRESULTS', 'Search results')),
-            "Abstract"      => DBField::create_field('HTMLText', $abstract),
-            "Query"             => DBField::create_field('Text', $_REQUEST['Search']),
-            "Order"             => DBField::create_field('Text', ($order) ? $order : "relevance"),
-            "RSSLink"       => DBField::create_field('HTMLText', $rssLink),
-            "SearchResults"     => $results
-        );
+        return [
+            "Subtitle" => DBField::create_field('Text', _t('ForumHolder.SEARCHRESULTS', 'Search results')),
+            "Abstract" => DBField::create_field('HTMLText', $abstract),
+            "Query" => DBField::create_field('Text', $this->getRequest()->getVar('Search')),
+            "Order" => DBField::create_field('Text', ($order) ? $order : "relevance"),
+            "RSSLink" => DBField::create_field('HTMLText', $rssLink),
+            "SearchResults" => $results
+        ];
     }
 
     /**
@@ -163,7 +175,7 @@ class ForumHolderController extends PageController
      */
     public function rss()
     {
-        HTTP::set_cache_age(3600); // cache for one hour
+        $this->getResponse()->getHeaders()->set('Cache-Control', 'max-age=3600'); // cache for one hour
 
         $threadID = null;
         $forumID = null;
@@ -261,8 +273,6 @@ class ForumHolderController extends PageController
      */
     public function GlobalAnnouncements()
     {
-        //dump(ForumHolder::baseForumTable());
-
         // Get all the forums with global sticky threads
         return ForumThread::get()
             ->filter('IsGlobalSticky', 1)

@@ -1,5 +1,7 @@
 <?php
 
+namespace FullscreenInteractive\SilverStripe\Forum\Search;
+
 /**
  * An extension to the default Forum search to use the {@link Sphinx} class instead
  * of the standard database search.
@@ -15,9 +17,9 @@
 
 class ForumSphinxSearch implements ForumSearchProvider
 {
-    
+
     private $search_cache = array();
-    
+
     // These are classes that *may* be indexed by Sphinx. If they are,
     // we can search for them, and we may need to add extra sphinx
     // properties to them.
@@ -40,12 +42,12 @@ class ForumSphinxSearch implements ForumSearchProvider
         switch ($order) {
             case 'date':
                 $mode = 'fields';
-                
+
                 $sortarg = array('Created' => 'DESC');
                 break;
             case 'title':
                 $mode = 'fields';
-                
+
                 $sortarg = array('Title' => 'ASC');
                 break;
             default:
@@ -60,7 +62,7 @@ class ForumSphinxSearch implements ForumSearchProvider
 
                 break;
         }
-        
+
         $cachekey = $query.':'.$offset;
         if (!isset($this->search_cache[$cachekey])) {
             // Determine the classes to search. This always include
@@ -82,7 +84,7 @@ class ForumSphinxSearch implements ForumSearchProvider
                 'field_weights'     => $fieldWeights
             ));
         }
-        
+
         return $this->search_cache[$cachekey]->Matches;
     }
 
