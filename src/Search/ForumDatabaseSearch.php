@@ -46,7 +46,7 @@ class ForumDatabaseSearch implements ForumSearchProvider
             ->filter(array(
                 'Status' => 'Moderated', //posts my be moderated/visible.
                 'Forum.ParentID' => $forumHolderID //posts must be from a particular forum section.
-                ))
+            ))
             ->filterAny(array(
                 'Author.Nickname:PartialMatch:nocase' => $query,
                 'Author.FirstName:PartialMatch:nocase' => $query,
@@ -63,17 +63,17 @@ class ForumDatabaseSearch implements ForumSearchProvider
             case 'oldest':
                 break;
             case 'title':
-                $posts = $posts->sort(array('Thread.Title'=>'ASC'));
+                $posts = $posts->sort(array('Thread.Title' => 'ASC'));
                 break;
             default:
                 $posts = $posts->sort(array(
-                    'Thread.Title'=>'ASC',
+                    'Thread.Title' => 'ASC',
                     'Created' => 'DESC'
                 ));
                 break;
         }
 
-        return $posts ? $posts: new DataList();
+        return $posts ? $posts : new DataList();
     }
 
     /**

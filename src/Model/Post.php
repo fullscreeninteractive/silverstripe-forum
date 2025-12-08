@@ -3,17 +3,31 @@
 namespace FullscreenInteractive\SilverStripe\Forum\Model;
 
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use FullscreenInteractive\SilverStripe\Forum\Parsers\BBCodeParser;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\SecurityToken;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\Controller;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DB;
 use SilverStripe\Security\Security;
 
 class Post extends DataObject
 {
+    private static $table_name = 'Post';
+
+    private static $singular_name = 'Post';
+
+    private static $plural_name = 'Posts';
+
+    private static $description = 'A post in a forum thread';
+
+    /**
+     * @config
+     */
+    private static $fpost_content_parser = BBCodeParser::class;
 
     private static $db = [
         "Content" => "Text",
@@ -278,8 +292,14 @@ class Post extends DataObject
         $thread = $this->Thread();
         if ($thread->canModerate()) {
             $link = $thread->Forum()->Link('ban') . '/' . $this->AuthorID;
-            return sprintf('<a class="banLink" href="%s" rel="%d">%s</a>', $link, $this->AuthorID, _t('Post.BANUSER', 'Ban User'));
+            return sprintf(
+                '<a class="banLink" href="%s" rel="%d">%s</a>',
+                $link,
+                $this->AuthorID,
+                _t('Post.BANUSER', 'Ban User')
+            );
         }
+
         return false;
     }
 
@@ -308,6 +328,13 @@ class Post extends DataObject
         $author = $this->Author();
 
         return $author->Nickname;
+    }
+
+
+    public function getParsedContent()
+    {
+        $parser = Injector::inst()->get(self::$fpost_content_parser);
+        return $parser->parse($this->Content);
     }
 
     /**

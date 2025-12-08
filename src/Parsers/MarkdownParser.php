@@ -9,7 +9,13 @@ class MarkdownParser
 {
     public function parse(string $content): DBField
     {
-        $converter = new CommonMarkConverter(['html_input' => 'escape', 'allow_unsafe_links' => false]);
-        return DBField::create_field('HTMLText', $converter->convert($content));
+        $converter = new CommonMarkConverter([
+            'html_input' => 'escape',
+            'allow_unsafe_links' => false
+        ]);
+
+        $rendered = $converter->convert($content);
+
+        return DBField::create_field('HTMLText', $rendered);
     }
 }
