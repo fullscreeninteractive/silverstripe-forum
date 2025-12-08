@@ -32,7 +32,7 @@ class ForumRole extends Extension
         'CityPublic' => 'Boolean',
         'CountryPublic' => 'Boolean',
         'EmailPublic' => 'Boolean',
-        'LastViewed' => 'SS_Datetime',
+        'LastViewed' => 'Datetime',
         'Signature' => 'Text',
         'ForumStatus' => 'Enum("Normal, Banned, Ghost", "Normal")',
         'SuspendedUntil' => 'Date'

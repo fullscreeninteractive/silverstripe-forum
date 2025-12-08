@@ -197,7 +197,7 @@ AND \"MemberID\" = '$member->ID'");
             // Suspend the member (rather than deleting him),
             // which gives him or a moderator the chance to revoke a decision.
             if ($author = $post->Author()) {
-                $author->SuspendedUntil = date('Y-m-d', strtotime('+99 years', SS_Datetime::now()->Format('U')));
+                $author->SuspendedUntil = date('Y-m-d', strtotime('+99 years', DBDatetime::now()->Format('U')));
                 $author->write();
             }
 
