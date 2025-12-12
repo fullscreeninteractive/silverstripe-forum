@@ -7,6 +7,7 @@ use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
 use FullscreenInteractive\SilverStripe\Forum\Model\PostAttachment;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+use SilverStripe\ORM\FieldType\DBDatetime;
 
 /**
  * The forum controller class

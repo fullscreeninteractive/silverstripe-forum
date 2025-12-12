@@ -30,6 +30,7 @@ use SilverStripe\View\Requirements;
 
 class Forum extends Page
 {
+    private static $table_name = 'Forum';
 
     private static $allowed_children = 'none';
 

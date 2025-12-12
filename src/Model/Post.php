@@ -27,7 +27,7 @@ class Post extends DataObject
     /**
      * @config
      */
-    private static $fpost_content_parser = BBCodeParser::class;
+    private static $post_content_parser = BBCodeParser::class;
 
     private static $db = [
         "Content" => "Text",

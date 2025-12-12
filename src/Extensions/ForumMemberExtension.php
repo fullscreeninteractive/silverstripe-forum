@@ -16,7 +16,7 @@ use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\Security;
 
-class ForumRole extends Extension
+class ForumMemberExtension extends Extension
 {
     private static $db =  [
         'ForumRank' => 'Varchar',

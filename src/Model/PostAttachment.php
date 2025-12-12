@@ -7,13 +7,12 @@ use SilverStripe\Security\Security;
 use SilverStripe\Core\Convert;
 use SilverStripe\Control\HTTPRequest;
 
-
 /**
  * Attachments for posts (one post can have many attachments)
  */
 class PostAttachment extends File
 {
-    private static $table_name = 'Forum_PostAttachment';
+    private static string $table_name = 'Forum_PostAttachment';
 
     private static $has_one = [
         "Post" => Post::class
@@ -38,7 +37,7 @@ class PostAttachment extends File
     }
 
     /**
-     * Can a user edit this attachement
+     * Can a user edit this attachment
      *
      * @return bool
      */
@@ -47,6 +46,7 @@ class PostAttachment extends File
         if (!$member) {
             $member = Security::getCurrentUser();
         }
+
         return ($this->Post()) ? $this->Post()->canEdit($member) : true;
     }
 

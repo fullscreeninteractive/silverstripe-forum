@@ -11,8 +11,9 @@ use SilverStripe\Security\Security;
 
 class ForumThread extends DataObject
 {
+    private static string $table_name = 'ForumThread';
 
-    private static $db = [
+    private static array $db = [
         "Title" => 'Varchar(255)',
         "NumViews" => 'Int',
         "IsSticky" => 'Boolean',

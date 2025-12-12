@@ -21,13 +21,13 @@ use SilverStripe\Security\Security;
 
 class ForumHolder extends Page
 {
-    private static $table_name = 'ForumHolder';
+    private static string $table_name = 'ForumHolder';
 
-    private static $avatars_folder = 'forum/avatars/';
+    private static string $avatars_folder = 'forum/avatars/';
 
-    private static $attachments_folder = 'forum/attachments/';
+    private static string $attachments_folder = 'forum/attachments/';
 
-    private static $db = [
+    private static array $db = [
         "HolderSubtitle" => "Varchar(200)",
         "ProfileSubtitle" => "Varchar(200)",
         "ForumSubtitle" => "Varchar(200)",
@@ -44,11 +44,15 @@ class ForumHolder extends Page
         "CanPostType" => "Enum('Anyone, LoggedInUsers, OnlyTheseUsers, NoOne', 'LoggedInUsers')",
     ];
 
-    private static $has_many = [
+    private static array $has_many = [
         "Categories" => ForumCategory::class
     ];
 
-    private static $owns = [
+    private static array $owns = [
+        "Categories"
+    ];
+
+    private static array $cascade_deletes = [
         "Categories"
     ];
 
