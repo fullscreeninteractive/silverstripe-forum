@@ -16,7 +16,7 @@
     "require": {
         "silverstripe/cms": "^6",
         "silverstripe/framework": "^6",
-        "silverstripe/vendor-plugin": "^2",
+        "silverstripe/vendor-plugin": "^2 || ^3",
         "chriskonnertz/bbcode": "^1",
         "league/commonmark": "^2"
     },
