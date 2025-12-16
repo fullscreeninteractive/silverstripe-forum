@@ -206,15 +206,16 @@ class Post extends DataObject
     /**
      * Return a link to edit this post.
      *
-     * @return String
+     * @return string
      */
-    public function EditLink()
+    public function EditLink(): string
     {
         if ($this->canEdit()) {
-            $url = Controller::join_links($this->Link('editpost'), $this->ID);
-            return '<a href="' . $url . '" class="editPostLink">' . _t('Post.EDIT', 'Edit') . '</a>';
+            $url = Controller::join_links($this->Link('edit'), $this->ID);
+            return sprintf('<a href="%s" class="editPostLink">%s</a>', $url, _t('Post.EDIT', 'Edit'));
         }
-        return false;
+
+        return '';
     }
 
     /**
@@ -223,18 +224,18 @@ class Post extends DataObject
      * If the member is an admin of this forum, (ADMIN permissions
      * or a moderator) then they can delete the post.
      *
-     * @return String
+     * @return string
      */
-    public function DeleteLink()
+    public function DeleteLink(): string
     {
         if ($this->canDelete()) {
-            $url = Controller::join_links($this->Link('deletepost'), $this->ID);
+            $url = Controller::join_links($this->Link('deletePost'), $this->ID);
             $token = SecurityToken::inst();
             $url = $token->addToUrl($url);
 
             $firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
 
-            return '<a class="deleteLink' . $firstPost . '" href="' . $url . '">' . _t('Post.DELETE', 'Delete') . '</a>';
+            return sprintf('<a class="deleteLink%s" href="%s">%s</a>', $firstPost, $url, _t('Post.DELETE', 'Delete'));
         }
 
         return false;
@@ -244,33 +245,33 @@ class Post extends DataObject
      * Return a link to the reply form. Permission checking is handled on the actual URL
      * and not on this function
      *
-     * @return String
+     * @return string
      */
-    public function ReplyLink()
+    public function ReplyLink(): string
     {
         $url = $this->Link('reply');
 
-        return '<a href="' . $url . '" class="replyLink">' . _t('Post.REPLYLINK', 'Post Reply') . '</a>';
+        return sprintf('<a href="%s" class="replyLink">%s</a>', $url, _t('Post.REPLYLINK', 'Post Reply'));
     }
 
     /**
      * Return a link to the post view.
      *
-     * @return String
+     * @return string
      */
-    public function ShowLink()
+    public function ShowLink(): string
     {
         $url = $this->Link('show');
 
-        return '<a href="' . $url . '" class="showLink">' . _t('Post.SHOWLINK', 'Show Thread') . "</a>";
+        return sprintf('<a href="%s" class="showLink">%s</a>', $url, _t('Post.SHOWLINK', 'Show Thread'));
     }
 
     /**
      * Return a link to mark this post as spam.
      *
-     * @return String
+     * @return string
      */
-    public function MarkAsSpamLink()
+    public function MarkAsSpamLink(): string
     {
         if ($this->Thread()->canModerate()) {
             $member = Security::getCurrentUser();
@@ -284,10 +285,10 @@ class Post extends DataObject
                 return sprintf('<a href="%s" class="markAsSpamLink%s" rel="%d">%s</a>', $url, $firstPost, $this->ID, _t('Post.MARKASSPAM', 'Mark as Spam'));
             }
         }
-        return false;
+        return '';
     }
 
-    public function BanLink()
+    public function BanLink(): string
     {
         $thread = $this->Thread();
         if ($thread->canModerate()) {
@@ -300,17 +301,22 @@ class Post extends DataObject
             );
         }
 
-        return false;
+        return '';
     }
 
-    public function GhostLink()
+    public function GhostLink(): string
     {
         $thread = $this->Thread();
         if ($thread->canModerate()) {
             $link = $thread->Forum()->Link('ghost') . '/' . $this->AuthorID;
-            return sprintf('<a class="ghostLink" href="%s" rel="%d">%s</a>', $link, $this->AuthorID, _t('Post.GHOSTUSER', 'Ghost User'));
+            return sprintf(
+                '<a class="ghostLink" href="%s" rel="%d">%s</a>',
+                $link,
+                $this->AuthorID,
+                _t('Post.GHOSTUSER', 'Ghost User')
+            );
         }
-        return false;
+        return '';
     }
 
     /**

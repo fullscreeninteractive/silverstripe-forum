@@ -6,7 +6,6 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
-use SilverStripe\Security\Security;
 use SilverStripe\Core\Injector\Injector;
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use FullscreenInteractive\SilverStripe\Forum\Email\ForumSubscriptionEmail;

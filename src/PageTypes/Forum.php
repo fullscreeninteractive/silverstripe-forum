@@ -18,7 +18,9 @@ use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Forms\TreeMultiselectField;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory;
+use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
+use SilverStripe\Forms\HeaderField;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Model\List\PaginatedList;
 use SilverStripe\ORM\DB;
@@ -33,6 +35,10 @@ class Forum extends Page
     private static $table_name = 'Forum';
 
     private static $allowed_children = 'none';
+
+    private static $can_be_root = false;
+
+    private static ?string $cms_icon_class = 'font-icon-p-post';
 
     /**
      * Enable this to automatically notify moderators when a message is posted
@@ -205,21 +211,18 @@ class Forum extends Page
         $self = $this;
 
         $this->beforeUpdateCMSFields(function ($fields) use ($self) {
-            Requirements::javascript("silverstripe/forum:client/javascript/ForumAccess.js");
-            Requirements::css("silverstripe/forum:client/css/Forum_CMS.css");
-
-            $fields->addFieldToTab("Root.Access", HeaderField::create(_t('Forum.ACCESSPOST', 'Who can post to the forum?'), 2));
-            $fields->addFieldToTab("Root.Access", $optionSetField = OptionsetField::create("CanPostType", "", [
-                "Inherit" => "Inherit",
-                "Anyone" => _t('Forum.READANYONE', 'Anyone'),
-                "LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
-                "OnlyTheseUsers" => _t('Forum.READLIST', 'Only these people (choose from list)'),
-                "NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
-            ]));
-
-            $optionSetField->addExtraClass('ForumCanPostTypeSelector');
+            Requirements::javascript("fullscreeninteractive/silverstripe-forum:client/javascript/ForumAccess.js");
+            Requirements::css("fullscreeninteractive/silverstripe-forum:client/css/Forum_CMS.css");
 
             $fields->addFieldsToTab("Root.Access", [
+                HeaderField::create(_t('Forum.ACCESSPOST', 'Who can post to the forum?'), 2),
+                OptionsetField::create("CanPostType", "", [
+                    "Inherit" => "Inherit",
+                    "Anyone" => _t('Forum.READANYONE', 'Anyone'),
+                    "LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
+                    "OnlyTheseUsers" => _t('Forum.READLIST', 'Only these people (choose from list)'),
+                    "NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
+                ]),
                 TreeMultiselectField::create("PosterGroups", _t('Forum.GROUPS', "Groups")),
                 OptionsetField::create("CanAttachFiles", _t('Forum.ACCESSATTACH', 'Can users attach files?'), [
                     "1" => _t('Forum.YES', 'Yes'),
@@ -228,7 +231,6 @@ class Forum extends Page
             ]);
 
 
-            //Dropdown of forum category selection.
             $categories = ForumCategory::get()->map();
 
             $fields->addFieldsToTab(
@@ -242,11 +244,11 @@ class Forum extends Page
                 ->addComponent(GridFieldButtonRow::create('before'))
                 ->addComponent(GridFieldAddExistingAutocompleter::create('buttons-before-right'))
                 ->addComponent(GridFieldToolbarHeader::create())
-                ->addComponent($sort = GridFieldSortableHeader::create())
+                ->addComponent(GridFieldSortableHeader::create())
                 ->addComponent($columns = GridFieldDataColumns::create())
                 ->addComponent(GridFieldDeleteAction::create(true))
                 ->addComponent(GridFieldPageCount::create('toolbar-header-right'))
-                ->addComponent($pagination = GridFieldPaginator::create());
+                ->addComponent(GridFieldPaginator::create());
 
             // Use GridField for Moderator management
             $moderators = GridField::create(
@@ -279,9 +281,11 @@ class Forum extends Page
     public function getForumHolder(): ?ForumHolder
     {
         $holder = $this->Parent();
+
         if ($holder instanceof ForumHolder) {
             return $holder;
         }
+
         return null;
     }
 
@@ -317,9 +321,7 @@ class Forum extends Page
     }
 
     /**
-     * Get the number of total posts
-     *
-     * @return int Returns the number of posts
+     * Get the number of total posts.
      */
     public function getNumPosts()
     {
@@ -328,20 +330,17 @@ class Forum extends Page
 
 
     /**
-     * Get the number of distinct Authors
-     *
-     * @return int
+     * Get the number of distinct Authors.
      */
-    public function getNumAuthors()
+    public function getNumAuthors(): int
     {
         return DB::query('SELECT COUNT(DISTINCT("AuthorID")) FROM "Post" INNER JOIN "Member" ON "Post"."AuthorID" = "Member"."ID" WHERE "Member"."ForumStatus" = \'Normal\' AND "ForumID" = ' . $this->ID)->value();
     }
 
     /**
      * Returns the Topics (the first Post of each Thread) for this Forum
-     * @return DataList
      */
-    public function getTopics()
+    public function getTopics(): ?PaginatedList
     {
         // Get a list of Posts
         $posts = Post::get();
@@ -412,6 +411,7 @@ class Forum extends Page
         // Build result as ArrayList
         $res = new ArrayList();
         $rows = $query->execute();
+
         if ($rows) {
             foreach ($rows as $row) {
                 $res->push(new ForumThread($row));

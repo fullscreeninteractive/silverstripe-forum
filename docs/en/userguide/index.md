@@ -13,7 +13,6 @@ summary: Setting up and running forums on your website.
 * Learn how to administrate forum users.
 
 ## Before we begin
-Make sure that your SilverStripe installation has the [Forum](http://addons.silverstripe.org/add-ons/silverstripe/forum) module installed.
 
 Make sure you are in the "Pages" section on the navigation tabs in the Content Management System backend (CMS) and you are on your "Forums" Forum Holder page. If you do not have a forum holder page, you can create one by clicking on the top level of your website in the CMS, or the page you would like the forum to be a subpage of, hitting the "Add New" button on the top of the pane. Choose "Forum Holder" from the list, and then press the "Create" button.
 

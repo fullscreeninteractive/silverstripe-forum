@@ -164,7 +164,7 @@ class PostTest extends FunctionalTest
         $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
-        $this->assertContains($post->Thread()->URLSegment . '/deletepost/' . $post->ID, $post->DeleteLink());
+        $this->assertContains($post->Thread()->URLSegment . '/deletePost/' . $post->ID, $post->DeleteLink());
 
         // because this is the first post test for the class which is used in javascript
         $this->assertContains("class=\"deleteLink firstPost\"", $post->DeleteLink());
@@ -186,7 +186,7 @@ class PostTest extends FunctionalTest
         $this->assertContains("SecurityID=", $post->DeleteLink());
 
         // should be able to edit post since they're moderators
-        $this->assertContains($post->Thread()->URLSegment . '/deletepost/' . $post->ID, $post->DeleteLink());
+        $this->assertContains($post->Thread()->URLSegment . '/deletePost/' . $post->ID, $post->DeleteLink());
 
         // test that a 2nd post doesn't have the first post ID hook
         $memberOthersPost = $this->objFromFixture('Post', 'Post2');

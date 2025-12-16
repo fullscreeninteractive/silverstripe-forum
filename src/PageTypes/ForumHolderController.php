@@ -267,9 +267,7 @@ class ForumHolderController extends PageController
     }
 
     /**
-     * Return the GlobalAnnouncements from the individual forums
-     *
-     * @return DataObjectSet
+     * Return the GlobalAnnouncements from the individual forum,
      */
     public function GlobalAnnouncements()
     {

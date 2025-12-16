@@ -1,8 +1,16 @@
 SilverStripe\ORM\DatabaseAdmin:
   classname_value_remapping:
-    ForumThread_Subscription: SilverStripe\Forum\Model\ForumThreadSubscription
-    ForumThread: SilverStripe\Forum\Model\ForumThread
-    Forum: SilverStripe\Forum\Model\Forum
-    ForumCategory: SilverStripe\Forum\Model\ForumCategory
-    ForumHolder: SilverStripe\Forum\Model\ForumHolder
-    ForumMemberProfile: SilverStripe\Forum\Model\ForumMemberProfile
+    Post: FullscreenInteractive\SilverStripe\Forum\Model\Post
+    ForumThread_Subscription: FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription
+    ForumThread: FullscreenInteractive\SilverStripe\Forum\Model\ForumThread
+    Forum: FullscreenInteractive\SilverStripe\Forum\Model\Forum
+    ForumCategory: FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory
+    ForumHolder: FullscreenInteractive\SilverStripe\Forum\Model\ForumHolder
+    ForumMemberProfile: FullscreenInteractive\SilverStripe\Forum\Model\ForumMemberProfile
+    SilverStripe\Forum\Model\Post: FullscreenInteractive\SilverStripe\Forum\Model\Post
+    SilverStripe\Forum\Model\ForumThreadSubscription: FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription
+    SilverStripe\Forum\Model\ForumThread: FullscreenInteractive\SilverStripe\Forum\Model\ForumThread
+    SilverStripe\Forum\Model\Forum: FullscreenInteractive\SilverStripe\Forum\Model\Forum
+    SilverStripe\Forum\Model\ForumCategory: FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory
+    SilverStripe\Forum\Model\ForumHolder: FullscreenInteractive\SilverStripe\Forum\Model\ForumHolder
+    SilverStripe\Forum\Model\ForumMemberProfile: FullscreenInteractive\SilverStripe\Forum\Model\ForumMemberProfile

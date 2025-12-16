@@ -7,23 +7,25 @@ use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
 use SilverStripe\Forms\CheckboxField;
-use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Forms\GridField\GridField;
-use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use SilverStripe\Control\Controller;
 use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
+use SilverStripe\Versioned\Versioned;
 
 class ForumHolder extends Page
 {
     private static string $table_name = 'ForumHolder';
 
     private static string $avatars_folder = 'forum/avatars/';
+
+    private static ?string $cms_icon_class = 'font-icon-p-alt-3';
 
     private static string $attachments_folder = 'forum/attachments/';
 
@@ -56,8 +58,8 @@ class ForumHolder extends Page
         "Categories"
     ];
 
-    private static $allowed_children = [
-        'Forum'
+    private static array $allowed_children = [
+        Forum::class
     ];
 
     private static $defaults = [
@@ -78,7 +80,7 @@ class ForumHolder extends Page
      *
      * @var bool
      */
-    private static $use_spam_protection_on_register = true;
+    private static bool $use_spam_protection_on_register = true;
 
     /**
      * If the user has spam protection enabled and setup then we can provide spam
@@ -87,7 +89,7 @@ class ForumHolder extends Page
      *
      * @var bool
      */
-    private static $use_spam_protection_on_posts = false;
+    private static bool $use_spam_protection_on_posts = false;
 
     /**
      * Add a hidden field to the form which should remain empty
@@ -95,7 +97,7 @@ class ForumHolder extends Page
      *
      * @var bool
      */
-    private static $use_honeypot_on_register = false;
+    private static bool $use_honeypot_on_register = false;
 
     /**
      * @var bool If TRUE, each logged in Member who visits a Forum will write the LastViewed field
@@ -109,47 +111,32 @@ class ForumHolder extends Page
 
         $this->beforeUpdateCMSFields(function ($fields) use ($self) {
 
-            $fields->addFieldsToTab("Root.Messages", array(
-                TextField::create("HolderSubtitle", "Forum Holder Subtitle"),
-                HTMLEditorField::create("HolderAbstract", "Forum Holder Abstract"),
+            $fields->addFieldsToTab("Root.Messages", [
+                TextField::create("HolderSubtitle", "Subtitle"),
+                HTMLEditorField::create("HolderAbstract", "Abstract"),
                 TextField::create("ProfileSubtitle", "Member Profile Subtitle"),
                 HTMLEditorField::create("ProfileAbstract", "Member Profile Abstract"),
                 TextField::create("ForumSubtitle", "Create topic Subtitle"),
                 HTMLEditorField::create("ForumAbstract", "Create topic Abstract"),
                 HTMLEditorField::create("ProfileModify", "Create message after modifing forum member"),
                 HTMLEditorField::create("ProfileAdd", "Create message after adding forum member")
-            ));
-            $fields->addFieldsToTab("Root.Settings", array(
+            ]);
+            $fields->addFieldsToTab("Root.Settings", [
                 CheckboxField::create("DisplaySignatures", "Display Member Signatures?"),
                 CheckboxField::create("ShowInCategories", "Show Forums In Categories?"),
-                CheckboxField::create("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?"),
-                DropdownField::create("GravatarType", "Gravatar Type", array(
-                    "standard" => _t('Forum.STANDARD', 'Standard'),
-                    "identicon" => _t('Forum.IDENTICON', 'Identicon'),
-                    "wavatar" => _t('Forum.WAVATAR', 'Wavatar'),
-                    "monsterid" => _t('Forum.MONSTERID', 'Monsterid'),
-                    "retro" => _t('Forum.RETRO', 'Retro'),
-                    "mm" => _t('Forum.MM', 'Mystery Man'),
-                ))->setEmptyString('Use Forum Default')
-            ));
+                CheckboxField::create("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?")
+            ]);
 
-            // add a grid field to the category tab with all the categories
-            $categoryConfig = GridFieldConfig_RelationEditor::create();
-
-            $categories = GridField::create(
+            $fields->addFieldsToTab("Root.Categories", [GridField::create(
                 'Category',
-                _t('Forum.FORUMCATEGORY', 'Forum Category'),
-                $self->Categories(),
-                $categoryConfig
-            );
+                'Category',
+                $self->Categories()
+            )]);
 
-            $fields->addFieldsToTab("Root.Categories", $categories);
-
-
-            $fields->addFieldsToTab("Root.LanguageFilter", array(
+            $fields->addFieldsToTab("Root.LanguageFilter", [
                 TextField::create("ForbiddenWords", "Forbidden words (comma separated)"),
                 LiteralField::create("FWLabel", "These words will be replaced by an asterisk")
-            ));
+            ]);
 
             $fields->addFieldToTab("Root.Access", HeaderField::create(_t('Forum.ACCESSPOST', 'Who can post to the forum?'), 2));
             $fields->addFieldToTab("Root.Access", OptionsetField::create("CanPostType", "", array(
@@ -328,8 +315,9 @@ class ForumHolder extends Page
      */
     public function getShowInCategories()
     {
-        $forumCategories = ForumCategory::get()->filter('ForumHolderID', $this->ID);
+        $forumCategories = ForumCategory::get()->filter('ParentID', $this->ID);
         $showInCategories = $this->getField('ShowInCategories');
+
         return $forumCategories->exists() && $showInCategories;
     }
 
@@ -341,41 +329,35 @@ class ForumHolder extends Page
      */
     public function Forums()
     {
-        $categoryText = isset($_REQUEST['Category']) ? Convert::raw2xml($_REQUEST['Category']) : null;
         $holder = $this;
 
         if ($this->getShowInCategories()) {
             return ForumCategory::get()
-                ->filter('ForumHolderID', $this->ID)
-                ->filterByCallback(function ($category) use ($categoryText, $holder) {
-                    // Don't include if we've specified a Category, and it doesn't match this one
-                    if ($categoryText !== null && $category->Title != $categoryText) {
-                        return false;
-                    }
-
+                ->filter('ParentID', $this->ID)
+                ->filterByCallback(function ($category) use ($holder) {
                     // Get a list of forums that live under this holder & category
                     $category->CategoryForums = Forum::get()
-                        ->filter(array(
+                        ->filter([
                             'CategoryID' => $category->ID,
                             'ParentID' => $holder->ID,
                             'ShowInMenus' => 1
-                        ))
+                        ])
                         ->filterByCallback(function ($forum) {
                             return $forum->canView();
                         });
 
                     return $category->CategoryForums->exists();
                 });
-        } else {
-            return Forum::get()
-                ->filter(array(
-                    'ParentID' => $this->ID,
-                    'ShowInMenus' => 1
-                ))
-                ->filterByCallback(function ($forum) {
-                    return $forum->canView();
-                });
         }
+
+        return Forum::get()
+            ->filter([
+                'ParentID' => $this->ID,
+                'ShowInMenus' => 1
+            ])
+            ->filterByCallback(function ($forum) {
+                return $forum->canView();
+            });
     }
 
     /**
@@ -385,38 +367,19 @@ class ForumHolder extends Page
      *
      * @return String
      */
-    static function baseForumTable()
+    public static function baseForumTable()
     {
         $stage = (Controller::curr()->getRequest()) ? Controller::curr()->getRequest()->getVar('stage') : false;
+
         if (!$stage) {
-            $stage = Versioned::get_live_stage();
+            $stage = Versioned::get_stage();
         }
 
-        if ((class_exists('SapphireTest', false) && SapphireTest::is_running_test())
-            || $stage == "Stage"
-        ) {
+        if ($stage == "Stage") {
             return "SiteTree";
         } else {
             return "SiteTree_Live";
         }
-    }
-
-
-    /**
-     * Is OpenID support available?
-     *
-     * This method checks if the {@link OpenIDAuthenticator} is available and
-     * registered.
-     *
-     * @return bool Returns TRUE if OpenID is available, FALSE otherwise.
-     */
-    public function OpenIDAvailable()
-    {
-        if (class_exists('Authenticator') == false) {
-            return false;
-        }
-
-        return Authenticator::is_registered("OpenIDAuthenticator");
     }
 
 
