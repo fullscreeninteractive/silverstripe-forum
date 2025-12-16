@@ -35,7 +35,10 @@
     "extra": {
         "branch-alias": {
             "dev-main": "2.x-dev"
-        }
+        },
+        "expose": [
+            "client"
+        ]
     },
     "replace": {
         "silverstripe/forum": "self.version"

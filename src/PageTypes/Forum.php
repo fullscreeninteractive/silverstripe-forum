@@ -233,7 +233,7 @@ class Forum extends Page
 
             $categories = ForumCategory::get()->map();
 
-            $fields->addFieldsToTab(
+            $fields->addFieldToTab(
                 "Root.Main",
                 DropdownField::create('CategoryID', _t('Forum.FORUMCATEGORY', 'Forum Category'), $categories),
                 'Content'
