@@ -311,13 +311,7 @@ class Forum extends Page
      */
     public function getNumTopics()
     {
-        $sqlQuery = new SQLQuery();
-        $sqlQuery->setFrom('"Post"');
-        $sqlQuery->setSelect('COUNT(DISTINCT("ThreadID"))');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
-        $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
-        $sqlQuery->addWhere('"ForumID" = ' . $this->ID);
-        return $sqlQuery->execute()->value();
+        return ForumThread::get()->filter(["ForumID" => $this->ID])->count();
     }
 
     /**
@@ -325,7 +319,10 @@ class Forum extends Page
      */
     public function getNumPosts()
     {
-        return DB::query('SELECT COUNT("Post"."ID") FROM "Post" INNER JOIN "Member" ON "Post"."AuthorID" = "Member"."ID" WHERE "Member"."ForumStatus" = \'Normal\' AND "ForumID" = ' . $this->ID)->value();
+        return Post::get()->filter([
+            "ForumID" => $this->ID,
+            "Author.ForumStatus" => "Normal"
+        ])->count();
     }
 
 
@@ -334,7 +331,10 @@ class Forum extends Page
      */
     public function getNumAuthors(): int
     {
-        return DB::query('SELECT COUNT(DISTINCT("AuthorID")) FROM "Post" INNER JOIN "Member" ON "Post"."AuthorID" = "Member"."ID" WHERE "Member"."ForumStatus" = \'Normal\' AND "ForumID" = ' . $this->ID)->value();
+        return Post::get()->filter([
+            "ForumID" => $this->ID,
+            "Author.ForumStatus" => "Normal"
+        ])->distinct("AuthorID")->count();
     }
 
     /**
@@ -350,7 +350,7 @@ class Forum extends Page
         $postQuery = $posts->dataQuery()->query();
 
         $postQuery
-            ->setSelect(array())
+            ->setSelect([])
             ->selectField('MAX("Post"."Created")', 'PostCreatedMax')
             ->selectField('MAX("Post"."ID")', 'PostIDMax')
             ->selectField('"ThreadID"')

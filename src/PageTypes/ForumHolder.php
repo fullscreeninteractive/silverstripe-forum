@@ -14,6 +14,7 @@ use SilverStripe\Forms\GridField\GridField;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use SilverStripe\Control\Controller;
+use SilverStripe\ORM\DB;
 use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
@@ -198,7 +199,7 @@ class ForumHolder extends Page
     {
         return Post::get()->filter([
             'AuthorID' => Member::get()->filter('ForumStatus', 'Normal')->column('ID'),
-            'ForumID' => SiteTree::get()->filter('ParentID', $this->ID)->column('ID')
+            'ForumID' => Forum::get()->filter('ParentID', $this->ID)->column('ID')
         ])->count();
     }
 
@@ -210,14 +211,7 @@ class ForumHolder extends Page
      */
     public function getNumTopics()
     {
-        $sqlQuery = new SQLQuery();
-        $sqlQuery->setFrom('"Post"');
-        $sqlQuery->setSelect('COUNT(DISTINCT("ThreadID"))');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
-        $sqlQuery->addInnerJoin('SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
-        $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
-        $sqlQuery->addWhere('"SiteTree"."ParentID" = ' . $this->ID);
-        return $sqlQuery->execute()->value();
+        return DB::query('SELECT COUNT(DISTINCT("ThreadID")) FROM "Post" INNER JOIN "Member" ON "Post"."AuthorID" = "Member"."ID" INNER JOIN "Forum" ON "Post"."ForumID" = "Forum"."ID" WHERE "Member"."ForumStatus" = \'Normal\' AND "Forum"."ParentID" = ' . $this->ID)->value();
     }
 
 
@@ -228,14 +222,7 @@ class ForumHolder extends Page
      */
     public function getNumAuthors()
     {
-        $sqlQuery = new SQLQuery();
-        $sqlQuery->setFrom('"Post"');
-        $sqlQuery->setSelect('COUNT(DISTINCT("AuthorID"))');
-        $sqlQuery->addInnerJoin('Member', '"Post"."AuthorID" = "Member"."ID"');
-        $sqlQuery->addInnerJoin('SiteTree', '"Post"."ForumID" = "SiteTree"."ID"');
-        $sqlQuery->addWhere('"Member"."ForumStatus" = \'Normal\'');
-        $sqlQuery->addWhere('"SiteTree"."ParentID" = ' . $this->ID);
-        return $sqlQuery->execute()->value();
+        return DB::query('SELECT COUNT(DISTINCT("AuthorID")) FROM "Post" INNER JOIN "Member" ON "Post"."AuthorID" = "Member"."ID" INNER JOIN "Forum" ON "Post"."ForumID" = "Forum"."ID" WHERE "Member"."ForumStatus" = \'Normal\' AND "Forum"."ParentID" = ' . $this->ID)->value();
     }
 
     /**
@@ -250,8 +237,6 @@ class ForumHolder extends Page
     /**
      * Get a list of currently online users (last 15 minutes)
      * that belong to the "forum-members" code {@link Group}.
-     *
-     * @return DataList of {@link Member} objects
      */
     public function CurrentlyOnline()
     {
@@ -284,27 +269,13 @@ class ForumHolder extends Page
      */
     public function getLatestMembers()
     {
-        if (!is_null($limit)) {
-            Deprecation::notice('1.0', '$limit parameter is deprecated, please chain the limit clause');
-        }
         $groupID = DB::query('SELECT "ID" FROM "Group" WHERE "Code" = \'forum-members\'')->value();
 
-        // if we're just looking for a single MemberID, do a quicker query on the join table.
-        if ($limit == 1) {
-            $latestMemberId = DB::query(sprintf(
-                'SELECT MAX("MemberID")
-				FROM "Group_Members"
-				WHERE "Group_Members"."GroupID" = \'%s\'',
-                $groupID
-            ))->value();
-
-            $latestMembers = Member::get()->byId($latestMemberId);
-        } else {
             $latestMembers = Member::get()
                 ->leftJoin('Group_Members', '"Member"."ID" = "Group_Members"."MemberID"')
                 ->filter('GroupID', $groupID)
-                ->sort('"Member"."ID" DESC');
-        }
+                ->sort('"Member"."ID" DESC')
+                ->limit(20);
 
         return $latestMembers;
     }
@@ -364,10 +335,8 @@ class ForumHolder extends Page
      * A function that returns the correct base table to use for custom forum queries. It uses the getVar stage to determine
      * what stage we are looking at, and determines whether to use SiteTree or SiteTree_Live (the general case). If the stage is
      * not specified, live is assumed (general case). It is a static function so it can be used for both ForumHolder and Forum.
-     *
-     * @return String
      */
-    public static function baseForumTable()
+    public static function baseForumTable(): string
     {
         $stage = (Controller::curr()->getRequest()) ? Controller::curr()->getRequest()->getVar('stage') : false;
 
@@ -394,52 +363,37 @@ class ForumHolder extends Page
      */
     public function getRecentPosts($limit = 50, $forumID = null, $threadID = null, $lastVisit = null, $lastPostID = null)
     {
-        $filter = array();
-
         if ($lastVisit) {
             $lastVisit = @date('Y-m-d H:i:s', $lastVisit);
         }
 
         $lastPostID = (int) $lastPostID;
+        $posts = Post::get();
 
         // last post viewed
         if ($lastPostID > 0) {
-            $filter[] = "\"Post\".\"ID\" > '" . Convert::raw2sql($lastPostID) . "'";
+            $posts = $posts->filter(["ID:GreaterThan" => $lastPostID]);
         }
 
         // last time visited
         if ($lastVisit) {
-            $filter[] = "\"Post\".\"Created\" > '" . Convert::raw2sql($lastVisit) . "'";
+            $posts = $posts->filter(["Created:GreaterThan" => $lastVisit]);
         }
 
         // limit to a forum
         if ($forumID) {
-            $filter[] = "\"Post\".\"ForumID\" = '" . Convert::raw2sql($forumID) . "'";
+            $posts = $posts->filter(["ForumID" => $forumID]);
         }
 
         // limit to a thread
         if ($threadID) {
-            $filter[] = "\"Post\".\"ThreadID\" = '" . Convert::raw2sql($threadID) . "'";
+            $posts = $posts->filter(["ThreadID" => $threadID]);
         }
 
         // limit to just this forum install
-        $filter[] = "\"ForumPage\".\"ParentID\"='{$this->ID}'";
+        $posts = $posts->filter(["ParentID" => $this->ID]);
 
-        $posts = Post::get()
-            ->leftJoin('ForumThread', '"Post"."ThreadID" = "ForumThread"."ID"')
-            ->leftJoin(ForumHolder::baseForumTable(), '"ForumPage"."ID" = "Post"."ForumID"', 'ForumPage')
-            ->limit($limit)
-            ->sort('"Post"."ID"', 'DESC')
-            ->where($filter);
-
-        $recentPosts = new ArrayList();
-        foreach ($posts as $post) {
-            $recentPosts->push($post);
-        }
-        if ($recentPosts->count() > 0) {
-            return $recentPosts;
-        }
-        return null;
+        return $posts->sort("ID", "DESC")->limit($limit);
     }
 
 
@@ -457,40 +411,35 @@ class ForumHolder extends Page
      * @return bool Returns TRUE if there are new posts available, otherwise
      *              FALSE.
      */
-    public static function new_posts_available($id, &$data = array(), $lastVisit = null, $lastPostID = null, $forumID = null, $threadID = null)
+    public function hasNewPosts($id, &$data = [], $lastVisit = null, $lastPostID = null, $forumID = null, $threadID = null)
     {
-        $filter = array();
+        $forums = Forum::get()->filter(["ParentID" => $id]);
 
-        // last post viewed
-        $filter[] = "\"ForumPage\".\"ParentID\" = '" . Convert::raw2sql($id) . "'";
-        if ($lastPostID) {
-            $filter[] = "\"Post\".\"ID\" > '" . Convert::raw2sql($lastPostID) . "'";
-        }
-        if ($lastVisit) {
-            $filter[] = "\"Post\".\"Created\" > '" . Convert::raw2sql($lastVisit) . "'";
-        }
-        if ($forumID) {
-            $filter[] = "\"Post\".\"ForumID\" = '" . Convert::raw2sql($forumID) . "'";
-        }
-        if ($threadID) {
-            $filter[] = "\"ThreadID\" = '" . Convert::raw2sql($threadID) . "'";
-        }
-
-        $filter = implode(" AND ", $filter);
-
-        $version = DB::query("
-			SELECT MAX(\"Post\".\"ID\") AS \"LastID\", MAX(\"Post\".\"Created\") AS \"LastCreated\"
-			FROM \"Post\"
-			JOIN \"" . ForumHolder::baseForumTable() . "\" AS \"ForumPage\" ON \"Post\".\"ForumID\"=\"ForumPage\".\"ID\"
-			WHERE $filter")->first();
-
-        if ($version == false) {
+        if (!$forums->exists()) {
             return false;
         }
 
+        $posts = Post::get()->filter(["ForumID" => $forums->column("ID")]);
+
+        // last post viewed
+        if ($lastPostID) {
+            $posts = $posts->filter(["ID:GreaterThan" => $lastPostID]);
+        }
+        if ($lastVisit) {
+            $posts = $posts->filter(["Created:GreaterThan" => $lastVisit]);
+        }
+        if ($forumID) {
+            $posts = $posts->filter(["ForumID" => $forumID]);
+        }
+        if ($threadID) {
+            $posts = $posts->filter(["ThreadID" => $threadID]);
+        }
+
+        $lastPost = $posts->sort("ID", "DESC")->limit(1)->first();
+
         if ($data) {
-            $data['last_id'] = (int)$version['LastID'];
-            $data['last_created'] = strtotime($version['LastCreated']);
+            $data['last_id'] = (int)$lastPost->ID;
+            $data['last_created'] = strtotime($lastPost->Created);
         }
 
         $lastVisit = (int) $lastVisit;
@@ -507,25 +456,14 @@ class ForumHolder extends Page
         if (!$lastVisit && !$lastPostID) {
             return true;
         }
-        if ($lastVisit && (strtotime($version['LastCreated']) > $lastVisit)) {
+        if ($lastVisit && (strtotime($lastPost->Created) > $lastVisit)) {
             return true;
         }
 
-        if ($lastPostID && ((int)$version['LastID'] > $lastPostID)) {
+        if ($lastPostID && ((int)$lastPost->ID > $lastPostID)) {
             return true;
         }
 
         return false;
-    }
-
-    /**
-     * Helper Method from the template includes. Uses $ForumHolder so in order for it work
-     * it needs to be included on this page
-     *
-     * @return ForumHolder
-     */
-    public function getForumHolder()
-    {
-        return $this;
     }
 }

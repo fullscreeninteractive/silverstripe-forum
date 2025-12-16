@@ -10,13 +10,18 @@
 ## Maintainer Contact
 
  * Will Rossiter (Nickname: wrossiter, willr) <will (at) fullscreen (dot) io>
- 
+
 ## Requirements
 
  * SilverStripe ^6
 
-## Installation 
+## Installation
 
 ```sh
 composer require fullscreeninteractive/silverstripe-forum
 ```
+
+## Contributing
+
+Contributions are welcome. Please ensure all commits are linted and follow the
+conventions set out.

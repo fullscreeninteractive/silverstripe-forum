@@ -7,6 +7,7 @@ use FullscreenInteractive\SilverStripe\Forum\Form\AdminActionsForm;
 use FullscreenInteractive\SilverStripe\Forum\Form\PostMessageForm;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
 use PageController;
+use SilverStripe\View\Requirements;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
 use FullscreenInteractive\SilverStripe\Forum\Model\PostAttachment;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
@@ -50,26 +51,24 @@ class ForumController extends PageController
 
     public function init()
     {
+        Requirements::javascript("fullscreeninteractive/silverstripe-forum:client/javascript/Forum.js");
+        Requirements::css("fullscreeninteractive/silverstripe-forum:client/css/Forum.css");
+
         parent::init();
 
         if ($this->redirectedTo()) {
             return;
         }
 
-        Requirements::javascript("forum/javascript/Forum.js");
-        Requirements::javascript("forum/javascript/jquery.MultiFile.js");
-
-        Requirements::themedCSS('Forum', 'forum', 'all');
-
         RSSFeed::linkToFeed($this->Parent()->Link("rss/forum/$this->ID"), sprintf(_t('Forum.RSSFORUM', "Posts to the '%s' forum"), $this->Title));
         RSSFeed::linkToFeed($this->Parent()->Link("rss"), _t('Forum.RSSFORUMS', 'Posts to all forums'));
 
         if (!$this->canView()) {
-            $messageSet = array(
+            $messageSet = [
                 'default' => _t('Forum.LOGINDEFAULT', 'Enter your email address and password to view this forum.'),
                 'alreadyLoggedIn' => _t('Forum.LOGINALREADY', 'I&rsquo;m sorry, but you can&rsquo;t access this forum until you&rsquo;ve logged in. If you want to log in as someone else, do so below'),
                 'logInAgain' => _t('Forum.LOGINAGAIN', 'You have been logged out of the forums. If you would like to log in again, enter a username and password below.')
-            );
+            ];
 
             Security::permissionFailure($this, $messageSet);
             return;

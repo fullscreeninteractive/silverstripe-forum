@@ -7,11 +7,19 @@ use SilverStripe\Core\Extension;
 use SilverStripe\Assets\Image;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumMemberProfile;
 use SilverStripe\Control\Email\Email;
+use SilverStripe\Forms\CheckboxSetField;
 use SilverStripe\Forms\CompositeField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\EmailField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\FileField;
+use SilverStripe\Forms\PasswordField;
+use SilverStripe\Forms\ReadonlyField;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\Security;
@@ -125,62 +133,49 @@ class ForumMemberExtension extends Extension
         return $this->owner->EmailPublic || Permission::check('ADMIN');
     }
 
-    /**
-     * Run the Country code through a converter to get the proper Country Name
-     */
-    public function FullCountry()
+
+
+    public function getMemberProfileLink(): string
     {
-        $locale = new Locale();
-        $locale->setLocale($this->owner->Country);
-        return $locale->getRegion();
+        $page = ForumMemberProfile::get()->first();
+
+        if (!$page) {
+            return '';
+        }
+
+        return $page->Link('show/' . $this->owner->ID);
     }
 
 
     public function NumPosts()
     {
-        if (is_numeric($this->owner->ID)) {
-            return $this->owner->ForumPosts()->Count();
-        } else {
-            return 0;
-        }
+        return $this->owner->ForumPosts()->Count();
     }
 
 
     /**
-     * Checks if the current user is a moderator of the
-     * given forum by looking in the moderator ID list.
-     *
-     * @param Forum object to check
-     * @return boolean
+     * Checks if the current user is a moderator of the given forum by looking
+     * in the moderator ID list.
      */
-    public function isModeratingForum($forum)
+    public function isModeratingForum(Forum $forum): bool
     {
         $moderatorIds = $forum->Moderators() ? $forum->Moderators()->getIdList() : array();
         return in_array($this->owner->ID, $moderatorIds);
-    }
-
-    public function Link()
-    {
-        return "ForumMemberProfile/show/" . $this->owner->ID;
     }
 
 
     /**
      * Get the fields needed by the forum module
      *
-     * @param bool $showIdentityURL Should a field for an OpenID or an i-name
-     *                              be shown (always read-only)?
      * @return FieldList Returns a FieldList containing all needed fields for
      *                  the registration of new users
      */
-    public function getForumFields($showIdentityURL = false, $addOnlyMode = false)
+    public function getForumFields(bool $addOnlyMode = false): FieldList
     {
-        $owner = $this->getOwner();
         $gravatarText = ForumHolder::get()->filter([
             "AllowGravatars" => 1
         ])->exists() ? '<small>' . _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') . '</small>' : "";
 
-        //Sets the upload folder to the Configurable one set via the ForumHolder or overridden via Config::inst()->update().
         $avatarField = FileField::create('Avatar', _t('ForumRole.AVATAR', 'Avatar Image') . ' ' . $gravatarText);
         $avatarField->setFolderName(ForumHolder::config()->get('avatars_folder'));
         $avatarField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'gif', 'png'));
@@ -199,6 +194,7 @@ class ForumMemberExtension extends Extension
             PasswordField::create("Password", _t('ForumRole.PASSWORD', 'Password')),
             $avatarField
         ]);
+
         // Don't show 'forum rank' at registration
         if (!$addOnlyMode) {
             $personalDetailsFields->push(
@@ -211,28 +207,14 @@ class ForumMemberExtension extends Extension
             $personalDetailsFields
         );
 
-        if ($showIdentityURL) {
-            $fieldset->insertBefore(
-                ReadonlyField::create('IdentityURL', _t('ForumRole.OPENIDINAME', 'OpenID/i-name')),
-                'Password'
-            );
-            $fieldset->insertAfter(
-                LiteralField::create(
-                    'PasswordOptionalMessage',
-                    '<p>' . _t('ForumRole.PASSOPTMESSAGE', 'Since you provided an OpenID respectively an i-name the password is optional. If you enter one, you will be able to log in also with your e-mail address.') . '</p>'
-                ),
-                'IdentityURL'
-            );
-        }
-
         $isSuspended = $this->owner->IsSuspended();
         if ($isSuspended) {
             $fieldset->insertAfter(
+                'Blurb',
                 LiteralField::create(
                     'SuspensionNote',
                     '<p class="message warning suspensionWarning">' . $this->ForumSuspensionMessage() . '</p>'
                 ),
-                'Blurb'
             );
         }
 
@@ -251,9 +233,9 @@ class ForumMemberExtension extends Extension
     public function getForumValidator($needPassword = true)
     {
         if ($needPassword) {
-            $validator = RequiredFields::create(["Nickname", "Email", "Password"]);
+            $validator = RequiredFieldsValidator::create(["Nickname", "Email", "Password"]);
         } else {
-            $validator = RequiredFields::create(["Nickname", "Email"]);
+            $validator = RequiredFieldsValidator::create(["Nickname", "Email"]);
         }
 
         $this->getOwner()->extend('updateForumValidator', $validator);
@@ -265,21 +247,33 @@ class ForumMemberExtension extends Extension
     public function updateCMSFields(FieldList $fields)
     {
         $allForums = Forum::get();
+
         $fields->removeByName('ModeratedForums');
-        $fields->addFieldToTab('Root.ModeratedForums', CheckboxSetField::create('ModeratedForums', _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'), ($allForums->exists() ? $allForums->map('ID', 'Title') : array())));
+        $fields->addFieldToTab(
+            'Root.ModeratedForums',
+            CheckboxSetField::create(
+                'ModeratedForums',
+                _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'),
+                ($allForums->exists() ? $allForums->map('ID', 'Title') : [])
+            )
+        );
+
         $suspend = $fields->dataFieldByName('SuspendedUntil');
         $suspend->setConfig('showcalendar', true);
-        if (Permission::checkMember($this->owner->ID, "ACCESS_FORUM")) {
-            $avatarField = new FileField('Avatar', _t('ForumRole.UPLOADAVATAR', 'Upload avatar'));
-            $avatarField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'gif', 'png'));
 
-            $fields->addFieldToTab('Root.Forum', $avatarField);
-            $fields->addFieldToTab('Root.Forum', new DropdownField("ForumRank", _t('ForumRole.FORUMRANK', "User rating"), array(
-                "Community Member" => _t('ForumRole.COMMEMBER'),
-                "Administrator" => _t('ForumRole.ADMIN', 'Administrator'),
-                "Moderator" => _t('ForumRole.MOD', 'Moderator')
-            )));
-            $fields->addFieldToTab('Root.Forum', $this->owner->dbObject('ForumStatus')->scaffoldFormField());
+        if (Permission::checkMember($this->owner->ID, "ACCESS_FORUM")) {
+            $avatarField = FileField::create('Avatar', _t('ForumRole.UPLOADAVATAR', 'Upload avatar'));
+            $avatarField->getValidator()->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png']);
+
+            $fields->addFieldsToTab('Root.Forum', [
+                $avatarField,
+                DropdownField::create("ForumRank", _t('ForumRole.FORUMRANK', "User rating"), [
+                    "Community Member" => _t('ForumRole.COMMEMBER'),
+                    "Administrator" => _t('ForumRole.ADMIN', 'Administrator'),
+                    "Moderator" => _t('ForumRole.MOD', 'Moderator')
+                ]),
+                $this->owner->dbObject('ForumStatus')->scaffoldFormField()
+            ]);
         }
     }
 

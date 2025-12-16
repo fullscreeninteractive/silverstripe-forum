@@ -1,37 +1,37 @@
-<div id="post{$ID}" class="forum-post">
-    <div class="user-info">
+<div id="forum__post-{$ID}" class="forum__post">
+    <div class="forum__user-info">
         <% with $Author %>
-            <a class="author-link" href="$Link" title="<% _t('SinglePost_ss.GOTOPROFILE','Go to this User&rsquo;s Profile') %>">$Nickname</a><br />
+            <a class="forum__author-link" href="$Link" title="<%t SinglePost_ss.GOTOPROFILE "Go to this User's Profile" %>">$Nickname</a><br />
 
-            <img class="avatar" src="$FormattedAvatar" alt="Avatar" /><br />
-            <% if $ForumRank %><span class="forum-rank">$ForumRank</span><br /><% end_if %>
+            <img class="forum__avatar" src="$FormattedAvatar" alt="Avatar" /><br />
+            <% if $ForumRank %><span class="forum__rank">$ForumRank</span><br /><% end_if %>
             <% if $NumPosts %>
-                <span class="post-count">$NumPosts
+                <span class="forum__post-count">$NumPosts
                 <% if $NumPosts == 1 %>
-                    <% _t('SinglePost_ss.POST', 'Post') %>
+                    <%t SinglePost_ss.POST "Post" %>
                 <% else %>
-                    <% _t('SinglePost_ss.POSTS', 'Posts') %>
+                    <%t SinglePost_ss.POSTS "Posts" %>
                 <% end_if %>
                 </span>
             <% end_if %>
         <% end_with %>
     </div><!-- user-info. -->
 
-    <div class="user-content">
+    <div class="forum__user-content">
 
-        <div class="quick-reply">
+        <div class="forum__quick-reply">
             <% if $Thread.canPost %>
                 <p>$Top.ReplyLink</p>
             <% end_if %>
         </div>
         <h4><a href="$Link">$Title <img src="forum/images/right.png" alt="Link to this post" title="Link to this post" /></a></h4>
-        <p class="post-date">$Created.Long at $Created.Time
+        <p class="forum__post-date">$Created.Long at $Created.Time
         <% if $Updated %>
-            <strong><% _t('SinglePost_ss.LASTEDITED','Last edited:') %> $Updated.Long <% _t('SinglePost_ss.AT') %> $Updated.Time</strong>
+            <strong><%t SinglePost_ss.LASTEDITED "Last edited:" %> $Updated.Long <%t SinglePost_ss.AT "" %> $Updated.Time</strong>
         <% end_if %></p>
 
         <% if $EditLink || $DeleteLink %>
-            <div class="post-modifiers">
+            <div class="forum__post-modifiers">
                 <% if $EditLink %>
                     $EditLink
                 <% end_if %>
@@ -52,14 +52,14 @@
 
             </div>
         <% end_if %>
-        <div class="post-type">
+        <div class="forum__post-type">
             $ParsedContent
         </div>
 
         <% if $Thread.DisplaySignatures %>
             <% with $Author %>
                 <% if $Signature %>
-                    <div class="signature">
+                    <div class="forum__signature">
                         <p>$Signature</p>
                     </div>
                 <% end_if %>
@@ -67,9 +67,9 @@
         <% end_if %>
 
         <% if $Attachments %>
-            <div class="attachments">
-                <strong><% _t('SinglePost_ss.ATTACHED','Attached Files') %></strong>
-                <ul class="post-attachments">
+            <div class="forum__attachments">
+                <strong><%t SinglePost_ss.ATTACHED "Attached Files" %></strong>
+                <ul class="forum__post-attachments">
                 <% loop $Attachments %>
                     <li>
                         <a href="$Link"><img src="$Icon"></a>
@@ -81,5 +81,5 @@
             </div>
         <% end_if %>
     </div>
-    <div class="clear"><!-- --></div>
-</div><!-- forum-post. -->
+    <div class="forum__clear"><!-- --></div>
+</div><!-- forum__post. -->

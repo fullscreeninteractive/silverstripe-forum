@@ -27,13 +27,10 @@ class ForumHolderController extends PageController
 
     public function init()
     {
+        Requirements::javascript("fullscreeninteractive/silverstripe-forum:client/javascript/forum.js");
+        Requirements::css("fullscreeninteractive/silverstripe-forum:client/css/Forum.css");
+
         parent::init();
-
-        Requirements::javascript('silverstripe/framework:thirdparty/jquery/jquery.js');
-        Requirements::javascript("forum/javascript/jquery.MultiFile.js");
-        Requirements::javascript("forum/javascript/forum.js");
-
-        Requirements::themedCSS('Forum', 'forum', 'all');
 
         RSSFeed::linkToFeed($this->Link('rss'), _t('ForumHolder.POSTSTOALLFORUMS', "Posts to all forums"));
     }
@@ -201,10 +198,6 @@ class ForumHolderController extends PageController
         $data = array('last_created' => null, 'last_id' => null);
 
         if (!isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
-            // just to get the version data..
-            $available = ForumHolder::new_posts_available($this->ID, $data, null, null, $forumID, $threadID);
-
-            // No information provided by the client, just return the last posts
             $rss = new RSSFeed(
                 $this->getRecentPosts(50, $forumID, $threadID),
                 $this->Link() . 'rss',
@@ -235,10 +228,9 @@ class ForumHolderController extends PageController
             if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && is_numeric($_SERVER['HTTP_IF_NONE_MATCH'])) {
                 $etag = (int)$_SERVER['HTTP_IF_NONE_MATCH'];
             }
-            if ($available = ForumHolder::new_posts_available($this->ID, $data, $since, $etag, $forumID, $threadID)) {
-                HTTP::register_modification_timestamp($data['last_created']);
+            if ($available = $this->data()->hasNewPosts($this->ID, $data, $since, $etag, $forumID, $threadID)) {
                 $rss = new RSSFeed(
-                    $this->getRecentPosts(50, $forumID, $threadID, $etag),
+                    $available,
                     $this->Link() . 'rss',
                     sprintf(_t('Forum.RSSFORUMPOSTSTO'), $this->Title),
                     "",
@@ -251,19 +243,20 @@ class ForumHolderController extends PageController
                 return $rss->outputToBrowser();
             } else {
                 if ($data['last_created']) {
-                    HTTP::register_modification_timestamp($data['last_created']);
+                    $this->getResponse()->addHeader('Last-Modified', (string) $data['last_created']);
                 }
 
                 if ($data['last_id']) {
-                    HTTP::register_etag($data['last_id']);
+                    $this->getResponse()->addHeader('ETag', (string) $data['last_id']);
                 }
 
                 // There are no new posts, just output an "304 Not Modified" message
-                HTTP::add_cache_headers();
-                header('HTTP/1.1 304 Not Modified');
+                $this->getResponse()->addHeader('Cache-Control', 'max-age=3600, public');
+                $this->getResponse()->setStatusCode(304);
+                return $this->getResponse();
             }
         }
-        exit;
+        return $this->getResponse();
     }
 
     /**
