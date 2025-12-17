@@ -51,7 +51,7 @@ class Forum extends Page
      *
      * @var string
      */
-    private static $default_avatar_url = "https://via.placeholder.com/150";
+    private static $default_avatar_url = "https://placehold.co/240";
 
     private static $db = [
         "Abstract" => "Text",
@@ -375,7 +375,7 @@ class Forum extends Page
             ->setDistinct(false);
 
         // And return the results
-        return $threads->exists() ? PaginatedList::create($threads, $this->request->getVar('page') ?? 0) : null;
+        return PaginatedList::create($threads);
     }
 
 

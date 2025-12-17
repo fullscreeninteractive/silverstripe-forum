@@ -9,37 +9,36 @@ use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumMemberProfile;
 use SilverStripe\Control\Email\Email;
+use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\CheckboxSetField;
 use SilverStripe\Forms\CompositeField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\EmailField;
+use SilverStripe\Forms\FieldGroup;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FileField;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldConfig_RecordViewer;
 use SilverStripe\Forms\PasswordField;
 use SilverStripe\Forms\ReadonlyField;
+use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\Security;
 
 class ForumMemberExtension extends Extension
 {
     private static $db =  [
-        'ForumRank' => 'Varchar',
-        'Occupation' => 'Varchar',
-        'Company' => 'Varchar',
-        'City' => 'Varchar',
-        'Country' => 'Varchar',
-        'Nickname' => 'Varchar',
+        'UUID' => 'Varchar(36)',
         'FirstNamePublic' => 'Boolean',
         'SurnamePublic' => 'Boolean',
-        'OccupationPublic' => 'Boolean',
-        'CompanyPublic' => 'Boolean',
-        'CityPublic' => 'Boolean',
-        'CountryPublic' => 'Boolean',
         'EmailPublic' => 'Boolean',
+        'ForumRank' => 'Varchar',
+        'Nickname' => 'Varchar(200)',
         'LastViewed' => 'Datetime',
         'Signature' => 'Text',
         'ForumStatus' => 'Enum("Normal, Banned, Ghost", "Normal")',
@@ -70,17 +69,31 @@ class ForumMemberExtension extends Extension
         'ForumRank' => 'Community Member'
     ];
 
-    private static $searchable_fields = [
-        'Nickname' => true
-    ];
-
     private static $indexes = [
-        'Nickname' => true
+        'Nickname' => true,
+        'UUID' => true
     ];
 
     private static $field_labels = [
         'SuspendedUntil' => "Suspend this member from writing on forums until the specified date"
     ];
+
+
+    public function onBeforeWrite()
+    {
+        if (!$this->owner->UUID) {
+            $uuid = uniqid();
+            $check = Member::get()->filter('UUID', $uuid)->exists();
+
+            while ($check) {
+                $uuid = uniqid();
+                $check = Member::get()->filter('UUID', $uuid)->exists();
+            }
+
+            $this->owner->UUID = $uuid;
+        }
+    }
+
 
     public function ForumRank()
     {
@@ -106,28 +119,6 @@ class ForumMemberExtension extends Extension
     }
 
 
-    public function OccupationPublic()
-    {
-        return $this->owner->OccupationPublic || Permission::check('ADMIN');
-    }
-
-
-    public function CompanyPublic()
-    {
-        return $this->owner->CompanyPublic || Permission::check('ADMIN');
-    }
-
-
-    public function CityPublic()
-    {
-        return $this->owner->CityPublic || Permission::check('ADMIN');
-    }
-
-
-    public function CountryPublic()
-    {
-        return $this->owner->CountryPublic || Permission::check('ADMIN');
-    }
     public function EmailPublic()
     {
         return $this->owner->EmailPublic || Permission::check('ADMIN');
@@ -147,7 +138,7 @@ class ForumMemberExtension extends Extension
             return '';
         }
 
-        return $page->Link('show/' . $this->owner->ID);
+        return $page->Link('show/' . $this->owner->UUID);
     }
 
 
@@ -169,13 +160,11 @@ class ForumMemberExtension extends Extension
 
 
     /**
-     * Get the fields needed by the forum module
-     *
-     * @return FieldList Returns a FieldList containing all needed fields for
-     *                  the registration of new users
+     * Get the fields needed by the forum module.
      */
-    public function getForumFields(bool $addOnlyMode = false): FieldList
+    public function getForumFields(): FieldList
     {
+
         $gravatarText = ForumHolder::get()->filter([
             "AllowGravatars" => 1
         ])->exists() ? '<small>' . _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') . '</small>' : "";
@@ -186,32 +175,30 @@ class ForumMemberExtension extends Extension
 
         $personalDetailsFields = CompositeField::create([
             LiteralField::create("PersonalDetails", "<h2>" . _t('ForumRole.PERSONAL', 'Personal Details') . "</h2>"),
-            LiteralField::create("Blurb", "<p id=\"helpful\">" . _t('ForumRole.TICK', 'Tick the fields to show in public profile') . "</p>"),
             TextField::create("Nickname", _t('ForumRole.NICKNAME', 'Nickname')),
-            TextField::create("FirstName", _t('ForumRole.FIRSTNAME', 'First name')),
-            TextField::create("Surname", _t('ForumRole.SURNAME', 'Surname')),
-            TextField::create("Occupation", _t('ForumRole.OCCUPATION', 'Occupation')),
-            TextField::create('Company', _t('ForumRole.COMPANY', 'Company')),
-            TextField::create('City', _t('ForumRole.CITY', 'City')),
-            DropdownField::create("Country", _t('ForumRole.COUNTRY', 'Country')),
-            EmailField::create("Email", _t('ForumRole.EMAIL', 'Email')),
+            FieldGroup::create([
+                TextField::create("FirstName", _t('ForumRole.FIRSTNAME', 'First name')),
+                CheckboxField::create("FirstNamePublic", _t('ForumRole.FIRSTNAMEPUBLIC', 'Public?'), 1),
+            ]),
+            FieldGroup::create([
+                TextField::create("Surname", _t('ForumRole.SURNAME', 'Surname')),
+                CheckboxField::create("SurnamePublic", _t('ForumRole.SURNAMEPUBLIC', 'Public?'), 1),
+            ]),
+            FieldGroup::create([
+                EmailField::create("Email", _t('ForumRole.EMAIL', 'Email')),
+                CheckboxField::create("EmailPublic", _t('ForumRole.EMAILPUBLIC', 'Public?'), 1),
+            ]),
             PasswordField::create("Password", _t('ForumRole.PASSWORD', 'Password')),
-            $avatarField
+            $avatarField,
+            TextareaField::create("Signature", _t('ForumRole.SIGNATURE', 'Signature')),
         ]);
-
-        // Don't show 'forum rank' at registration
-        if (!$addOnlyMode) {
-            $personalDetailsFields->push(
-                ReadonlyField::create("ForumRank", _t('ForumRole.RATING', 'User rating'))
-            );
-        }
-        $personalDetailsFields->setID('PersonalDetailsFields');
 
         $fieldset = FieldList::create(
             $personalDetailsFields
         );
 
         $isSuspended = $this->owner->IsSuspended();
+
         if ($isSuspended) {
             $fieldset->insertAfter(
                 'Blurb',
@@ -251,34 +238,57 @@ class ForumMemberExtension extends Extension
     public function updateCMSFields(FieldList $fields)
     {
         $allForums = Forum::get();
+        $fields->removeByName([
+            'UUID',
+            'FirstNamePublic',
+            'SurnamePublic',
+            'EmailPublic',
+            'CountryPublic',
+            'ForumRank',
+            'ForumStatus',
+            'LastViewed',
+            'SuspendedUntil',
+            'Avatar',
+            'Nickname',
+            'ModeratedForums',
+            'Signature',
+            'ForumPosts'
+        ]);
 
-        $fields->removeByName('ModeratedForums');
-        $fields->addFieldToTab(
-            'Root.ModeratedForums',
-            CheckboxSetField::create(
-                'ModeratedForums',
-                _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'),
-                ($allForums->exists() ? $allForums->map('ID', 'Title') : [])
+
+        $avatarField = FileField::create('Avatar', _t('ForumRole.UPLOADAVATAR', 'Upload avatar'));
+        $avatarField->getValidator()->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png']);
+
+        $fields->addFieldsToTab('Root.Forum', [
+            TextField::create('Nickname', _t('ForumRole.NICKNAME', 'Nickname')),
+            DropdownField::create("ForumRank", _t('ForumRole.FORUMRANK', "User rating"), [
+                "Community Member" => _t('ForumRole.COMMEMBER', 'Community Member'),
+                "Administrator" => _t('ForumRole.ADMIN', 'Administrator'),
+                "Moderator" => _t('ForumRole.MOD', 'Moderator')
+            ]),
+            $avatarField,
+            DropdownField::create("ForumStatus", _t('ForumRole.FORUMSTATUS', "Forum status"), [
+                "Normal" => _t('ForumRole.NORMAL', 'Normal'),
+                "Banned" => _t('ForumRole.BANNED', 'Banned'),
+                "Ghost" => _t('ForumRole.GHOST', 'Ghost')
+            ]),
+            TextareaField::create("Signature", _t('ForumRole.SIGNATURE', 'Signature')),
+        ]);
+
+        $forums = $allForums->map('ID', 'Title');
+
+        $fields->addFieldsToTab('Root.Forum', [
+            CheckboxSetField::create('ModeratedForums', _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'), $forums)
+        ]);
+
+        $fields->addFieldsToTab('Root.Forum', [
+            GridField::create(
+                "ForumPosts",
+                _t('ForumRole.FORUMPOSTS', 'Forum posts'),
+                $this->owner->ForumPosts(),
+                GridFieldConfig_RecordViewer::create()
             )
-        );
-
-        $suspend = $fields->dataFieldByName('SuspendedUntil');
-        $suspend->setConfig('showcalendar', true);
-
-        if (Permission::checkMember($this->owner->ID, "ACCESS_FORUM")) {
-            $avatarField = FileField::create('Avatar', _t('ForumRole.UPLOADAVATAR', 'Upload avatar'));
-            $avatarField->getValidator()->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png']);
-
-            $fields->addFieldsToTab('Root.Forum', [
-                $avatarField,
-                DropdownField::create("ForumRank", _t('ForumRole.FORUMRANK', "User rating"), [
-                    "Community Member" => _t('ForumRole.COMMEMBER'),
-                    "Administrator" => _t('ForumRole.ADMIN', 'Administrator'),
-                    "Moderator" => _t('ForumRole.MOD', 'Moderator')
-                ]),
-                $this->owner->dbObject('ForumStatus')->scaffoldFormField()
-            ]);
-        }
+        ]);
     }
 
     public function IsSuspended(): bool
@@ -353,34 +363,24 @@ class ForumMemberExtension extends Extension
     public function getFormattedAvatar(): string
     {
         $default = Forum::config()->get('default_avatar_url');
+
         // if they have uploaded an image
         if ($this->owner->AvatarID) {
             $avatar = Image::get()->byID($this->owner->AvatarID);
 
-            if (!$avatar) {
-                return $default ?? "";
+            if ($avatar) {
+                return $avatar->SetWidth(240)->URL;
             }
-
-            $resizedAvatar = $avatar->SetWidth(80);
-            if (!$resizedAvatar) {
-                return $default ?? "";
-            }
-
-            return $resizedAvatar->URL;
         }
 
-        //If Gravatar is enabled, allow the selection of the type of default Gravatar.
+        // If Gravatar is enabled, allow the selection of the type of default Gravatar.
         if ($holder = ForumHolder::get()->filter('AllowGravatars', 1)->first()) {
-            // If the GravatarType is one of the special types, then set it otherwise use the
-            //default image from above forummember_holder.gif
+            // If the GravatarType is one of the special types, then set it otherwise use the default image from above forummember_holder.gif
             if ($holder->GravatarType) {
                 $default = $holder->GravatarType;
-            } else {
-                // we need to get the absolute path for the default forum image
-                return $default ?? "";
             }
-            // ok. no image but can we find a gravatar. Will return the default image as defined above if not.
-            return "http://www.gravatar.com/avatar/" . md5($this->owner->Email) . "?amp;size=80";
+
+            return "http://www.gravatar.com/avatar/" . md5($this->owner->Email) . "?amp;size=240";
         }
 
         return $default ?? "";

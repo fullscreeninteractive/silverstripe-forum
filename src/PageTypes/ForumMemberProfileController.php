@@ -6,7 +6,6 @@ use FullscreenInteractive\SilverStripe\Forum\Form\ForumProfileForm;
 use FullscreenInteractive\SilverStripe\Forum\Form\ForumRegistrationForm;
 use PageController;
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
-use SilverStripe\Forms\TextareaField;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
 
@@ -152,35 +151,6 @@ class ForumMemberProfileController extends PageController
             return Security::getCurrentUser();
         }
 
-        return Member::get()->byID($id);
-    }
-
-    /**
-     * Get a subtitle
-     */
-    public function getHolderSubtitle()
-    {
-        return _t('ForumMemberProfile.USERPROFILE', 'User profile');
-    }
-
-
-    /**
-     * This needs MetaTags because it doesn't extend SiteTree at any point
-     */
-    public function MetaTags($includeTitle = true)
-    {
-        $tags = "";
-        $title = _t('ForumMemberProfile.FORUMUSERPROFILE', 'Forum User Profile');
-
-        if (isset($this->urlParams['Action'])) {
-            if ($this->urlParams['Action'] == "register") {
-                $title = _t('ForumMemberProfile.FORUMUSERREGISTER', 'Forum Registration');
-            }
-        }
-        if ($includeTitle == true) {
-            $tags .= "<title>" . $title . "</title>\n";
-        }
-
-        return $tags;
+        return Member::get()->filter('UUID', $id)->first();
     }
 }

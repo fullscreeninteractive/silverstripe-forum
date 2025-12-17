@@ -21,12 +21,17 @@
 <div class="forum__features">
     <% if $getStickyTopics(0) %>
         <table class="forum__sticky-topics" summary="List of sticky topics in this forum">
-            <tr class="forum__category">
-                <td colspan="3"><%t Forum_ss.ANNOUNCEMENTS "Announcements" %></td>
-            </tr>
-            <% loop $getStickyTopics(0) %>
-                <% include TopicListing %>
-            <% end_loop %>
+            <thead>
+                <tr class="forum__category">
+                    <th colspan="3"><%t Forum_ss.ANNOUNCEMENTS "Announcements" %></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% loop $getStickyTopics(0) %>
+                    <% include TopicListing %>
+                <% end_loop %>
+            </tbody>
         </table>
     <% end_if %>
 
@@ -43,15 +48,17 @@
             </tr>
         </thead>
 
-        <% if $Topics %>
-            <% loop $Topics %>
-                <% include TopicListing %>
-            <% end_loop %>
-        <% else %>
-            <tr>
-                <td colspan="3" class="forum__category"><%t Forum_ss.NOTOPICS "There are no topics in this forum, " %><a href="{$Link(starttopic)}" title="<%t Forum_ss.NEWTOPIC "New Topic" %>"><%t Forum_ss.NEWTOPICTEXT "click here to start a new topic" %>.</a></td>
-            </tr>
-        <% end_if %>
+        <tbody>
+            <% if $Topics %>
+                <% loop $Topics %>
+                    <% include TopicListing %>
+                <% end_loop %>
+            <% else %>
+                <tr>
+                    <td colspan="3" class="forum__category"><%t Forum_ss.NOTOPICS "There are no topics in this forum, " %><a href="{$Link(starttopic)}" title="<%t Forum_ss.NEWTOPIC "New Topic" %>"><%t Forum_ss.NEWTOPICTEXT "click here to start a new topic" %>.</a></td>
+                </tr>
+            <% end_if %>
+        </tbody>
     </table>
 
     <% if $Topics.MoreThanOnePage %>

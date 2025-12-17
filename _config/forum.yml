@@ -4,9 +4,6 @@ Name: silverstripe-forum
 SilverStripe\Security\Member:
   extensions:
     - FullscreenInteractive\SilverStripe\Forum\Extensions\ForumMemberExtension
-SilverStripe\Security\Member_Validator:
-  extensions:
-    ForumRole_Validator: ForumRole_Validator
 SilverStripe\Forum\Model\Post:
   extensions:
     - FullscreenInteractive\SilverStripe\Forum\Extensions\ForumSpamPostExtension

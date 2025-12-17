@@ -17,16 +17,36 @@
 
 }
 
-
+/**
+ * Admin features at the bottom of the page
+ */
 .forum__admin-features {
   border: 1px dashed #e0ded9;
   padding: 12px;
   margin-bottom: 12px;
   font-family: monospace;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 32px 0;
+  opacity: 0.8;
+}
+
+.forum__admin-features .field {
+  margin-bottom: 12px;
+  width: 100%;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.forum__admin-features .field label {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 4px;
 }
 
 
-.forum__admin-features-title {
+.forum__admin-features .forum__admin-features-title {
   font-size: 14px;
   font-weight: bold;
   margin-top: 0;
@@ -44,15 +64,23 @@
  */
 .forum__post-modifiers {
   margin-bottom: 12px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   color: var(--color-dark);
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+  border: 1px solid #f4f4f4;
+  box-shadow: 0 1px 8px 0px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  display: flex;
+  gap: 8px;
+  padding: 4px 8px;
 }
 
 .forum__post-modifiers a {
-  color: var(--color-dark);
   text-decoration: none;
-
 }
 
 
@@ -60,16 +88,13 @@
  * Preview content
  */
 .forum__previous-posts {
-  margin-top: 32px;
   margin-bottom: 32px;
-  padding-top: 32px;
+  margin-top: 32px;
+  padding: 20px;
   border: 1px dashed var(--color-grey, '#d1d2d6');
   border-radius: 12px;
 }
   .forum__previous-posts .forum__post {
-    margin-bottom: 12px;
-    padding: 12px;
-    border-left: 4px solid var(--color-blue, '#639dc4');
     padding-left: 12px;
   }
 
@@ -82,3 +107,58 @@
   padding: 0;
   margin: 0;
 }
+
+.forum__posts li {
+  list-style: none;
+  margin-bottom: 12px;
+}
+
+.forum__features tbody tr:nth-child(even) {
+  background-color:#f4f4f4;
+}
+
+/**
+ * Individual post format
+ */
+
+.forum__post {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  padding-left: 12px;
+  position: relative;
+}
+
+.forum__post-date {
+  font-size: 12px;
+  line-height: 20px;
+  margin-bottom: 0;
+}
+
+.forum__user-content {
+  flex: 1;
+}
+
+.forum__user-content .forum__post-title {
+  margin-top: 0;
+}
+
+.forum__user-info {
+  width: 100%;
+  max-width: 200px;
+}
+
+@media (min-width: 768px) {
+  .forum__post {
+    flex-direction: row;
+  }
+}
+
+.forum__reply-button {
+  display: flex;
+  justify-content: space-between;
+}
+
+

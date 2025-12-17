@@ -20,8 +20,8 @@
     </td>
     <td class="forum__last-post">
         <% with $LatestPost %>
-            <p>$Created.Ago</p>
-            <p>
+            <p class="forum__post-date">$Created.Ago</p>
+            <p class="forum__post-author">
                 <%t TopicListing_ss.BY "by" %>
                 <% with $Author %>
                     <% if $Link %>
@@ -32,7 +32,7 @@
                         <span>Anon</span>
                     <% end_if %>
                 <% end_with %>
-                <a href="$Link" title="<%t TopicListing_ss.GOTOFIRSTUNREAD "Go to the first unread post in the {title} topic." title=$Title.XML %>"><img src="forum/images/right.png" alt="" /></a>
+                <a href="$Link" title="<%t TopicListing_ss.GOTOFIRSTUNREAD "Go to the first unread post in the {title} topic." title=$Title.XML %>"><%t TopicListing_ss.READMORE "Read more" %></a>
             </p>
         <% end_with %>
     </td>

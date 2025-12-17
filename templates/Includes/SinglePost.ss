@@ -25,40 +25,24 @@
     </div><!-- user-info. -->
 
     <div class="forum__user-content">
+        <h4 class="forum__post-title"><a href="$Link">$Title</a></h4>
+        <p class="forum__post-date">$Created.Nice
 
-        <div class="forum__quick-reply">
-            <% if $Thread.canPost %>
-                <p>$Top.ReplyLink</p>
-            <% end_if %>
-        </div>
-        <h4><a href="$Link">$Title <img src="forum/images/right.png" alt="Link to this post" title="Link to this post" /></a></h4>
-        <p class="forum__post-date">$Created.Long at $Created.Time
         <% if $Updated %>
-            <strong><%t SinglePost_ss.LASTEDITED "Last edited:" %> $Updated.Long <%t SinglePost_ss.AT "" %> $Updated.Time</strong>
-        <% end_if %></p>
+            <strong class="forum__post-edited"><%t SinglePost_ss.LASTEDITED "Last edited:" %> $Updated.Long <%t SinglePost_ss.AT "" %> $Updated.Time</strong>
+        <% end_if %>
+        </p>
 
         <% if $EditLink || $DeleteLink %>
             <div class="forum__post-modifiers">
-                <% if $EditLink %>
-                    $EditLink
-                <% end_if %>
-
-                <% if $DeleteLink %>
-                    $DeleteLink
-                <% end_if %>
-
-                <% if $MarkAsSpamLink %>
-                    $MarkAsSpamLink
-                <% end_if %>
-
-                <% if $BanLink || $GhostLink %>
-                    |
-                    <% if $BanLink %>$BanLink<% end_if %>
-                    <% if $GhostLink %>$GhostLink<% end_if %>
-                <% end_if %>
-
+                {$EditLink}
+                {$DeleteLink}
+                {$MarkAsSpamLink}
+                {$BanLink}
+                {$GhostLink}
             </div>
         <% end_if %>
+
         <div class="forum__post-type">
             $ParsedContent
         </div>
@@ -88,5 +72,4 @@
             </div>
         <% end_if %>
     </div>
-    <div class="forum__clear"><!-- --></div>
 </div><!-- forum__post. -->
