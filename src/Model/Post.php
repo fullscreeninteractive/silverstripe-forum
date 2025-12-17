@@ -11,7 +11,6 @@ use SilverStripe\Security\SecurityToken;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\ORM\DB;
 use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\Security\Security;
@@ -57,33 +56,13 @@ class Post extends DataObject
         "Attachments"
     ];
 
-    private static $summary_fields = array(
+    private static $summary_fields = [
         "Content.LimitWordCount" => "Summary",
         "Created" => "Created",
         "Status" => "Status",
         "Thread.Title" => "Thread",
         "Forum.Title" => "Forum"
-    );
-
-    /**
-     * Update all the posts to have a forum ID of their thread ID.
-     */
-    public function requireDefaultRecords()
-    {
-        $posts = Post::get()->filter(array('ForumID' => 0, 'ThreadID:GreaterThan' => 0));
-
-        if ($posts->exists()) {
-            foreach ($posts as $post) {
-                if ($post->ThreadID) {
-                    $post->ForumID = $post->Thread()->ForumID;
-                    $post->write();
-                }
-            }
-
-            DB::alteration_message(_t('Forum.POSTSFORUMIDUPDATED', 'Forum posts forum ID added'), 'created');
-        }
-    }
-
+    ];
 
     /**
      * Check if user can see the post
@@ -183,7 +162,10 @@ class Post extends DataObject
         if ($this->LastEdited != $this->Created) {
             return $this->LastEdited;
         }
+
+        return null;
     }
+
 
     /**
      * Is this post the first post in the thread. Check if their is a post with an ID less
@@ -196,27 +178,28 @@ class Post extends DataObject
         if (empty($this->ThreadID) || empty($this->ID)) {
             return false;
         }
-        $earlierPosts = DB::query(sprintf(
-            'SELECT COUNT("ID") FROM "Post" WHERE "ThreadID" = \'%d\' and "ID" < \'%d\'',
-            $this->ThreadID,
-            $this->ID
-        ))->value();
-        return empty($earlierPosts);
+
+        return Post::get()->filter([
+            'ThreadID' => $this->ThreadID,
+            'Created:LessThan' => $this->Created
+        ])->count() == 0;
     }
 
     /**
      * Return a link to edit this post.
-     *
-     * @return string
      */
-    public function EditLink(): string
+    public function EditLink(): ?DBHTMLText
     {
         if ($this->canEdit()) {
             $url = Controller::join_links($this->Link('edit'), $this->ID);
-            return sprintf('<a href="%s" class="editPostLink">%s</a>', $url, _t('Post.EDIT', 'Edit'));
+
+            return DBHTMLText::create_field(
+                'HTMLText',
+                sprintf('<a href="%s" class="editPostLink">%s</a>', $url, _t('Post.EDIT', 'Edit'))
+            );
         }
 
-        return '';
+        return null;
     }
 
     /**
@@ -227,7 +210,7 @@ class Post extends DataObject
      *
      * @return string
      */
-    public function DeleteLink(): string
+    public function DeleteLink(): ?DBHTMLText
     {
         if ($this->canDelete()) {
             $url = Controller::join_links($this->Link('deletePost'), $this->ID);
@@ -236,10 +219,13 @@ class Post extends DataObject
 
             $firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
 
-            return sprintf('<a class="deleteLink%s" href="%s">%s</a>', $firstPost, $url, _t('Post.DELETE', 'Delete'));
+            return DBHTMLText::create_field(
+                'HTMLText',
+                sprintf('<a class="deleteLink%s" href="%s">%s</a>', $firstPost, $url, _t('Post.DELETE', 'Delete'))
+            );
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -294,6 +280,7 @@ class Post extends DataObject
         return null;
     }
 
+
     public function GhostLink(): ?DBHTMLText
     {
         return $this->getModerationLink('ghost', $this->AuthorID, _t('Post.GHOSTUSER', 'Ghost User'), 'ghostLink');
@@ -331,7 +318,7 @@ class Post extends DataObject
     {
         $author = $this->Author();
 
-        return $author->Nickname;
+        return $author->Nickname();
     }
 
 
@@ -352,17 +339,15 @@ class Post extends DataObject
         $includeThreadID = ($action == "show" || $action == "reply") ? true : false;
         $link = $this->Thread()->Link($action, $includeThreadID);
 
-        // calculate what page results the post is on
-        // the count is the position of the post in the thread
-        $count = DB::query("
-			SELECT COUNT(\"ID\")
-			FROM \"Post\"
-			WHERE \"ThreadID\" = '$this->ThreadID' AND \"Status\" = 'Moderated' AND \"ID\" < $this->ID
-		")->value();
+        $count = Post::get()->filter([
+            'ThreadID' => $this->ThreadID,
+            'Status' => 'Moderated',
+            'ID:LessThan' => $this->ID
+        ])->count();
 
-        $postsPerPage = $this->Forum()->PostsPerPage || 10;
-
+        $postsPerPage = $this->Forum()->config()->get('posts_per_page');
         $start = ($count >= $postsPerPage) ? floor($count / $postsPerPage) * $postsPerPage : 0;
+
         $pos = ($start == 0 ? '' : "?start=$start") . ($count == 0 ? '' : "#post{$this->ID}");
 
         return ($action == "show") ? $link . $pos : $link;

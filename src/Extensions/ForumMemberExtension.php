@@ -336,8 +336,10 @@ class ForumMemberExtension extends Extension
     {
         if ($this->owner->Nickname) {
             return $this->owner->Nickname;
-        } elseif ($this->owner->FirstNamePublic && $this->owner->FirstName) {
+        } elseif ($this->owner->FirstName) {
             return $this->owner->FirstName;
+        } elseif ($this->owner->Surname) {
+            return $this->owner->Surname;
         } else {
             return _t('ForumRole.ANONYMOUS', 'Anonymous user');
         }

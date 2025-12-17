@@ -154,6 +154,7 @@ class PostMessageForm extends Form
 
         if (!$thread) {
             $thread = ForumThread::create();
+            $thread->AuthorID = $member->ID;
             $thread->ForumID = $this->controller->ID;
 
             $startingThread = true;

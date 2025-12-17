@@ -12,6 +12,7 @@ use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Forms\GridField\GridField;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use SilverStripe\Control\Controller;
 use SilverStripe\ORM\DB;
@@ -207,7 +208,16 @@ class ForumHolder extends Page
      */
     public function getNumTopics()
     {
-        return DB::query('SELECT COUNT(DISTINCT("ThreadID")) FROM "Post" INNER JOIN "Member" ON "Post"."AuthorID" = "Member"."ID" INNER JOIN "Forum" ON "Post"."ForumID" = "Forum"."ID" WHERE "Member"."ForumStatus" = \'Normal\' AND "Forum"."ParentID" = ' . $this->ID)->value();
+        $forums = Forum::get()->filter('ParentID', $this->ID);
+
+        if (!$forums->exists()) {
+            return 0;
+        }
+
+        return ForumThread::get()->filter([
+            'ForumID' => $forums->column('ID'),
+            'Author.ForumStatus' => 'Normal'
+        ])->count();
     }
 
 
@@ -218,7 +228,16 @@ class ForumHolder extends Page
      */
     public function getNumAuthors()
     {
-        return DB::query('SELECT COUNT(DISTINCT("AuthorID")) FROM "Post" INNER JOIN "Member" ON "Post"."AuthorID" = "Member"."ID" INNER JOIN "Forum" ON "Post"."ForumID" = "Forum"."ID" WHERE "Member"."ForumStatus" = \'Normal\' AND "Forum"."ParentID" = ' . $this->ID)->value();
+        $forums = Forum::get()->filter('ParentID', $this->ID);
+
+        if (!$forums->exists()) {
+            return 0;
+        }
+
+        return Post::get()->filter([
+            'ForumID' => $forums->column('ID'),
+            'Author.ForumStatus' => 'Normal'
+        ])->distinct('AuthorID')->count();
     }
 
     /**

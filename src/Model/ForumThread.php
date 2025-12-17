@@ -8,6 +8,7 @@ use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use SilverStripe\Control\Controller;
 use SilverStripe\ORM\DB;
 use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
 
 class ForumThread extends DataObject
@@ -23,7 +24,8 @@ class ForumThread extends DataObject
     ];
 
     private static $has_one = [
-        'Forum' => Forum::class
+        'Forum' => Forum::class,
+        'Author' => Member::class
     ];
 
     private static $has_many = [
@@ -129,12 +131,9 @@ class ForumThread extends DataObject
     }
 
     /**
-     * Get the latest post from this thread. Nicer way then using an control
-     * from the template
-     *
-     * @return Post
+     * Get the latest post from this thread.
      */
-    public function getLatestPost()
+    public function getLatestPost(): ?Post
     {
         return Post::get()->filter([
             'ThreadID' => $this->ID
@@ -145,10 +144,8 @@ class ForumThread extends DataObject
 
     /**
      * Return the first post from the thread. Useful to working out the original author
-     *
-     * @return Post
      */
-    public function getFirstPost()
+    public function getFirstPost(): ?Post
     {
         return Post::get()->filter([
             'ThreadID' => $this->ID
@@ -162,10 +159,11 @@ class ForumThread extends DataObject
      *
      * @return int
      */
-    public function getNumPosts()
+    public function getNumPosts(): int
     {
         return Post::get()->filter([
-            'ThreadID' => $this->ID
+            'ThreadID' => $this->ID,
+            'Author.ForumStatus' => 'Normal'
         ])->count();
     }
 
@@ -198,6 +196,7 @@ class ForumThread extends DataObject
         $forum = $this->Forum();
         $baseLink = $forum->Link();
         $extra = ($showID) ? '/' . $this->ID : '';
+
         return ($action) ? Controller::join_links($baseLink, $action, $extra) : $baseLink;
     }
 
@@ -217,20 +216,6 @@ class ForumThread extends DataObject
         return ForumThreadSubscription::singleton()->isSubscribed($this->ID, $member->ID);
     }
 
-    /**
-     * Before deleting the thread remove all the posts
-     */
-    public function onBeforeDelete()
-    {
-        parent::onBeforeDelete();
-
-        if ($posts = $this->Posts()) {
-            foreach ($posts as $post) {
-                // attachment deletion is handled by the {@link Post::onBeforeDelete}
-                $post->delete();
-            }
-        }
-    }
 
     public function onAfterWrite()
     {
