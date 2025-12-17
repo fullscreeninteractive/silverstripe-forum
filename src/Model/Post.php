@@ -12,6 +12,8 @@ use SilverStripe\Control\Director;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DB;
+use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\Security\Security;
 
 class Post extends DataObject
@@ -134,11 +136,12 @@ class Post extends DataObject
         if (!$member) {
             $member = Security::getCurrentUser();
         }
+
         if ($this->canEdit($member)) {
             return true;
-        } else {
-            return $this->Thread()->canModerate($member);
         }
+
+        return $this->Thread()->canModerate($member);
     }
 
     /**
@@ -154,11 +157,9 @@ class Post extends DataObject
     }
 
     /**
-     * Returns the absolute url rather then relative. Used in Post RSS Feed
-     *
-     * @return String
+     * Returns the absolute url rather then relative. Used in Post RSS Feed.s
      */
-    public function AbsoluteLink()
+    public function AbsoluteLink(): string
     {
         return Director::absoluteURL($this->Link());
     }
@@ -167,10 +168,10 @@ class Post extends DataObject
      * Return the title of the post. Because we don't have to have the title
      * on individual posts check with the thread title
      */
-    public function getTitle(): string
+    public function getTitle()
     {
         return ($this->isFirstPost())
-            ? $this->Thread()->Title
+            ? $this->Thread()->dbObject('Title')
             : DBField::create_field('Text', sprintf(_t('Post.RESPONSE', "Re: %s", 'Post Subject Prefix'), $this->Thread()->Title));
     }
 
@@ -243,85 +244,82 @@ class Post extends DataObject
 
     /**
      * Return a link to the reply form. Permission checking is handled on the actual URL
-     * and not on this function
-     *
-     * @return string
+     * and not on this function.
      */
-    public function ReplyLink(): string
+    public function ReplyLink(): DBHTMLText
     {
         $url = $this->Link('reply');
 
-        return sprintf('<a href="%s" class="replyLink">%s</a>', $url, _t('Post.REPLYLINK', 'Post Reply'));
+        return DBHTMLText::create_field(
+            'HTMLText',
+            sprintf('<a href="%s" class="replyLink">%s</a>', $url, _t('Post.REPLYLINK', 'Post Reply'))
+        );
     }
 
     /**
      * Return a link to the post view.
-     *
-     * @return string
      */
-    public function ShowLink(): string
+    public function ShowLink(): DBHTMLText
     {
         $url = $this->Link('show');
 
-        return sprintf('<a href="%s" class="showLink">%s</a>', $url, _t('Post.SHOWLINK', 'Show Thread'));
+        return DBHTMLText::create_field(
+            'HTMLText',
+            sprintf('<a href="%s" class="showLink">%s</a>', $url, _t('Post.SHOWLINK', 'Show Thread'))
+        );
+    }
+
+
+    public function MarkAsSpamLink(): ?DBHTMLText
+    {
+        $member = Security::getCurrentUser();
+
+        if ($member->ID == $this->AuthorID) {
+            return $this->getModerationLink('markasspam', $this->ID, _t('Post.MARKASSPAM', 'Mark as Spam'), 'markAsSpamLink' . ($this->isFirstPost() ? ' firstPost' : ''));
+        }
+
+        return null;
+    }
+
+
+
+    public function BanLink(): ?DBHTMLText
+    {
+        $member = Security::getCurrentUser();
+
+        if ($member->ID != $this->AuthorID) {
+            return $this->getModerationLink('ban', $this->AuthorID, _t('Post.BANUSER', 'Ban User'), 'banLink');
+        }
+
+        return null;
+    }
+
+    public function GhostLink(): ?DBHTMLText
+    {
+        return $this->getModerationLink('ghost', $this->AuthorID, _t('Post.GHOSTUSER', 'Ghost User'), 'ghostLink');
+    }
+
+
+    public function getModerationLink(string $action, string $id, string $label, string $class): ?DBHTMLText
+    {
+        $thread = $this->Thread();
+
+        if (!$thread->canModerate()) {
+            return null;
+        }
+
+        $link = Controller::join_links($this->Forum()->Link($action), $id);
+        $token = SecurityToken::inst();
+        $link = $token->addToUrl($link);
+
+        return DBHTMLText::create_field(
+            'HTMLText',
+            sprintf('<a class="%s" href="%s" rel="%d">%s</a>', $class, $link, $id, $label)
+        );
     }
 
     /**
-     * Return a link to mark this post as spam.
-     *
-     * @return string
-     */
-    public function MarkAsSpamLink(): string
-    {
-        if ($this->Thread()->canModerate()) {
-            $member = Security::getCurrentUser();
-            if ($member->ID != $this->AuthorID) {
-                $url = Controller::join_links($this->Forum()->Link('markasspam'), $this->ID);
-                $token = SecurityToken::inst();
-                $url = $token->addToUrl($url);
-
-                $firstPost = ($this->isFirstPost()) ? ' firstPost' : '';
-
-                return sprintf('<a href="%s" class="markAsSpamLink%s" rel="%d">%s</a>', $url, $firstPost, $this->ID, _t('Post.MARKASSPAM', 'Mark as Spam'));
-            }
-        }
-        return '';
-    }
-
-    public function BanLink(): string
-    {
-        $thread = $this->Thread();
-        if ($thread->canModerate()) {
-            $link = $thread->Forum()->Link('ban') . '/' . $this->AuthorID;
-            return sprintf(
-                '<a class="banLink" href="%s" rel="%d">%s</a>',
-                $link,
-                $this->AuthorID,
-                _t('Post.BANUSER', 'Ban User')
-            );
-        }
-
-        return '';
-    }
-
-    public function GhostLink(): string
-    {
-        $thread = $this->Thread();
-        if ($thread->canModerate()) {
-            $link = $thread->Forum()->Link('ghost') . '/' . $this->AuthorID;
-            return sprintf(
-                '<a class="ghostLink" href="%s" rel="%d">%s</a>',
-                $link,
-                $this->AuthorID,
-                _t('Post.GHOSTUSER', 'Ghost User')
-            );
-        }
-        return '';
-    }
-
-    /**
-     * Return the parsed content and the information for the
-     * RSS feed
+     * Return the parsed content and the information for the RSS feed
      */
     public function getRSSContent()
     {
@@ -339,7 +337,8 @@ class Post extends DataObject
 
     public function getParsedContent()
     {
-        $parser = Injector::inst()->get(self::$fpost_content_parser);
+        $parser = Injector::inst()->get(self::config()->get('post_content_parser'));
+
         return $parser->parse($this->Content);
     }
 

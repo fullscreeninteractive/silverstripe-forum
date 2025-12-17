@@ -76,16 +76,16 @@ class Forum extends Page
     /**
      * Number of posts to include in the thread view before pagination takes effect.
      *
-     * @var int
+     * @config
      */
-    private static $posts_per_page = 8;
+    private static int $posts_per_page = 8;
 
     /**
      * When migrating from older versions of the forum it used post ID as the url token
      * as of forum 1.0 we now use ThreadID. If you want to enable 301 redirects from post to thread ID
      * set this to true
      *
-     * @var bool
+     * @config
      */
     private static $redirect_post_urls_to_thread = false;
 

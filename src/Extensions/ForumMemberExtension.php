@@ -143,6 +143,10 @@ class ForumMemberExtension extends Extension
             return '';
         }
 
+        if ($this->owner->IsSuspended() || $this->owner->IsBanned() || $this->owner->IsGhost()) {
+            return '';
+        }
+
         return $page->Link('show/' . $this->owner->ID);
     }
 

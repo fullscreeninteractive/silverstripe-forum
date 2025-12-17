@@ -6,99 +6,7 @@
  */
 
 (function () {
-  document.addEventListener("DOMContentLoaded", function () {
-    /**
-     * Handle the OpenID information Box.
-     * It will open / hide the little popup
-     */
-
-    // Helper function to fade out an element
-    function fadeOut(element) {
-      element.style.transition = "opacity 0.3s";
-      element.style.opacity = "0";
-      setTimeout(function () {
-        element.style.display = "none";
-      }, 300);
-    }
-
-    // default to hiding the BBTags
-    var bbTagsHolder = document.getElementById("BBTagsHolder");
-    if (bbTagsHolder) {
-      bbTagsHolder.style.display = "none";
-      bbTagsHolder.classList.remove("showing");
-    }
-
-    var showOpenIDdesc = document.getElementById("ShowOpenIDdesc");
-    if (showOpenIDdesc) {
-      showOpenIDdesc.addEventListener("click", function (e) {
-        e.preventDefault();
-        var openIDDescription = document.getElementById("OpenIDDescription");
-        if (openIDDescription) {
-          if (openIDDescription.classList.contains("showing")) {
-            openIDDescription.style.display = "none";
-            openIDDescription.classList.remove("showing");
-          } else {
-            openIDDescription.style.display = "";
-            openIDDescription.classList.add("showing");
-          }
-        }
-      });
-    }
-
-    var hideOpenIDdesc = document.getElementById("HideOpenIDdesc");
-    if (hideOpenIDdesc) {
-      hideOpenIDdesc.addEventListener("click", function (e) {
-        e.preventDefault();
-        var openIDDescription = document.getElementById("OpenIDDescription");
-        if (openIDDescription) {
-          openIDDescription.style.display = "none";
-        }
-      });
-    }
-
-    /**
-     * BBCode Tools
-     * While editing / replying to a post you can get a little popup
-     * with all the BBCode tags
-     */
-    var bbCodeHint = document.getElementById("BBCodeHint");
-    if (bbCodeHint) {
-      bbCodeHint.addEventListener("click", function (e) {
-        e.preventDefault();
-        var bbTagsHolder = document.getElementById("BBTagsHolder");
-        if (bbTagsHolder) {
-          if (bbTagsHolder.classList.contains("showing")) {
-            this.textContent = "View Formatting Help";
-            bbTagsHolder.style.display = "none";
-            bbTagsHolder.classList.remove("showing");
-          } else {
-            this.textContent = "Hide Formatting Help";
-            bbTagsHolder.style.display = "";
-            bbTagsHolder.classList.add("showing");
-          }
-        }
-      });
-    }
-
-    /**
-     * MultiFile Uploader called on Reply and Edit Forms
-     * Note: MultiFile is a jQuery plugin, so we check if jQuery is available
-     */
-    var attachmentField = document.getElementById(
-      "Form_PostMessageForm_Attachment"
-    );
-    if (attachmentField) {
-      var jQuery = window["jQuery"];
-      if (
-        typeof jQuery !== "undefined" &&
-        jQuery &&
-        jQuery.fn &&
-        jQuery.fn.MultiFile
-      ) {
-        jQuery(attachmentField).MultiFile({ namePattern: "$name-$i" });
-      }
-    }
-
+  document.addEventListener("DOMContentLoaded", (event) => {
     /**
      * Delete post Link.
      *
@@ -143,7 +51,7 @@
               // deleting a single post.
               var singlePost = link.closest(".singlePost");
               if (singlePost) {
-                fadeOut(singlePost);
+                singlePost.style.display = "none";
               }
             }
           });

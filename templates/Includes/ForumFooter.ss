@@ -5,7 +5,7 @@
             <strong><%t ForumFooter_ss.CURRENTLYON "Currently Online:" %></strong>
             <% if $CurrentlyOnline %>
                 <% loop $CurrentlyOnline %>
-                    <% if $Link %><a href="$Link" title="<% if $Nickname %>$Nickname<% else %>Anon<% end_if %><%t ISONLINE " is online" %>"><% if $Nickname %>$Nickname<% else %>Anon<% end_if %></a><% else %><span>Anon</span><% end_if %><% if $Last %><% else %>,<% end_if %>
+                    <% if $Link %><a href="$Link" title="<% if $Nickname %>$Nickname<% else %>{$Name.XML}<% end_if %><%t ISONLINE " is online" %>"><% if $Nickname %>$Nickname<% else %>$Name.XML<% end_if %></a><% else %><span>$Name.XML</span><% end_if %><% if $Last %><% else %>,<% end_if %>
                 <% end_loop %>
             <% else %>
                 <span><%t ForumFooter_ss.NOONLINE "There is nobody online." %></span>

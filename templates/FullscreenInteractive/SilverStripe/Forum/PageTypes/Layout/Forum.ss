@@ -1,3 +1,4 @@
+<div class="forum__container">
 <% include ForumHeader %>
 
 <% if ForumAdminMsg %>
@@ -14,7 +15,7 @@
     <p class="forum__message forum__message--error"><%t Forum_ss.READONLYFORUM "This Forum is read only. You cannot post replies or start new threads" %></p>
 <% end_if %>
 <% if canPost %>
-    <p><a href="{$Link}starttopic" title="<%t Forum_ss.NEWTOPIC "Click here to start a new topic" %>"><img src="forum/images/forum_startTopic.gif" alt="<%t Forum_ss.NEWTOPICIMAGE "Start new topic" %>" /></a></p>
+    <p><a href="{$Link(starttopic)}" title="<%t Forum_ss.NEWTOPIC "Click here to start a new topic" %>"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="bevel"><path d="M12 5v14"></path><path d="M5 12h14"></svg></a></p>
 <% end_if %>
 
 <div class="forum__features">
@@ -30,29 +31,32 @@
     <% end_if %>
 
     <table class="forum__topics" summary="List of topics in this forum">
-        <tr class="forum__category">
-            <td colspan="4"><%t Forum_ss.THREADS "Threads" %></td>
-        </tr>
-        <tr>
-            <th class="forum__header--odd"><%t Forum_ss.TOPIC "Topic" %></th>
-            <th class="forum__header--odd"><%t Forum_ss.POSTS "Posts" %></th>
-            <th class="forum__header--even"><%t Forum_ss.LASTPOST "Last Post" %></th>
-        </tr>
+        <thead>
+            <tr class="forum__category">
+                <th colspan="4"><%t Forum_ss.THREADS "Threads" %></th>
+            </tr>
+
+            <tr>
+                <th class="forum__header--odd"><%t Forum_ss.TOPIC "Topic" %></th>
+                <th class="forum__header--odd"><%t Forum_ss.POSTS "Posts" %></th>
+                <th class="forum__header--even"><%t Forum_ss.LASTPOST "Last Post" %></th>
+            </tr>
+        </thead>
+
         <% if $Topics %>
             <% loop $Topics %>
                 <% include TopicListing %>
             <% end_loop %>
         <% else %>
             <tr>
-                <td colspan="3" class="forum__category"><%t Forum_ss.NOTOPICS "There are no topics in this forum, " %><a href="{$Link}starttopic" title="<%t Forum_ss.NEWTOPIC "" %>"><%t Forum_ss.NEWTOPICTEXT "click here to start a new topic" %>.</a></td>
+                <td colspan="3" class="forum__category"><%t Forum_ss.NOTOPICS "There are no topics in this forum, " %><a href="{$Link(starttopic)}" title="<%t Forum_ss.NEWTOPIC "New Topic" %>"><%t Forum_ss.NEWTOPICTEXT "click here to start a new topic" %>.</a></td>
             </tr>
         <% end_if %>
     </table>
 
     <% if $Topics.MoreThanOnePage %>
-        <p>
-            <% if $Topics.PrevLink %><a style="float: left" href="$Topics.PrevLink">	&lt; <%t Forum_ss.PREVLNK "Previous Page" %></a><% end_if %>
-            <% if $Topics.NextLink %><a style="float: right" href="$Topics.NextLink"><%t Forum_ss.NEXTLNK "Next Page" %> &gt;</a><% end_if %>
+        <div class="forum__pagination">
+            <% if $Topics.PrevLink %><a href="{$Topics.PrevLink}" title="<%t Forum_ss.PREVTITLE "View the previous page" %>"><%t Forum_ss.PREVLNK "Previous Page" %></a><% end_if %>
 
             <% loop $Topics.Pages %>
                 <% if $CurrentBool %>
@@ -61,9 +65,12 @@
                     <a href="$Link">$PageNum</a>
                 <% end_if %>
             <% end_loop %>
-        </p>
+
+            <% if $Topics.NextLink %><a href="{$Topics.NextLink}" title="<%t Forum_ss.NEXTTITLE "View the next page" %>"><%t Forum_ss.NEXTLNK "Next Page" %></a><% end_if %>
+        </div>
     <% end_if %>
 
 </div><!-- forum-features. -->
 
 <% include ForumFooter %>
+</div>

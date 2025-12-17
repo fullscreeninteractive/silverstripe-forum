@@ -20,7 +20,7 @@ en:
     FORUMMONTHLYPOSTS: 'Forum Posts by Month'
     FORUMREPLYCONTENT: Content
     FORUMSIGNUPS: 'Forum Signups by Month'
-    FORUMTHREADTITLE: ''
+    FORUMTHREADTITLE: 'Title'
     GROUPCREATED: 'Forum Members group created'
     GROUPS: Groups
     ISGLOBALSTICKY: 'Is this a Global Sticky (shown on all forums)'
@@ -64,6 +64,9 @@ en:
   Forum_ss:
     ANNOUNCEMENTS: Announcements
     GOTOTHISTOPIC: 'Go to the %s topic'
+    SEARCH: Search
+    SEARCHRESULTS: 'Search results'
+    SEARCHRESULTSFOR: 'Search results for: %s'
     LASTPOST: 'Last Post'
     NEWTOPIC: 'Click here to start a new topic'
     NEWTOPICIMAGE: 'Start new topic'

@@ -28,37 +28,16 @@ class ForumMemberProfileController extends PageController
     ];
 
     /**
-     * Return a set of {@link Forum} objects that
-     * this member is a moderator of.
-     *
-     * @return ComponentSet
+     * Return a set of {@link Forum} objects that this member is a moderator of.
      */
-    function ModeratedForums()
+    public function ModeratedForums()
     {
         $member = $this->Member();
         return $member ? $member->ModeratedForums() : null;
     }
 
-    /**
-     * Create breadcrumbs (just shows a forum holder link and name of user)
-     * @return string HTML code to display breadcrumbs
-     */
-    public function Breadcrumbs()
-    {
-        $nonPageParts = array();
-        $parts = array();
 
-        $forumHolder = $this->getForumHolder();
-        $member = $this->Member();
-
-        $parts[] = '<a href="' . $forumHolder->Link() . '">' . $forumHolder->Title . '</a>';
-        $nonPageParts[] = _t('ForumMemberProfile.USERPROFILE', 'User Profile');
-
-        return implode(" &raquo; ", array_reverse(array_merge($nonPageParts, $parts)));
-    }
-
-
-    public function show($request)
+    public function show()
     {
         $member = $this->Member();
 
@@ -66,7 +45,12 @@ class ForumMemberProfileController extends PageController
             return $this->httpError(404);
         }
 
-        return $this->renderWith(['ForumMemberProfile_show', 'Page']);
+        return [
+            "Title" => "Forum",
+            "Subtitle" => $this->data()->dbObject('ProfileSubtitle'),
+            "Abstract" => $this->data()->dbObject('ProfileAbstract'),
+            "Form" => $this->EditProfileForm()
+        ];
     }
 
     /**

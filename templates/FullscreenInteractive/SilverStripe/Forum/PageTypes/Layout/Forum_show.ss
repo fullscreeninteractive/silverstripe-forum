@@ -2,6 +2,7 @@
 
 
 <table class="forum__topics">
+    <thead>
     <tr class="forum__category">
         <td class="forum__pagination">
             <span><strong><%t Forum_show_ss.PAGE "Page:" %></strong></span>
@@ -21,6 +22,7 @@
             <% if $ForumThread.canCreate %>
                 <a href="$ReplyLink" title="<%t Forum_show_ss.CLICKREPLY "Click here to reply to this topic" %>"><%t Forum_show_ss.REPLY "Reply" %></a>
             <% end_if %>
+
             <% if $CurrentMember %>
                 <% include ForumThreadSubscribe %>
             <% end_if %>
@@ -37,6 +39,7 @@
             <span><strong>$ForumThread.NumViews <%t Forum_show_ss.VIEWS "Views" %></strong></span>
         </td>
     </tr>
+    </thead>
 </table>
 
 <% loop $Posts %>
@@ -78,7 +81,7 @@
 
 <% if $AdminFormFeatures %>
 <div class="forum__admin-features">
-    <h3>Forum Admin Features</h3>
+    <h3 class="forum__admin-features-title">Forum Admin Features</h3>
     $AdminFormFeatures
 </div>
 <% end_if %>

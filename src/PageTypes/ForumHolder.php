@@ -32,18 +32,15 @@ class ForumHolder extends Page
 
     private static array $db = [
         "HolderSubtitle" => "Varchar(200)",
-        "ProfileSubtitle" => "Varchar(200)",
         "ForumSubtitle" => "Varchar(200)",
         "HolderAbstract" => "HTMLText",
-        "ProfileAbstract" => "HTMLText",
         "ForumAbstract" => "HTMLText",
-        "ProfileModify" => "HTMLText",
-        "ProfileAdd" => "HTMLText",
         "DisplaySignatures" => "Boolean",
         "ShowInCategories" => "Boolean",
         "AllowGravatars" => "Boolean",
         "GravatarType" => "Varchar(10)",
         "ForbiddenWords" => "Text",
+        'CanRegister' => 'Boolean',
         "CanPostType" => "Enum('Anyone, LoggedInUsers, OnlyTheseUsers, NoOne', 'LoggedInUsers')",
     ];
 
@@ -65,13 +62,9 @@ class ForumHolder extends Page
 
     private static $defaults = [
         "HolderSubtitle" => "Welcome to our forum!",
-        "ProfileSubtitle" => "Edit Your Profile",
         "ForumSubtitle" => "Start a new topic",
-        "HolderAbstract" => "<p>If this is your first visit, you will need to <a class=\"broken\" title=\"Click here to register\" href=\"ForumMemberProfile/register\">register</a> before you can post. However, you can browse all messages below.</p>",
-        "ProfileAbstract" => "<p>Please fill out the fields below. You can choose whether some are publically visible by using the checkbox for each one.</p>",
         "ForumAbstract" => "<p>From here you can start a new topic.</p>",
-        "ProfileModify" => "<p>Thanks, your member profile has been modified.</p>",
-        "ProfileAdd" => "<p>Thanks, you are now signed up to the forum.</p>",
+        "CanRegister" => true,
     ];
 
     /**
@@ -115,17 +108,15 @@ class ForumHolder extends Page
             $fields->addFieldsToTab("Root.Messages", [
                 TextField::create("HolderSubtitle", "Subtitle"),
                 HTMLEditorField::create("HolderAbstract", "Abstract"),
-                TextField::create("ProfileSubtitle", "Member Profile Subtitle"),
-                HTMLEditorField::create("ProfileAbstract", "Member Profile Abstract"),
                 TextField::create("ForumSubtitle", "Create topic Subtitle"),
                 HTMLEditorField::create("ForumAbstract", "Create topic Abstract"),
-                HTMLEditorField::create("ProfileModify", "Create message after modifing forum member"),
-                HTMLEditorField::create("ProfileAdd", "Create message after adding forum member")
             ]);
             $fields->addFieldsToTab("Root.Settings", [
                 CheckboxField::create("DisplaySignatures", "Display Member Signatures?"),
                 CheckboxField::create("ShowInCategories", "Show Forums In Categories?"),
-                CheckboxField::create("AllowGravatars", "Allow <a href='http://www.gravatar.com/' target='_blank'>Gravatars</a>?")
+                CheckboxField::create("CanRegister", "Allow users to register?")
+                    ->setDescription("If disabled, users will need to be created in the CMS"),
+                CheckboxField::create("AllowGravatars", "Allow Gravatars?")
             ]);
 
             $fields->addFieldsToTab("Root.Categories", [GridField::create(
@@ -139,12 +130,14 @@ class ForumHolder extends Page
                 LiteralField::create("FWLabel", "These words will be replaced by an asterisk")
             ]);
 
-            $fields->addFieldToTab("Root.Access", HeaderField::create(_t('Forum.ACCESSPOST', 'Who can post to the forum?'), 2));
-            $fields->addFieldToTab("Root.Access", OptionsetField::create("CanPostType", "", array(
-                "Anyone" => _t('Forum.READANYONE', 'Anyone'),
-                "LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
-                "NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
-            )));
+            $fields->addFieldsToTab("Root.Access", [
+                HeaderField::create(_t('Forum.ACCESSPOST', 'Who can post to the forum?'), 2),
+                OptionsetField::create("CanPostType", "", array(
+                    "Anyone" => _t('Forum.READANYONE', 'Anyone'),
+                    "LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
+                    "NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
+                ))
+            ]);
         });
 
         $fields = parent::getCMSFields();
@@ -195,12 +188,15 @@ class ForumHolder extends Page
      *
      * @return int Returns the number of posts
      */
-    public function getNumPosts()
+    public function getNumPosts(): int
     {
-        return Post::get()->filter([
-            'AuthorID' => Member::get()->filter('ForumStatus', 'Normal')->column('ID'),
-            'ForumID' => Forum::get()->filter('ParentID', $this->ID)->column('ID')
-        ])->count();
+        $forums = Forum::get()->filter('ParentID', $this->ID);
+
+        if (!$forums->exists()) {
+            return 0;
+        }
+
+        return Post::get()->filter('ForumID', $forums->column('ID'))->count();
     }
 
 
@@ -274,7 +270,7 @@ class ForumHolder extends Page
             $latestMembers = Member::get()
                 ->leftJoin('Group_Members', '"Member"."ID" = "Group_Members"."MemberID"')
                 ->filter('GroupID', $groupID)
-                ->sort('"Member"."ID" DESC')
+                ->sort(['Created' => 'DESC'])
                 ->limit(20);
 
         return $latestMembers;

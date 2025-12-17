@@ -2,6 +2,8 @@
 
 namespace FullscreenInteractive\SilverStripe\Forum\Form;
 
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
@@ -12,7 +14,9 @@ use SilverStripe\Forms\FileField;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\LiteralField;
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use SilverStripe\Forms\Validation\RequiredFieldsValidator;
+use SilverStripe\Security\Security;
 use SilverStripe\Security\SecurityToken;
 
 class PostMessageForm extends Form
@@ -86,5 +90,120 @@ class PostMessageForm extends Form
         }
 
         return $this;
+    }
+
+
+    /**
+     * Post a message to the forum. This method is called whenever you want to make a
+     * new post or edit an existing post on the forum
+     */
+    public function doPostMessageForm($data, $form)
+    {
+        $member = Security::getCurrentUser();
+
+        // Allows interception of a Member posting content to perform some action before the post is made.
+        $this->extend('beforePostMessage', $data, $member);
+
+        $content = (isset($data['Content'])) ? $this->controller->filterLanguage($data["Content"]) : "";
+        $title = (isset($data['Title'])) ? $this->controller->filterLanguage($data["Title"]) : false;
+
+        $thread = false;
+        $startingThread = false;
+
+        if (isset($data['ThreadID']) && $data['ThreadID']) {
+            $thread = ForumThread::get()->byID($data['ThreadID']);
+
+            if (!$thread || !$thread->canView()) {
+                return $this->controller->redirectBack();
+            }
+        }
+
+        // If this is a simple edit the post then handle it here. Look up the correct post,
+        // make sure we have edit rights to it then update the post
+        $post = false;
+
+        if (isset($data['ID']) && $data['ID']) {
+            $post = Post::get()->byID($data['ID']);
+
+            if (!$post || !$post->canEdit()) {
+                return $this->controller->redirectBack();
+            }
+
+            if ($post && $post->isFirstPost()) {
+                if ($title) {
+                    $thread->Title = $title;
+                }
+            }
+        }
+
+
+        // Creating new thread
+        if (!$thread && !$this->controller->canPost()) {
+            return $this->controller->redirectBack();
+        }
+
+        // Replying to existing thread
+        if ($thread && !$post && !$thread->canPost()) {
+            return $this->controller->redirectBack();
+        }
+
+        // Editing existing post
+        if ($thread && $post && !$post->canEdit()) {
+            return $this->controller->redirectBack();
+        }
+
+        if (!$thread) {
+            $thread = ForumThread::create();
+            $thread->ForumID = $this->controller->ID;
+
+            $startingThread = true;
+
+            if ($title) {
+                $thread->Title = $title;
+            }
+        }
+
+        // from now on the user has the correct permissions. save the current thread settings
+        $thread->write();
+
+        if (!$post || !$post->canEdit()) {
+            $post = Post::create();
+        }
+
+        $form->saveInto($post);
+        $post->ForumID = $thread->ForumID;
+        $post->AuthorID = ($member) ? $member->ID : 0;
+        $post->ThreadID = $thread->ID;
+        $post->Content = $content;
+        $post->write();
+
+        // Add a topic subscription entry if required
+        $isSubscribed = ForumThreadSubscription::singleton()->isSubscribed($thread->ID, $member->ID);
+
+        if (isset($data['TopicSubscription'])) {
+            if (!$isSubscribed) {
+                // Create a new topic subscription for this member
+                $obj = ForumThreadSubscription::create();
+                $obj->ThreadID = $thread->ID;
+                $obj->MemberID = $member->ID;
+                $obj->write();
+            }
+        } elseif ($isSubscribed) {
+            // See if the member wanted to remove themselves
+            ForumThreadSubscription::get()->filter([
+                'ThreadID' => $thread->ID,
+                'MemberID' => $member->ID
+            ])->delete();
+        }
+
+        // Send any notifications that need to be sent
+        ForumThreadSubscription::notify($post);
+
+        // Send any notifications to moderators of the forum
+        if (Forum::config()->get('notify_moderators')) {
+            $this->controller->notifyModerators($post, $thread, $startingThread);
+        }
+
+        return $this->controller->redirect($post->Link());
     }
 }

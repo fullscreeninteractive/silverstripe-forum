@@ -1,9 +1,16 @@
 <div id="forum__post-{$ID}" class="forum__post">
     <div class="forum__user-info">
         <% with $Author %>
-            <a class="forum__author-link" href="$Link" title="<%t SinglePost_ss.GOTOPROFILE "Go to this User's Profile" %>">$Nickname</a><br />
+            <% if $Author.MemberProfileLink %>
+                <a class="forum__author-link" href="$MemberProfileLink" title="<%t SinglePost_ss.GOTOPROFILE "Go to this User's Profile" %>">$Nickname</a><br />
+            <% else %>
+                <span class="forum__author-link">$Nickname</span><br />
+            <% end_if %>
 
-            <img class="forum__avatar" src="$FormattedAvatar" alt="Avatar" /><br />
+            <% if $Author.FormattedAvatar %>
+                <img class="forum__avatar" src="{$Author.FormattedAvatar}" alt="Avatar" /><br />
+            <% end_if %>
+
             <% if $ForumRank %><span class="forum__rank">$ForumRank</span><br /><% end_if %>
             <% if $NumPosts %>
                 <span class="forum__post-count">$NumPosts

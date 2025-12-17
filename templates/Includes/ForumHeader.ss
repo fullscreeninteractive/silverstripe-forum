@@ -47,10 +47,17 @@
         <% end_if %>
     </div><!-- forum-header-forms. -->
 
+    <% if $HolderSubtitle %>
+        <h1 class="forum__heading"><a name='Header'>{$HolderSubtitle}</a></h1>
+    <% end_if %>
 
-    <h1 class="forum__heading"><a name='Header'>$HolderSubtitle</a></h1>
-    <p class="forum__breadcrumbs">$Breadcrumbs</p>
-    <p class="forum__abstract">$ForumHolder.HolderAbstract</p>
+    <% if $Breadcrumbs %>
+        <div class="forum__breadcrumbs">{$Breadcrumbs}</div>
+    <% end_if %>
+
+    <% if $ForumHolder.HolderAbstract %>
+        <div class="forum__abstract">{$ForumHolder.HolderAbstract}</div>
+    <% end_if %>
 
     <% if $Moderators %>
         <p>
@@ -60,5 +67,4 @@
             <% end_loop %>
         </p>
     <% end_if %>
-
 </div><!-- forum-header. -->

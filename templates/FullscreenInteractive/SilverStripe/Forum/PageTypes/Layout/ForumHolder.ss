@@ -1,3 +1,4 @@
+<div class="forum__container">
 <% include ForumHeader %>
 
 <table class="forum__topics">
@@ -37,3 +38,4 @@
 </table>
 
 <% include ForumFooter %>
+</div>

@@ -5,6 +5,7 @@ namespace FullscreenInteractive\SilverStripe\Forum\Model;
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use SilverStripe\ORM\DataObject;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use SilverStripe\Control\Controller;
 use SilverStripe\ORM\DB;
 use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\Security\Security;
@@ -177,6 +178,7 @@ class ForumThread extends DataObject
     public function incNumViews()
     {
         $session = Controller::curr()->getRequest()->getSession();
+
         if ($session->get('ForumViewed-' . $this->ID)) {
             return false;
         }
@@ -191,12 +193,12 @@ class ForumThread extends DataObject
     /**
      * Link to this forum thread.
      */
-    public function Link($action = "show", $showID = true)
+    public function Link($action = "show", $showID = true): string
     {
         $forum = $this->Forum();
         $baseLink = $forum->Link();
         $extra = ($showID) ? '/' . $this->ID : '';
-        return ($action) ? $baseLink . $action . $extra : $baseLink;
+        return ($action) ? Controller::join_links($baseLink, $action, $extra) : $baseLink;
     }
 
     /**
@@ -208,7 +210,11 @@ class ForumThread extends DataObject
     {
         $member = Security::getCurrentUser();
 
-        return ($member) ? ForumThreadSubscription::singleton()->isSubscribed($this->ID, $member->ID) : false;
+        if (!$member) {
+            return false;
+        }
+
+        return ForumThreadSubscription::singleton()->isSubscribed($this->ID, $member->ID);
     }
 
     /**
@@ -229,21 +235,14 @@ class ForumThread extends DataObject
     public function onAfterWrite()
     {
         if ($this->isChanged('ForumID', 2)) {
-            $posts = $this->Posts();
-            if ($posts && $posts->count()) {
-                foreach ($posts as $post) {
-                    $post->ForumID = $this->ForumID;
-                    $post->write();
-                }
-            }
+            DB::query(sprintf("UPDATE \"Post\" SET \"ForumID\" = '%s' WHERE \"ThreadID\" = %s", $this->ForumID, $this->ID));
         }
+
         parent::onAfterWrite();
     }
 
-    /**
-     * @return Text
-     */
-    public function getEscapedTitle()
+
+    public function getEscapedTitle(): DBField
     {
         return DBField::create_field('Text', $this->dbObject('Title')->XML());
     }
