@@ -118,7 +118,7 @@ class ForumController extends PageController
             $obj = ForumThreadSubscription::create();
             $obj->ThreadID = (int) $id;
             $obj->MemberID = $member->ID;
-            $obj->LastSent = DBDatetime::now()->Format('Y-m-d H:i:s');
+            $obj->LastSent = date('Y-m-d H:i:s', DBDatetime::now()->getTimestamp());
             $obj->write();
 
             $subscribed = true;
@@ -209,7 +209,7 @@ class ForumController extends PageController
             // Suspend the member (rather than deleting him),
             // which gives him or a moderator the chance to revoke a decision.
             if ($author = $post->Author()) {
-                $author->SuspendedUntil = date('Y-m-d', strtotime('+99 years', DBDatetime::now()->Format('U')));
+                $author->SuspendedUntil = date('Y-m-d', strtotime('+99 years', DBDatetime::now()->getTimestamp()));
                 $author->write();
             }
 

@@ -293,11 +293,12 @@ class ForumMemberExtension extends Extension
 
     public function IsSuspended(): bool
     {
-        if ($this->owner->SuspendedUntil) {
-            return strtotime(DBDatetime::now()->Format('Y-m-d')) < strtotime($this->owner->SuspendedUntil);
-        } else {
-            return false;
+        $suspendedUntil = $this->owner->dbObject('SuspendedUntil');
+        if ($suspendedUntil && $suspendedUntil->exists()) {
+            return $suspendedUntil->isInThePast();
         }
+
+        return false;
     }
 
 
