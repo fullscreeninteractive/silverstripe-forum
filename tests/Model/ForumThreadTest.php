@@ -8,25 +8,20 @@ use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use SilverStripe\Dev\FunctionalTest;
 use SilverStripe\Security\Member;
 
-/**
- * @todo Write some more complex tests for testing the can*() functionality
- */
 class ForumThreadTest extends FunctionalTest
 {
 
     protected static $fixture_file = [
-        'ForumTest.yml',
+        './tests/fixtures.yml',
     ];
 
-    // fixes permission issues with these tests, we don't need to test versioning anyway.
-    // without this, SiteTree::canView() would always return false even though CanViewType == Anyone.
     protected static $use_draft_site = true;
 
     public function testGetNumPosts()
     {
         $thread = $this->objFromFixture(ForumThread::class, "Thread1");
 
-        $this->assertEquals(17, $thread->getNumPosts()->count());
+        $this->assertEquals(17, $thread->getNumPosts());
     }
 
     public function testIncViews()
@@ -34,7 +29,7 @@ class ForumThreadTest extends FunctionalTest
         $thread = $this->objFromFixture(ForumThread::class, "Thread1");
 
         // clear session
-        $this->getRequest()->getSession()->clear('ForumViewed-' . $thread->ID);
+        $this->session()->clear('ForumViewed-' . $thread->ID);
 
         $this->assertEquals($thread->NumViews, '10');
 
@@ -103,33 +98,119 @@ class ForumThreadTest extends FunctionalTest
 
     public function testPermissions()
     {
-        $member = $this->objFromFixture('Member', 'test1');
-        $this->session()->inst_set('loggedInAs', $member->ID);
+        $member = $this->objFromFixture(Member::class, 'test1');
+        $this->logInAs($member);
 
         // read only thread. No one should be able to post to this (apart from the )
-        $readonly = $this->objFromFixture('ForumThread', 'ReadonlyThread');
+        $readonly = $this->objFromFixture(ForumThread::class, 'ReadonlyThread');
         $this->assertFalse($readonly->canPost());
         $this->assertTrue($readonly->canView());
         $this->assertFalse($readonly->canModerate());
 
         // normal thread. They can post to these
-        $thread = $this->objFromFixture('ForumThread', 'Thread1');
+        $thread = $this->objFromFixture(ForumThread::class, 'Thread1');
         $this->assertTrue($thread->canPost());
         $this->assertTrue($thread->canView());
         $this->assertFalse($thread->canModerate());
 
         // normal thread in a read only
-        $disabledforum = $this->objFromFixture('ForumThread', 'ThreadWhichIsInInheritedForum');
+        $disabledforum = $this->objFromFixture(ForumThread::class, 'ThreadWhichIsInInheritedForum');
         $this->assertFalse($disabledforum->canPost());
         $this->assertFalse($disabledforum->canView());
         $this->assertFalse($disabledforum->canModerate());
 
         // Moderator can access threads nevertheless
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
         $this->assertFalse($disabledforum->canPost());
         $this->assertTrue($disabledforum->canView());
         $this->assertTrue($disabledforum->canModerate());
+    }
+
+    public function testCanPermissionsAnonymous()
+    {
+        $this->logOut();
+
+        // Thread1 is in 'general' forum (CanViewType: Anyone, CanPostType: Anyone)
+        $thread = $this->objFromFixture(ForumThread::class, 'Thread1');
+        $this->assertTrue($thread->canView());
+        $this->assertTrue($thread->canPost());
+        $this->assertFalse($thread->canModerate());
+
+        // ReadonlyThread is in 'general' but has IsReadOnly = true
+        $readonly = $this->objFromFixture(ForumThread::class, 'ReadonlyThread');
+        $this->assertTrue($readonly->canView());
+        $this->assertFalse($readonly->canPost());
+        $this->assertFalse($readonly->canModerate());
+
+        // Thread in inherited forum (inherits OnlyTheseUsers view, NoOne post)
+        $inherited = $this->objFromFixture(ForumThread::class, 'ThreadWhichIsInInheritedForum');
+        $this->assertFalse($inherited->canView());
+        $this->assertFalse($inherited->canPost());
+    }
+
+    public function testCanPermissionsAdmin()
+    {
+        $admin = $this->objFromFixture(Member::class, 'admin');
+        $this->logInAs($admin);
+
+        $thread = $this->objFromFixture(ForumThread::class, 'Thread1');
+        $this->assertTrue($thread->canView());
+        $this->assertTrue($thread->canPost());
+        $this->assertTrue($thread->canModerate());
+        $this->assertTrue($thread->canEdit());
+        $this->assertTrue($thread->canDelete());
+    }
+
+    public function testCanEditAndDeleteRequireModeration()
+    {
+        $member = $this->objFromFixture(Member::class, 'test1');
+        $this->logInAs($member);
+
+        $thread = $this->objFromFixture(ForumThread::class, 'Thread1');
+        $this->assertFalse($thread->canEdit(), 'Normal member cannot edit threads');
+        $this->assertFalse($thread->canDelete(), 'Normal member cannot delete threads');
+
+        $moderator = $this->objFromFixture(Member::class, 'moderator');
+        $this->logInAs($moderator);
+        $this->assertTrue($thread->canEdit(), 'Moderator can edit threads');
+        $this->assertTrue($thread->canDelete(), 'Moderator can delete threads');
+    }
+
+    public function testCanCreateDelegatesToCanPost()
+    {
+        $member = $this->objFromFixture(Member::class, 'test1');
+        $this->logInAs($member);
+
+        $thread = $this->objFromFixture(ForumThread::class, 'Thread1');
+        $this->assertTrue($thread->canCreate(), 'Can create when forum allows posting');
+
+        $readonly = $this->objFromFixture(ForumThread::class, 'ReadonlyThread');
+        $this->assertFalse($readonly->canCreate(), 'Cannot create in a readonly thread');
+    }
+
+    public function testCanPostThreadInNoPostingForum()
+    {
+        $member = $this->objFromFixture(Member::class, 'test1');
+        $this->logInAs($member);
+
+        // noPostingForum has CanViewType: Anyone, CanPostType: NoOne
+        $thread = $this->objFromFixture(ForumThread::class, 'ThreadWhichIsInReadonlyForum');
+        $this->assertFalse($thread->canPost(), 'Cannot post in a NoOne forum');
+        $this->assertTrue($thread->canView(), 'Can view in a Anyone-view forum');
+    }
+
+    public function testModeratorPermissionsOnInheritedForum()
+    {
+        $moderator = $this->objFromFixture(Member::class, 'moderator');
+        $this->logInAs($moderator);
+
+        $thread = $this->objFromFixture(ForumThread::class, 'ThreadWhichIsInInheritedForum');
+        $this->assertTrue($thread->canView(), 'Moderator can view inherited-permission thread');
+        $this->assertTrue($thread->canModerate(), 'Moderator can moderate inherited-permission thread');
+        $this->assertTrue($thread->canEdit(), 'Moderator can edit inherited-permission thread');
+        $this->assertTrue($thread->canDelete(), 'Moderator can delete inherited-permission thread');
+        $this->assertFalse($thread->canPost(), 'Even moderators cannot post in a NoOne forum');
     }
 }

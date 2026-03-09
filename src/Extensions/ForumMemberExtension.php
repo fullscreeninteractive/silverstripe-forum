@@ -167,30 +167,30 @@ class ForumMemberExtension extends Extension
 
         $gravatarText = ForumHolder::get()->filter([
             "AllowGravatars" => 1
-        ])->exists() ? '<small>' . _t('ForumRole.CANGRAVATAR', 'If you use Gravatars then leave this blank') . '</small>' : "";
+        ])->exists() ? '<small>' . _t('ForumMemberExtension.CANGRAVATAR', 'If you use Gravatars then leave this blank') . '</small>' : "";
 
-        $avatarField = FileField::create('Avatar', _t('ForumRole.AVATAR', 'Avatar Image') . ' ' . $gravatarText);
+        $avatarField = FileField::create('Avatar', _t('ForumMemberExtension.AVATAR', 'Avatar Image') . ' ' . $gravatarText);
         $avatarField->setFolderName(ForumHolder::config()->get('avatars_folder'));
         $avatarField->getValidator()->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png']);
 
         $personalDetailsFields = CompositeField::create([
-            LiteralField::create("PersonalDetails", "<h2>" . _t('ForumRole.PERSONAL', 'Personal Details') . "</h2>"),
-            TextField::create("Nickname", _t('ForumRole.NICKNAME', 'Nickname')),
+            LiteralField::create("PersonalDetails", "<h2>" . _t('ForumMemberExtension.PERSONAL', 'Personal Details') . "</h2>"),
+            TextField::create("Nickname", _t('ForumMemberExtension.NICKNAME', 'Nickname')),
             FieldGroup::create([
-                TextField::create("FirstName", _t('ForumRole.FIRSTNAME', 'First name')),
-                CheckboxField::create("FirstNamePublic", _t('ForumRole.FIRSTNAMEPUBLIC', 'Public?'), 1),
+                TextField::create("FirstName", _t('ForumMemberExtension.FIRSTNAME', 'First name')),
+                CheckboxField::create("FirstNamePublic", _t('ForumMemberExtension.FIRSTNAMEPUBLIC', 'Public?'), 1),
             ]),
             FieldGroup::create([
-                TextField::create("Surname", _t('ForumRole.SURNAME', 'Surname')),
-                CheckboxField::create("SurnamePublic", _t('ForumRole.SURNAMEPUBLIC', 'Public?'), 1),
+                TextField::create("Surname", _t('ForumMemberExtension.SURNAME', 'Surname')),
+                CheckboxField::create("SurnamePublic", _t('ForumMemberExtension.SURNAMEPUBLIC', 'Public?'), 1),
             ]),
             FieldGroup::create([
-                EmailField::create("Email", _t('ForumRole.EMAIL', 'Email')),
-                CheckboxField::create("EmailPublic", _t('ForumRole.EMAILPUBLIC', 'Public?'), 1),
+                EmailField::create("Email", _t('ForumMemberExtension.EMAIL', 'Email')),
+                CheckboxField::create("EmailPublic", _t('ForumMemberExtension.EMAILPUBLIC', 'Public?'), 1),
             ]),
-            PasswordField::create("Password", _t('ForumRole.PASSWORD', 'Password')),
+            PasswordField::create("Password", _t('ForumMemberExtension.PASSWORD', 'Password')),
             $avatarField,
-            TextareaField::create("Signature", _t('ForumRole.SIGNATURE', 'Signature')),
+            TextareaField::create("Signature", _t('ForumMemberExtension.SIGNATURE', 'Signature')),
         ]);
 
         $fieldset = FieldList::create(
@@ -256,35 +256,35 @@ class ForumMemberExtension extends Extension
         ]);
 
 
-        $avatarField = FileField::create('Avatar', _t('ForumRole.UPLOADAVATAR', 'Upload avatar'));
+        $avatarField = FileField::create('Avatar', _t('ForumMemberExtension.UPLOADAVATAR', 'Upload avatar'));
         $avatarField->getValidator()->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png']);
 
         $fields->addFieldsToTab('Root.Forum', [
-            TextField::create('Nickname', _t('ForumRole.NICKNAME', 'Nickname')),
-            DropdownField::create("ForumRank", _t('ForumRole.FORUMRANK', "User rating"), [
-                "Community Member" => _t('ForumRole.COMMEMBER', 'Community Member'),
-                "Administrator" => _t('ForumRole.ADMIN', 'Administrator'),
-                "Moderator" => _t('ForumRole.MOD', 'Moderator')
+            TextField::create('Nickname', _t('ForumMemberExtension.NICKNAME', 'Nickname')),
+            DropdownField::create("ForumRank", _t('ForumMemberExtension.FORUMRANK', "User rating"), [
+                "Community Member" => _t('ForumMemberExtension.COMMEMBER', 'Community Member'),
+                "Administrator" => _t('ForumMemberExtension.ADMIN', 'Administrator'),
+                "Moderator" => _t('ForumMemberExtension.MOD', 'Moderator')
             ]),
             $avatarField,
-            DropdownField::create("ForumStatus", _t('ForumRole.FORUMSTATUS', "Forum status"), [
-                "Normal" => _t('ForumRole.NORMAL', 'Normal'),
-                "Banned" => _t('ForumRole.BANNED', 'Banned'),
-                "Ghost" => _t('ForumRole.GHOST', 'Ghost')
+            DropdownField::create("ForumStatus", _t('ForumMemberExtension.FORUMSTATUS', "Forum status"), [
+                "Normal" => _t('ForumMemberExtension.NORMAL', 'Normal'),
+                "Banned" => _t('ForumMemberExtension.BANNED', 'Banned'),
+                "Ghost" => _t('ForumMemberExtension.GHOST', 'Ghost')
             ]),
-            TextareaField::create("Signature", _t('ForumRole.SIGNATURE', 'Signature')),
+            TextareaField::create("Signature", _t('ForumMemberExtension.SIGNATURE', 'Signature')),
         ]);
 
         $forums = $allForums->map('ID', 'Title');
 
         $fields->addFieldsToTab('Root.Forum', [
-            CheckboxSetField::create('ModeratedForums', _t('ForumRole.MODERATEDFORUMS', 'Moderated forums'), $forums)
+            CheckboxSetField::create('ModeratedForums', _t('ForumMemberExtension.MODERATEDFORUMS', 'Moderated forums'), $forums)
         ]);
 
         $fields->addFieldsToTab('Root.Forum', [
             GridField::create(
                 "ForumPosts",
-                _t('ForumRole.FORUMPOSTS', 'Forum posts'),
+                _t('ForumMemberExtension.FORUMPOSTS', 'Forum posts'),
                 $this->owner->ForumPosts(),
                 GridFieldConfig_RecordViewer::create()
             )
@@ -352,7 +352,7 @@ class ForumMemberExtension extends Extension
         } elseif ($this->owner->Surname) {
             return $this->owner->Surname;
         } else {
-            return _t('ForumRole.ANONYMOUS', 'Anonymous user');
+            return _t('ForumMemberExtension.ANONYMOUS', 'Anonymous user');
         }
     }
 
@@ -394,12 +394,12 @@ class ForumMemberExtension extends Extension
      */
     public function ForumSuspensionMessage(): string
     {
-        $msg = _t('ForumRole.SUSPENSIONNOTE', 'This forum account has been suspended.');
+        $msg = _t('ForumMemberExtension.SUSPENSIONNOTE', 'This forum account has been suspended.');
         $adminEmail = Email::config()->get('admin_email');
 
         if ($adminEmail) {
             $msg .= ' ' . sprintf(
-                _t('ForumRole.SUSPENSIONEMAILNOTE', 'Please contact %s to resolve this issue.'),
+                _t('ForumMemberExtension.SUSPENSIONEMAILNOTE', 'Please contact %s to resolve this issue.'),
                 $adminEmail
             );
         }

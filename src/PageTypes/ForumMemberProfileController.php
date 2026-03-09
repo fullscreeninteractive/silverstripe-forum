@@ -45,7 +45,7 @@ class ForumMemberProfileController extends PageController
         }
 
         return [
-            "Title" => "Forum",
+            "Title" => _t('ForumMemberProfile.FORUMTITLE', 'Forum'),
             "Subtitle" => $this->data()->dbObject('ProfileSubtitle'),
             "Abstract" => $this->data()->dbObject('ProfileAbstract'),
             "Form" => $this->EditProfileForm()
@@ -106,7 +106,7 @@ class ForumMemberProfileController extends PageController
         }
 
         return [
-            "Title" => "Forum",
+            "Title" => _t('ForumMemberProfile.FORUMTITLE', 'Edit Profile'),
             "Subtitle" => $holder->ProfileSubtitle,
             "Abstract" => $holder->ProfileAbstract,
             "Form" => $form
@@ -119,7 +119,7 @@ class ForumMemberProfileController extends PageController
      */
     public function EditProfileForm(): ForumProfileForm
     {
-        return ForumProfileForm::create($this, 'EditProfileForm');
+        return ForumProfileForm::create($this, __FUNCTION__);
     }
 
 

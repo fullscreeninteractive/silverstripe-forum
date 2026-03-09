@@ -131,7 +131,7 @@ tr:
     NEWPOSTMESSAGE: "Abone olduğunuz konuya yeni bir gönderi eklendi."
     REPLYLINK: "Konuyu Göster"
     UNSUBSCRIBETEXT: "Konu aboneliğini iptal et"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Yönetici"
     ANONYMOUS: "Anonim Kullanıcı"
     AVATAR: "Avatar Yükle"
@@ -151,9 +151,9 @@ tr:
     SURNAME: "Soyad"
     TRANSFERSUCCEEDED: "Veri transferi başarıyla gerçekleştirildi. İşlemi tamamlamak için ForumMember tablosunu silmelisiniz. Bunun için \"DROP TABLE 'ForumMember'\" sorgusunu çalıştırabilirsiniz."
   Forum_editpost_ss:
-    AVAILABLEBB: "Geçerli BB Kod Etiketleri"
+    AVAILABLEMD: "Kullanılabilir Markdown sözdizimi"
   Forum_reply_ss:
-    AVAILABLEBB: "Olanaklı BB Kod Etiketleri"
+    AVAILABLEMD: "Kullanılabilir Markdown sözdizimi"
   Forum_show_ss:
     AUTHOR: "Yazan"
     CLICKGOTOEND: "Gönderinin sonuna gitmek için tıklayınız"
@@ -170,7 +170,7 @@ tr:
     TOPIC: "Konu:"
     VIEWS: "Görüntülemeler"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Mevcut BB Kod etiketleri"
+    AVAILABLEMD: "Kullanılabilir Markdown sözdizimi"
   Post:
     DELETE: "sil"
     EDIT: "düzenle"

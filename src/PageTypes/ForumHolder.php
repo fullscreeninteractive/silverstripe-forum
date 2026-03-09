@@ -272,7 +272,7 @@ class ForumHolder extends Page
         return Member::get()
             ->leftJoin('Group_Members', '"Member"."ID" = "Group_Members"."MemberID"')
             ->filter('GroupID', $groupIDs)
-            ->where('"Member"."LastViewed" > ' . DB::getConn()->datetimeIntervalClause('NOW', '-15 MINUTE'))
+            ->where('"Member"."LastViewed" > ' . DB::get_conn()->datetimeIntervalClause('NOW', '-15 MINUTE'))
             ->sort('"Member"."FirstName", "Member"."Surname"');
     }
 

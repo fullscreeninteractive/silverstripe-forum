@@ -131,7 +131,7 @@ et_EE:
     NEWPOSTMESSAGE: "Uus postitus on lisatud teemale kuhu olete teavituse tellinud"
     REPLYLINK: "Vaata teemat"
     UNSUBSCRIBETEXT: "Ära telli meeldetuletusi sellelt teemalt"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administraator"
     ANONYMOUS: "Tavakasutaja"
     AVATAR: "Lae üles Avatar"
@@ -151,9 +151,9 @@ et_EE:
     SURNAME: "Perekonnanimi"
     TRANSFERSUCCEEDED: "Andmeedastus on õnnestunud. Ent selleks, et täita seda, peate kustutada ForumMember tabelis. Selleks, teostada uuringut \"DROP TABLE 'ForumMember\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Saada olevad BB koodi vidinad"
+    AVAILABLEMD: "Saadaolev Markdown-süntaks"
   Forum_reply_ss:
-    AVAILABLEBB: "Saada olevad BB koodi vidinad"
+    AVAILABLEMD: "Saadaolev Markdown-süntaks"
   Forum_show_ss:
     AUTHOR: "Autor"
     CLICKGOTOEND: "Vajuta siia, et minna postituse lõppu"
@@ -170,7 +170,7 @@ et_EE:
     TOPIC: "Teema:"
     VIEWS: "Vaatamisi"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Saadaolevad BB Koodi Vidinad"
+    AVAILABLEMD: "Saadaolev Markdown-süntaks"
   Post:
     DELETE: "Kustuta"
     EDIT: "Muuda"

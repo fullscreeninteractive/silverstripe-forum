@@ -224,7 +224,7 @@ en:
     NEWPOSTMESSAGE: 'A new post has been added to a topic you''ve subscribed to'
     REPLYLINK: 'View the topic'
     UNSUBSCRIBETEXT: 'Unsubscribe from the topic'
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: Administrator
     ANONYMOUS: 'Anonymous user'
     AVATAR: 'Avatar Image'
@@ -255,8 +255,8 @@ en:
     CLICKUNSUBSCRIBE: 'Click here to Unsubscribe to this topic'
     SUBSCRIBE: Subscribe
     UNSUBSCRIBE: Unsubscribe
-  Forum_BBCodeHint_ss:
-    AVAILABLEBB: 'Available BB Code tags'
+  Forum_MarkdownHint_ss:
+    AVAILABLEMD: 'Available Markdown syntax'
   Forum_show_ss:
     AUTHOR: Author
     CLICKGOTOEND: 'Click here to go the end of this post'

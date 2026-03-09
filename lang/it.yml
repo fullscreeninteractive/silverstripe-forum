@@ -117,7 +117,7 @@ it:
   ForumMember_TopicNotification_ss:
     HI: "Salve %s,"
     NEWPOSTMESSAGE: "E' stato inserito un nuovo post alla discussione a cui ti sei iscritto. Puoi <a href=\"%s\">vedere il post cliccando qui.</a>"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Amministratore"
     ANONYMOUS: "Utente Anonimo"
     AVATAR: "Carica avatar"
@@ -136,9 +136,9 @@ it:
     SURNAME: "Cognome"
     TRANSFERSUCCEEDED: "Il trasferimento dati è avvenuto con successo. In ogni caso, per completare, devi eliminare la tabella ForumMember . Per farlo, esegui la query \"DROP TABLE 'ForumMember'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Tags BB Code disponibili"
+    AVAILABLEMD: "Sintassi Markdown disponibile"
   Forum_reply_ss:
-    AVAILABLEBB: "Tags BB Code disponibili"
+    AVAILABLEMD: "Sintassi Markdown disponibile"
   Forum_show_ss:
     AUTHOR: "Autore"
     CLICKGOTOEND: "Clicca qui per andare alla fine di questo post"
@@ -155,7 +155,7 @@ it:
     TOPIC: "Messaggio:"
     VIEWS: "Visite"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Tags BB Code Disponibili"
+    AVAILABLEMD: "Sintassi Markdown disponibile"
   Post:
     DELETE: "elimina"
     EDIT: "modifica"

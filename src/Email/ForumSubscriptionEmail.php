@@ -9,8 +9,11 @@ use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 
 class ForumSubscriptionEmail extends Email
 {
-    private $post;
-    private $subscription;
+    private static string $from = '';
+
+    private Post $post;
+
+    private ForumThreadSubscription $subscription;
 
     public function setSubscription(ForumThreadSubscription $subscription)
     {
@@ -29,20 +32,26 @@ class ForumSubscriptionEmail extends Email
 
     public function send(): void
     {
-        $this->setFrom(Email::config()->get('admin_email'));
+        $from = self::config()->get('from');
+
+        if (!$from) {
+            $from = Email::config()->get('admin_email');
+        }
+
+        $this->setFrom($from);
         $this->setTo($this->subscription->Member()->Email);
-        $this->setSubject(_t('Post.NEWREPLY', 'New reply for {title}', array('title' => $this->post->Title)));
-        $this->setTemplate('ForumMember_TopicNotification');
-        $this->populateTemplate($this->subscription->Member());
-        $this->populateTemplate($this->post);
-        $this->populateTemplate([
-            'UnsubscribeLink' => sprintf(
-                '%s%s/unsubscribe/%d',
-                Director::absoluteBaseURL(),
-                $this->post->Thread()->Forum()->Link(),
-                $this->post->ID
-            )
-        ]);
+        $this->setSubject(_t('Post.NEWREPLY', 'New reply for {title}', [
+            'title' => $this->post->Title,
+        ]));
+        $this->setHTMLTemplate('email/ForumMember_TopicNotification');
+        $this->setData($this->post);
+        $this->addData('Nickname', $this->subscription->Member()->Nickname);
+        $this->addData('UnsubscribeLink', sprintf(
+            '%s%s/unsubscribe/%d',
+            Director::absoluteBaseURL(),
+            $this->post->Thread()->Forum()->Link(),
+            $this->post->ID
+        ));
 
         parent::send();
     }

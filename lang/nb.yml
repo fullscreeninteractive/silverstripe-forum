@@ -131,7 +131,7 @@ nb:
     NEWPOSTMESSAGE: "En ny melding er lagt til emne du har meldt deg på."
     REPLYLINK: "Vis emne"
     UNSUBSCRIBETEXT: "Meld av dette emne"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administrator"
     ANONYMOUS: "Anonym bruker"
     AVATAR: "Last opp avatar"
@@ -151,9 +151,9 @@ nb:
     SURNAME: "Etternavn"
     TRANSFERSUCCEEDED: "Dataoverføringen var vellykket. Men, for å fullføre den må du slette forummedlemstabell. For å gjøre dette, utfør spørringen \"DROP TABLE 'ForumMember'\""
   Forum_editpost_ss:
-    AVAILABLEBB: "Tilgjengelige BB Kode tagger"
+    AVAILABLEMD: "Tilgjengelig Markdown-syntaks"
   Forum_reply_ss:
-    AVAILABLEBB: "Tilgjengelige BB Kode tagger"
+    AVAILABLEMD: "Tilgjengelig Markdown-syntaks"
   Forum_show_ss:
     AUTHOR: "Forfatter"
     CLICKGOTOEND: "klikk her for å gå til slutten av meldingen"
@@ -170,7 +170,7 @@ nb:
     TOPIC: "Emne:"
     VIEWS: "Visninger"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Tilgjengelige BB Kode tagger"
+    AVAILABLEMD: "Tilgjengelig Markdown-syntaks"
   Post:
     DELETE: "slette"
     EDIT: "endre"

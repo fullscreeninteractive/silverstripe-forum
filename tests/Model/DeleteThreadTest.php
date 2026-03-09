@@ -12,7 +12,7 @@ use SilverStripe\Security\SecurityToken;
 class DeleteThreadTest extends FunctionalTest
 {
     protected static $fixture_file = [
-        'ForumTest.yml',
+        './tests/fixtures.yml',
     ];
 
     protected static $use_draft_site = true;

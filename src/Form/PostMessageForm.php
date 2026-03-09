@@ -2,19 +2,21 @@
 
 namespace FullscreenInteractive\SilverStripe\Forum\Form;
 
+use FullscreenInteractive\SilverStripe\Forum\Interfaces\PostContentParserInterface;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
-use SilverStripe\Forms\CheckboxField;
-use SilverStripe\Forms\FieldList;
-use SilverStripe\Forms\Form;
-use SilverStripe\Forms\HiddenField;
-use SilverStripe\Forms\TextareaField;
-use SilverStripe\Forms\TextField;
-use SilverStripe\Forms\FileField;
-use SilverStripe\Forms\FormAction;
-use SilverStripe\Forms\LiteralField;
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\FileField;
+use SilverStripe\Forms\Form;
+use SilverStripe\Forms\FormAction;
+use SilverStripe\Forms\HiddenField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\TextareaField;
+use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Security\Security;
 use SilverStripe\Security\SecurityToken;
@@ -37,6 +39,16 @@ class PostMessageForm extends Form
                 _t('Forum.SUBSCRIBETOPIC', 'Subscribe to this topic (Receive email notifications when a new reply is added)')
             )
         ]);
+
+        $parserClass = Post::config()->get('post_content_parser');
+        $parser = Injector::inst()->get($parserClass);
+
+        if ($parser instanceof PostContentParserInterface) {
+            $fields->insertAfter(
+                "Content",
+                LiteralField::create("ContentHelp", $parser->getSupportingHelpText()->getValue())
+            );
+        }
 
         if ($controller->data()->canAttach()) {
             $fields->insertAfter("Content", FileField::create("Attachment", _t('Forum.ATTACH', 'Attach file')));

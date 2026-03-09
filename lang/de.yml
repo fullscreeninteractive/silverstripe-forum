@@ -131,7 +131,7 @@ de:
     NEWPOSTMESSAGE: "Ein neuer Beitrag wurde zu einem Ihrer abonnierten Themen geschrieben."
     REPLYLINK: "Neue Themen ansehen"
     UNSUBSCRIBETEXT: "Vom Thema abmelden"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Adminstrator"
     ANONYMOUS: "Anonymer Benutzer"
     AVATAR: "Avatar hochladen"
@@ -151,9 +151,9 @@ de:
     SURNAME: "Nachname"
     TRANSFERSUCCEEDED: "Die Datenübertragung war erfolgreich. Um diese abzuschliessen, müssen Sie die Tabelle 'ForumMember' löschen. Dafür führen Sie bitte den Query \"DROP TABLE 'ForumMember'\" aus."
   Forum_editpost_ss:
-    AVAILABLEBB: "Verfügbare BB Code tags"
+    AVAILABLEMD: "Verfügbare Markdown-Syntax"
   Forum_reply_ss:
-    AVAILABLEBB: "Verfügbare BB Code tags"
+    AVAILABLEMD: "Verfügbare Markdown-Syntax"
   Forum_show_ss:
     AUTHOR: "Author"
     CLICKGOTOEND: "Klicke hier, um zum Ende des Beitrags zu gelangen"
@@ -170,7 +170,7 @@ de:
     TOPIC: "Thema:"
     VIEWS: "Aufrufe"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Verfügbare BBCodes"
+    AVAILABLEMD: "Verfügbare Markdown-Syntax"
   Post:
     DELETE: "löschen"
     EDIT: "bearbeiten"

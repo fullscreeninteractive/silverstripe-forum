@@ -69,7 +69,7 @@ class ForumDatabaseSearch implements ForumSearchProvider
                 $posts = $posts->sort([
                     'Thread.Title' => 'ASC',
                     'Created' => 'DESC'
-                ));
+                ]);
                 break;
         }
 

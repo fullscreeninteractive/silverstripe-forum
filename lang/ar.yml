@@ -131,7 +131,7 @@ ar:
     NEWPOSTMESSAGE: "تم إضافة مشاركة جديدة إلى الموضوعالذي اشتركت فيه. تستطيع <a href=\"%s\"> مشاهدة المشاركة بالضغط هنا </a>"
     REPLYLINK: "مشاهدة الموضوع"
     UNSUBSCRIBETEXT: "إلغاء الاشتراك من الموضوع"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "المدير"
     ANONYMOUS: "عضو غير مسجل"
     AVATAR: "رفع الصورة الشخصية"
@@ -151,9 +151,9 @@ ar:
     SURNAME: "اسم العائلة"
     TRANSFERSUCCEEDED: "The data transfer has succeeded. However, to complete it, you must delete the ForumMember table. To do this, execute the query \"DROP TABLE 'ForumMember'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "السماح بأكواد BB"
+    AVAILABLEMD: "صيغة Markdown المتاحة"
   Forum_reply_ss:
-    AVAILABLEBB: "السماح بأكواد BB"
+    AVAILABLEMD: "صيغة Markdown المتاحة"
   Forum_show_ss:
     AUTHOR: "الكاتب"
     CLICKGOTOEND: "اضغط هنا للذهاب إلى نهاية الموضوع"
@@ -170,7 +170,7 @@ ar:
     TOPIC: "الموضوع:"
     VIEWS: "المشاهدات"
   Forum_starttopic_ss:
-    AVAILABLEBB: "السماح بأكواد BB"
+    AVAILABLEMD: "صيغة Markdown المتاحة"
   Post:
     DELETE: "حذف"
     EDIT: "تعديل"

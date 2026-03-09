@@ -131,7 +131,7 @@ fr:
     NEWPOSTMESSAGE: "Un nouveau message a été ajouté au sujet auquel vous avez souscrit."
     REPLYLINK: "Voir le sujet"
     UNSUBSCRIBETEXT: "Se désinscrire du sujet"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administrateur"
     ANONYMOUS: "Utilisateur anonyme"
     AVATAR: "Téléchargement d'un avatar"
@@ -151,9 +151,9 @@ fr:
     SURNAME: "Nom de famille"
     TRANSFERSUCCEEDED: "Le transfer de données a été exécuté avec succès. Néanmoins, pour terminer, vous devez supprimer la table ForumMember. Pour ce faire, exécutez la requête \"DROP TABLE 'ForumMember'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Balises BB Code disponibles"
+    AVAILABLEMD: "Syntaxe Markdown disponible"
   Forum_reply_ss:
-    AVAILABLEBB: "Balises BB Code disponibles"
+    AVAILABLEMD: "Syntaxe Markdown disponible"
   Forum_show_ss:
     AUTHOR: "Auteur"
     CLICKGOTOEND: "Cliquez ici pour aller à la fin du message"
@@ -170,7 +170,7 @@ fr:
     TOPIC: "Sujet :"
     VIEWS: "Vues"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Balises BB Code Disponibles"
+    AVAILABLEMD: "Syntaxe Markdown disponible"
   Post:
     DELETE: "supprimer"
     EDIT: "éditer"

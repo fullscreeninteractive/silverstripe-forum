@@ -98,7 +98,7 @@ FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory:
     Title: cat4
     StackableOrder: 4
     ForumHolderID: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh2
-Forum:
+FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum:
   general:
     Title: General Discussion
     ParentID: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh

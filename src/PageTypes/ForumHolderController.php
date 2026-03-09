@@ -47,9 +47,9 @@ class ForumHolderController extends PageController
      */
     public function popularthreads()
     {
-        $start = isset($_GET['start']) ? (int) $_GET['start'] : 0;
+        $start = $this->request->getVar('start') ?: 0;
         $limit = 20;
-        $method = isset($_GET['by']) ? $_GET['by'] : null;
+        $method = $this->request->getVar('by') ?: null;
         if (!$method) {
             $method = 'posts';
         }
@@ -106,9 +106,9 @@ class ForumHolderController extends PageController
      */
     public function search()
     {
-        $keywords   = (isset($_REQUEST['Search'])) ? Convert::raw2xml($_REQUEST['Search']) : null;
-        $order      = (isset($_REQUEST['order'])) ? Convert::raw2xml($_REQUEST['order']) : null;
-        $start      = (isset($_REQUEST['start'])) ? (int) $_REQUEST['start'] : 0;
+        $keywords   = $this->request->getVar('Search') ? Convert::raw2xml($this->request->getVar('Search')) : null;
+        $order      = $this->request->getVar('order') ? Convert::raw2xml($this->request->getVar('order')) : null;
+        $start      = $this->request->getVar('start') ? (int) $this->request->getVar('start') : 0;
 
         $abstract = ($keywords) ? "<p>" . sprintf(_t('ForumHolder.SEARCHEDFOR', "You searched for '%s'."), $keywords) . "</p>" : null;
 
@@ -171,7 +171,8 @@ class ForumHolderController extends PageController
      */
     public function rss()
     {
-        $this->getResponse()->getHeaders()->set('Cache-Control', 'max-age=3600'); // cache for one hour
+        $response = $this->getResponse();
+        $response->addHeader('Cache-Control', 'max-age=3600');
 
         $threadID = null;
         $forumID = null;

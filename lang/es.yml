@@ -105,7 +105,7 @@ es:
     NEWPOSTMESSAGE: "Una nueva entrada ha sido añadida al tema al que estás suscrito."
     REPLYLINK: "Ver el tema"
     UNSUBSCRIBETEXT: "Cancelar la suscripción al tema"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administrador"
     ANONYMOUS: "Usuario anónimo"
     AVATAR: "Subir imagen de usuario"
@@ -123,9 +123,9 @@ es:
     SURNAME: "Apellidos"
     TRANSFERSUCCEEDED: "La transferencia de datos se ha producido correctamente. Para completarla, debes borrar la tabla ForumMember. Para hacerlo, ejecuta la sentencia \"DROP TABLE 'ForumMember'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Disponibles etiquetas BBCode"
+    AVAILABLEMD: "Sintaxis Markdown disponible"
   Forum_reply_ss:
-    AVAILABLEBB: "Disponibles etiquetas BBCode"
+    AVAILABLEMD: "Sintaxis Markdown disponible"
   Forum_show_ss:
     AUTHOR: "Autor"
     CLICKGOTOEND: "Haz clic aquí para ir al final de esta entrada"
@@ -141,7 +141,7 @@ es:
     REPLY: "Responder"
     TOPIC: "Tema:"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Disponibles las etiquetas de BBCode"
+    AVAILABLEMD: "Sintaxis Markdown disponible"
   Post:
     DELETE: "eliminar"
     EDIT: "editar"

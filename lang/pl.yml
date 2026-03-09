@@ -113,7 +113,7 @@ pl:
   ForumMember_TopicNotification_ss:
     HI: "Witaj %s,"
     NEWPOSTMESSAGE: "Nowa wiadomość pojawiła się w śledzonym przez Ciebie wątku. Możesz <a href=\"%s\">zobaczyć tą wiadomość klikając tutaj.</a>"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administrator"
     ANONYMOUS: "Anonimowy użytkownik"
     AVATAR: "Wgraj avatar"
@@ -131,9 +131,9 @@ pl:
     SURNAME: "Nazwisko"
     TRANSFERSUCCEEDED: "Transfer danych zakończył się sukcesem. Musisz teraz skasować tabelę ForumMember. Aby to zrobić, wykonaj zapytanie SQL \"DROP TABLE 'ForumMembers'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Dostępne tagi BB Code"
+    AVAILABLEMD: "Dostępna składnia Markdown"
   Forum_reply_ss:
-    AVAILABLEBB: "Dostępne tagi BB Code"
+    AVAILABLEMD: "Dostępna składnia Markdown"
   Forum_show_ss:
     AUTHOR: "Autor"
     CLICKREPLY: "Kliknij tutaj, aby odpowiedzieć"
@@ -147,7 +147,7 @@ pl:
     TOPIC: "Temat:"
     VIEWS: "Wyświetlenia"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Dostępne tagi BBCode"
+    AVAILABLEMD: "Dostępna składnia Markdown"
   Post:
     DELETE: "usuń"
     EDIT: "edytuj"

@@ -11,16 +11,14 @@ use SilverStripe\Security\Member;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\Security\Security;
 use SilverStripe\Control\Email\Email;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
 use SilverStripe\Security\SecurityToken;
 
-/**
- * @todo Write Tests for doPostMessageForm()
- */
 class ForumTest extends FunctionalTest
 {
 
     protected static $fixture_file = [
-        'ForumTest.yml',
+        './tests/fixtures.yml',
     ];
 
     protected static $use_draft_site = true;
@@ -129,11 +127,11 @@ class ForumTest extends FunctionalTest
     {
         $private = $this->objFromFixture(Forum::class, 'loggedInOnly');
         $limited = $this->objFromFixture(Forum::class, 'limitedToGroup');
-        $inheritedForum_loggedInOnly = $this->objFromFixture('Forum', 'inheritedForum_loggedInOnly');
+        $inheritedForum_loggedInOnly = $this->objFromFixture(Forum::class, 'inheritedForum_loggedInOnly');
         DBDatetime::set_mock_now('2011-10-10 12:00:00');
 
         // try logging in a member suspendedexpired
-        $suspendedexpired = $this->objFromFixture('Member', 'suspendedexpired');
+        $suspendedexpired = $this->objFromFixture(Member::class, 'suspendedexpired');
         $this->assertFalse($suspendedexpired->IsSuspended());
         $suspendedexpired->logIn();
         $this->assertTrue($private->canPost());
@@ -141,7 +139,7 @@ class ForumTest extends FunctionalTest
         $this->assertTrue($inheritedForum_loggedInOnly->canPost());
 
         // try logging in a member suspended
-        $suspended = $this->objFromFixture('Member', 'suspended');
+        $suspended = $this->objFromFixture(Member::class, 'suspended');
         $this->assertTrue($suspended->IsSuspended());
         $suspended->logIn();
         $this->assertFalse($private->canPost());
@@ -189,7 +187,7 @@ class ForumTest extends FunctionalTest
         $this->assertFalse($inherited->canModerate());
 
         // Moderator should be able to view his own forums
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
         $this->assertTrue($public->canModerate());
@@ -361,9 +359,9 @@ class ForumTest extends FunctionalTest
         $this->assertEquals('1', $thread->getNumPosts());
 
         // mark the first post in that now as spam
-        $spamfirst = $this->objFromFixture('Post', 'SpamFirstPost');
+        $spamfirst = $this->objFromFixture(Post::class, 'SpamFirstPost');
 
-        $response = $c->handleRequest(new SS_HTTPRequest('GET', 'markasspam/' . $spamfirst->ID), DataModel::inst());
+        $response = $c->handleRequest(new HTTPRequest('GET', 'markasspam/' . $spamfirst->ID), DataModel::inst());
 
         // removes the thread
         $this->assertNull(ForumThread::get()->byID($spamfirst->Thread()->ID));
@@ -371,10 +369,10 @@ class ForumTest extends FunctionalTest
 
     public function testBanLink()
     {
-        $spampost = $this->objFromFixture('Post', 'SpamSecondPost');
+        $spampost = $this->objFromFixture(Post::class, 'SpamSecondPost');
         $forum = $spampost->Forum();
         $author = $spampost->Author();
-        $moderator = $this->objFromFixture('Member', 'moderator'); // moderator for "general" forum
+        $moderator = $this->objFromFixture(Member::class, 'moderator'); // moderator for "general" forum
 
         // without a logged-in moderator
         $this->assertFalse($spampost->BanLink(), 'Link not present by default');
@@ -398,10 +396,10 @@ class ForumTest extends FunctionalTest
 
     public function testGhostLink()
     {
-        $spampost = $this->objFromFixture('Post', 'SpamSecondPost');
+        $spampost = $this->objFromFixture(Post::class, 'SpamSecondPost');
         $forum = $spampost->Forum();
         $author = $spampost->Author();
-        $moderator = $this->objFromFixture('Member', 'moderator'); // moderator for "general" forum
+        $moderator = $this->objFromFixture(Member::class, 'moderator'); // moderator for "general" forum
 
         // without a logged-in moderator
         $this->assertFalse($spampost->GhostLink(), 'Link not present by default');
@@ -506,5 +504,199 @@ class ForumTest extends FunctionalTest
 
         $member = Member::get()->byID($checkID);
         $this->assertTrue($member->ID == $checkID);
+    }
+
+    public function testDoPostMessageFormCreatesNewThread()
+    {
+        SecurityToken::disable();
+
+        $forum = $this->objFromFixture(Forum::class, 'general');
+        $user = $this->objFromFixture(Member::class, 'test1');
+        $this->logInAs($user);
+
+        $this->post(
+            $forum->RelativeLink('PostMessageForm'),
+            [
+                'Title' => 'Brand New Thread',
+                'Content' => 'This is the first post in a new thread',
+                'action_doPostMessageForm' => 1,
+            ]
+        );
+
+        $thread = ForumThread::get()->filter('Title', 'Brand New Thread')->first();
+        $this->assertNotNull($thread, 'New thread should be created');
+        $this->assertEquals($forum->ID, $thread->ForumID);
+        $this->assertEquals($user->ID, $thread->AuthorID);
+
+        $post = Post::get()->filter('ThreadID', $thread->ID)->first();
+        $this->assertNotNull($post, 'Post should be created for the new thread');
+        $this->assertStringContainsString('This is the first post in a new thread', $post->Content);
+        $this->assertEquals($user->ID, $post->AuthorID);
+        $this->assertEquals($forum->ID, $post->ForumID);
+    }
+
+    public function testDoPostMessageFormReplyToThread()
+    {
+        SecurityToken::disable();
+
+        $forum = $this->objFromFixture(Forum::class, 'general');
+        $user = $this->objFromFixture(Member::class, 'test1');
+        $thread = $this->objFromFixture(ForumThread::class, 'Thread1');
+        $this->logInAs($user);
+
+        $postCountBefore = Post::get()->filter('ThreadID', $thread->ID)->count();
+
+        $this->post(
+            $forum->RelativeLink('PostMessageForm'),
+            [
+                'Title' => 'Re: Test Thread',
+                'Content' => 'This is a reply to the thread',
+                'ThreadID' => $thread->ID,
+                'action_doPostMessageForm' => 1,
+            ]
+        );
+
+        $postCountAfter = Post::get()->filter('ThreadID', $thread->ID)->count();
+        $this->assertEquals($postCountBefore + 1, $postCountAfter, 'A new reply post should be created');
+
+        $latestPost = Post::get()->filter('ThreadID', $thread->ID)->sort('ID', 'DESC')->first();
+        $this->assertEquals('This is a reply to the thread', $latestPost->Content);
+        $this->assertEquals($user->ID, $latestPost->AuthorID);
+    }
+
+    public function testDoPostMessageFormEditPost()
+    {
+        SecurityToken::disable();
+
+        $forum = $this->objFromFixture(Forum::class, 'general');
+        $user = $this->objFromFixture(Member::class, 'test1');
+        $post = $this->objFromFixture(Post::class, 'Post1');
+        $thread = $this->objFromFixture(ForumThread::class, 'Thread1');
+        $this->logInAs($user);
+
+        $this->post(
+            $forum->RelativeLink('PostMessageForm'),
+            [
+                'Title' => 'Test Thread',
+                'Content' => 'Updated content for the post',
+                'ThreadID' => $thread->ID,
+                'ID' => $post->ID,
+                'action_doPostMessageForm' => 1,
+            ]
+        );
+
+        $updatedPost = Post::get()->byID($post->ID);
+        $this->assertEquals('Updated content for the post', $updatedPost->Content);
+    }
+
+    public function testDoPostMessageFormCreatesSubscription()
+    {
+        SecurityToken::disable();
+
+        $forum = $this->objFromFixture(Forum::class, 'general');
+        $user = $this->objFromFixture(Member::class, 'test1');
+        $this->logInAs($user);
+
+        $this->post(
+            $forum->RelativeLink('PostMessageForm'),
+            [
+                'Title' => 'Subscription Test Thread',
+                'Content' => 'Testing subscription creation',
+                'TopicSubscription' => 1,
+                'action_doPostMessageForm' => 1,
+            ]
+        );
+
+        $thread = ForumThread::get()->filter('Title', 'Subscription Test Thread')->first();
+        $this->assertNotNull($thread);
+
+        $this->assertTrue(
+            ForumThreadSubscription::get()->filter([
+                'ThreadID' => $thread->ID,
+                'MemberID' => $user->ID,
+            ])->exists(),
+            'Subscription should be created when TopicSubscription is checked'
+        );
+    }
+
+    public function testDoPostMessageFormRemovesSubscription()
+    {
+        SecurityToken::disable();
+
+        $forum = $this->objFromFixture(Forum::class, 'general');
+        $user = $this->objFromFixture(Member::class, 'test1');
+        $thread = $this->objFromFixture(ForumThread::class, 'Thread1');
+        $this->logInAs($user);
+
+        $this->assertTrue(
+            ForumThreadSubscription::get()->filter([
+                'ThreadID' => $thread->ID,
+                'MemberID' => $user->ID,
+            ])->exists(),
+            'test1 should be subscribed to Thread1 via fixtures'
+        );
+
+        $this->post(
+            $forum->RelativeLink('PostMessageForm'),
+            [
+                'Title' => 'Re: Test Thread',
+                'Content' => 'Reply without subscription',
+                'ThreadID' => $thread->ID,
+                'action_doPostMessageForm' => 1,
+            ]
+        );
+
+        $this->assertFalse(
+            ForumThreadSubscription::get()->filter([
+                'ThreadID' => $thread->ID,
+                'MemberID' => $user->ID,
+            ])->exists(),
+            'Subscription should be removed when TopicSubscription is not checked'
+        );
+    }
+
+    public function testDoPostMessageFormDeniedNoPermission()
+    {
+        SecurityToken::disable();
+
+        $forum = $this->objFromFixture(Forum::class, 'noPostingForum');
+        $user = $this->objFromFixture(Member::class, 'test1');
+        $this->logInAs($user);
+
+        $this->post(
+            $forum->RelativeLink('PostMessageForm'),
+            [
+                'Title' => 'Should Not Create',
+                'Content' => 'This should be rejected',
+                'action_doPostMessageForm' => 1,
+            ]
+        );
+
+        $thread = ForumThread::get()->filter('Title', 'Should Not Create')->first();
+        $this->assertNull($thread, 'Thread should not be created in a no-posting forum');
+    }
+
+    public function testDoPostMessageFormFiltersLanguage()
+    {
+        SecurityToken::disable();
+
+        $forum = $this->objFromFixture(Forum::class, 'general');
+        $user = $this->objFromFixture(Member::class, 'test1');
+        $this->logInAs($user);
+
+        $this->post(
+            $forum->RelativeLink('PostMessageForm'),
+            [
+                'Title' => 'Language Filter Test',
+                'Content' => 'This is shit content',
+                'action_doPostMessageForm' => 1,
+            ]
+        );
+
+        $thread = ForumThread::get()->filter('Title', 'Language Filter Test')->first();
+        $this->assertNotNull($thread);
+
+        $post = Post::get()->filter('ThreadID', $thread->ID)->first();
+        $this->assertEquals('This is * content', $post->Content);
     }
 }

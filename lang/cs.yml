@@ -202,7 +202,7 @@ cs:
     NEWPOSTMESSAGE: "Byl vložen nový příspěvek k tématu, který odebíráte"
     REPLYLINK: "Zobrazit téma"
     UNSUBSCRIBETEXT: "Odhlásit z tématu"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administrátor"
     ANONYMOUS: "Anonymní uživatel"
     AVATAR: "Nahrát obrázek"
@@ -245,9 +245,9 @@ cs:
     # 50
     SINGULARNAME: "Forum Thread Subscription"
   Forum_editpost_ss:
-    AVAILABLEBB: "Dostupné BB tagy"
+    AVAILABLEMD: "Dostupná syntaxe Markdown"
   Forum_reply_ss:
-    AVAILABLEBB: "Dostupné BB tagy"
+    AVAILABLEMD: "Dostupná syntaxe Markdown"
   Forum_show_ss:
     AUTHOR: "Autor"
     CLICKGOTOEND: "Klikněte zde pro přechod na konec tohoto příspěvku"
@@ -264,7 +264,7 @@ cs:
     TOPIC: "Téma"
     VIEWS: "Zobrazení"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Dostupné BB tagy"
+    AVAILABLEMD: "Dostupná syntaxe Markdown"
   Post:
     DELETE: "Odstranit"
     EDIT: "Změnit"

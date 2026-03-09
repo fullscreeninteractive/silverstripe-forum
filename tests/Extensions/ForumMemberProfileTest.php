@@ -5,12 +5,13 @@ namespace FullscreenInteractive\SilverStripe\Forum\Tests\Extensions;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
 use SilverStripe\Dev\FunctionalTest;
 use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\Security\Member;
 
 class ForumMemberProfileTest extends FunctionalTest
 {
 
     protected static $fixture_file = [
-        'ForumTest.yml',
+        './tests/fixtures.yml',
     ];
 
     protected static $use_draft_site = true;
@@ -32,20 +33,20 @@ class ForumMemberProfileTest extends FunctionalTest
 
         // TODO Will fail if Member is decorated with further *required* fields,
         // through updateForumFields() or updateForumValidator()
-        $baseData = array(
-            'Password' => array(
+        $baseData = [
+            'Password' => [
                 '_Password' => 'text',
                 '_ConfirmPassword' => 'text'
-            ),
+            ],
             "Nickname" => 'test',
             "Email" => 'test@test.com',
-        );
+        ];
 
-        $invalidData = array_merge($baseData, array('action_doregister' => 1, 'username' => 'spamtastic'));
+        $invalidData = array_merge($baseData, ['action_doregister' => 1, 'username' => 'spamtastic']);
         $response = $this->post('ForumMemberProfile/RegistrationForm', $invalidData);
         $this->assertEquals(403, $response->getStatusCode());
 
-        $validData = array_merge($baseData, array('action_doregister' => 1));
+        $validData = array_merge($baseData, ['action_doregister' => 1]);
         $response = $this->post('ForumMemberProfile/RegistrationForm', $validData);
         // Weak check (registration might still fail), but good enough to know if the honeypot is working
         $this->assertEquals(200, $response->getStatusCode());
@@ -58,7 +59,7 @@ class ForumMemberProfileTest extends FunctionalTest
     {
         DBDatetime::set_mock_now('2011-10-10');
 
-        $normalMember = $this->objFromFixture('Member', 'test1');
+        $normalMember = $this->objFromFixture(Member::class, 'test1');
         $this->loginAs($normalMember);
         $response = $this->get('ForumMemberProfile/edit/' . $normalMember->ID);
 
@@ -68,7 +69,7 @@ class ForumMemberProfileTest extends FunctionalTest
             'Normal profiles don\'t show suspension note'
         );
 
-        $suspendedMember = $this->objFromFixture('Member', 'suspended');
+        $suspendedMember = $this->objFromFixture(Member::class, 'suspended');
         $this->loginAs($suspendedMember);
         $response = $this->get('ForumMemberProfile/edit/' . $suspendedMember->ID);
         $this->assertContains(

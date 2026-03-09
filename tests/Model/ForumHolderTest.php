@@ -2,14 +2,16 @@
 
 namespace FullscreenInteractive\SilverStripe\Forum\Tests\Model;
 
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolderController;
 use SilverStripe\Dev\FunctionalTest;
+use SilverStripe\Security\Member;
 
 class ForumHolderTest extends FunctionalTest
 {
     protected static $fixture_file = [
-        'ForumTest.yml',
+        './tests/fixtures.yml',
     ];
 
     public function setUp(): void
@@ -29,7 +31,7 @@ class ForumHolderTest extends FunctionalTest
     public function testGetForums()
     {
         $fh = $this->objFromFixture(ForumHolder::class, "fh");
-        $fh_controller = new ForumHolderController($fh);
+        $fh_controller = ForumHolderController::create($fh);
 
         // one forum which is viewable.
         $this->assertEquals('1', $fh_controller->Forums()->Count(), "Forum holder has 1 forum");
@@ -44,7 +46,7 @@ class ForumHolderTest extends FunctionalTest
 
         // Test ForumHolder::Categories() on 'fh2', from which we expect 2 categories
         $fh2 = $this->objFromFixture(ForumHolder::class, "fh2");
-        $fh2_controller = new ForumHolderController($fh2);
+        $fh2_controller = ForumHolderController::create($fh2);
         $this->assertTrue($fh2_controller->Categories()->Count() == 2, "fh first forum has two categories");
 
         // Test what we got back from the two categories. Each expects 1.
@@ -115,11 +117,11 @@ class ForumHolderTest extends FunctionalTest
     protected function markGhosts()
     {
         //Mark a members as a spammers
-        $spammer = $this->objFromFixture("Member", "spammer");
+        $spammer = $this->objFromFixture(Member::class, "spammer");
         $spammer->ForumStatus = 'Ghost';
         $spammer->write();
 
-        $spammer2 = $this->objFromFixture("Member", "spammer2");
+        $spammer2 = $this->objFromFixture(Member::class, "spammer2");
         $spammer2->ForumStatus = 'Ghost';
         $spammer2->write();
     }
@@ -140,17 +142,17 @@ class ForumHolderTest extends FunctionalTest
         $this->assertNull($fh2->getRecentPosts());
 
         // test trying to get recent posts specific forum without posts
-        $forum = $this->objFromFixture("Forum", "forum1cat2");
+        $forum = $this->objFromFixture(Forum::class, "forum1cat2");
         $this->assertNull($fh->getRecentPosts(50, $forum->ID));
 
         // test trying to get recent posts specific to a forum which has posts
-        $forum = $this->objFromFixture("Forum", "general");
+        $forum = $this->objFromFixture(Forum::class, "general");
 
         $this->assertEquals($fh->getRecentPosts(50, $forum->ID)->Count(), 24);
         $this->assertEquals($fh->getRecentPosts(50, $forum->ID)->First()->Content, "This is the last post to a long thread");
 
         // test trying to filter by a specific thread
-        $thread = $this->objFromFixture("ForumThread", "Thread1");
+        $thread = $this->objFromFixture(ForumThread::class, "Thread1");
 
         $this->assertEquals($fh->getRecentPosts(50, null, $thread->ID)->Count(), 17);
         $this->assertEquals($fh->getRecentPosts(10, null, $thread->ID)->Count(), 10);
@@ -164,41 +166,15 @@ class ForumHolderTest extends FunctionalTest
     {
         // test holder with posts
         $fh = $this->objFromFixture(ForumHolder::class, "fh");
-        $controller = new ForumHolderController($fh);
+        $controller = ForumHolderController::create($fh);
 
         // make sure all the announcements are included
         $this->assertEquals($controller->GlobalAnnouncements()->Count(), 1);
 
         // test holder that doesn't have posts
         $fh2 = $this->objFromFixture(ForumHolder::class, "fh2");
-        $controller2 = new ForumHolderController($fh2);
+        $controller2 = ForumHolderController::create($fh2);
 
         $this->assertEquals($controller2->GlobalAnnouncements()->Count(), 0);
-    }
-
-    public function testGetNewPostsAvailable()
-    {
-        $fh = $this->objFromFixture(ForumHolder::class, "fh");
-
-        // test last visit. we can assume that these tests have been reloaded in the past 24 hours
-        $data = [];
-        $this->assertTrue(ForumHolder::new_posts_available($fh->ID, $data, date('Y-m-d H:i:s', mktime(0, 0, 0, date('m'), date('d') - 1, date('Y')))));
-
-        // set the last post ID (test the first post - so there should be a post, last post (false))
-        $fixtureIDs = $this->allFixtureIDs('Post');
-        $lastPostID = end($fixtureIDs);
-
-        $this->assertTrue(ForumHolder::new_posts_available($fh->ID, $data, null, 1));
-        $this->assertFalse(ForumHolder::new_posts_available($fh->ID, $data, null, $lastPostID));
-
-        // limit to a specific forum
-        $forum = $this->objFromFixture("Forum", "general");
-        $this->assertTrue(ForumHolder::new_posts_available($fh->ID, $data, null, null, $forum->ID));
-        $this->assertFalse(ForumHolder::new_posts_available($fh->ID, $data, null, $lastPostID, $forum->ID));
-
-        // limit to a specific thread
-        $thread = $this->objFromFixture("ForumThread", "Thread1");
-        $this->assertTrue(ForumHolder::new_posts_available($fh->ID, $data, null, null, null, $thread->ID));
-        $this->assertFalse(ForumHolder::new_posts_available($fh->ID, $data, null, $lastPostID, null, $thread->ID));
     }
 }

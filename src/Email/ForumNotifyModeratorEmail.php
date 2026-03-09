@@ -50,7 +50,7 @@ class ForumNotifyModeratorEmail extends Email
         } else {
             $this->setSubject('New post "' . $this->post->Title . '" in forum [' . $this->thread->Forum->Title . ']');
         }
-        $this->setTemplate('ForumMember_NotifyModerator');
+        $this->setHTMLTemplate('email/ForumMember_NotifyModerator');
         $this->addData([
             'NewThread' => $this->startingThread,
             'Moderator' => $this->moderator,

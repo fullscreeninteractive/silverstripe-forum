@@ -131,7 +131,7 @@ es_AR:
     NEWPOSTMESSAGE: "Se ha agregado una nueva entrada en un tema al cual usted esta subscrito."
     REPLYLINK: "Ver el tema"
     UNSUBSCRIBETEXT: "Borrar suscripcion al tema"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administrador"
     ANONYMOUS: "Usuario anónimo"
     AVATAR: "Cargar avatar"
@@ -151,9 +151,9 @@ es_AR:
     SURNAME: "Apellido"
     TRANSFERSUCCEEDED: "La transferencia de datos ha sido con éxito. Sin embargo, para completarla, debes eliminar la tabla de Miembros del Foro. Para hacer esto, ejecuta la consulta \"DROP TABLE 'ForumMember'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Etiquetas disponibles de Código BB"
+    AVAILABLEMD: "Sintaxis Markdown disponible"
   Forum_reply_ss:
-    AVAILABLEBB: "Etiquetas disponibles de Código BB"
+    AVAILABLEMD: "Sintaxis Markdown disponible"
   Forum_show_ss:
     AUTHOR: "Autor"
     CLICKGOTOEND: "Hacer click aquí para ir al fin de esta entrada"
@@ -170,7 +170,7 @@ es_AR:
     TOPIC: "Tema:"
     VIEWS: "Vistas"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Etiquetas Disponibles de Código BB"
+    AVAILABLEMD: "Sintaxis Markdown disponible"
   Post:
     DELETE: "eliminar"
     EDIT: "editar"

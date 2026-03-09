@@ -2,6 +2,9 @@
 
 namespace FullscreenInteractive\SilverStripe\Forum\Reports;
 
+use SilverStripe\Model\ArrayData;
+use SilverStripe\Model\List\ArrayList;
+use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\DB;
 use SilverStripe\Reports\Report;
 
@@ -15,9 +18,23 @@ class ForumMonthlyPosts extends Report
 
     public function sourceRecords($params = [])
     {
-        $posts = DB::query('SELECT DATE_FORMAT(Created, "%Y-%m") AS Month, COUNT(Created) AS Posts FROM "Post" GROUP BY Month ORDER BY Month DESC');
+        $postsQuery = SQLSelect::create();
+        $postsQuery->setFrom('Post');
+        $postsQuery->setSelect([
+            'Month' => DB::get_conn()->formattedDatetimeClause('Created', '%Y-%m'),
+            'Posts' => 'COUNT(Created)'
+        ]);
+        $postsQuery->setGroupBy('Month');
+        $postsQuery->setOrderBy('Month', 'DESC');
+        $posts = $postsQuery->execute();
 
-        return $posts;
+        $output = ArrayList::create();
+        foreach ($posts as $post) {
+            $post['Month'] = date('Y F', strtotime($post['Month']));
+            $output->add(ArrayData::create($post));
+        }
+
+        return $output;
     }
 
     public function columns()

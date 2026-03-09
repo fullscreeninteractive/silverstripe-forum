@@ -8,7 +8,7 @@ options see /forum/docs/Configuration.md
 * Forums can be grouped in categories
 * RSS feeds for each forum, overall and search results
 * Member profiles showing recent posts
-* Write Posts in BBCode and attach multiple files to a post
+* Write Posts in Markdown and attach multiple files to a post
 * Email Topic subscription (subscribe to a topic and get an email when someone posts something new)
 * Sticky Posts (both localized to a forum or an entire forum holder)
 * Forum Moderators. Give specific people access to editing / deleting posts. Customizable on a forum by forum level

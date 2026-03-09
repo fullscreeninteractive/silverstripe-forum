@@ -5,8 +5,7 @@ namespace FullscreenInteractive\SilverStripe\Forum\Reports;
 use SilverStripe\ORM\DB;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Model\ArrayData;
-use SilverStripe\ORM\SQLQuery;
-use SilverStripe\ORM\DataQuery;
+use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\Reports\Report;
 
 class ForumReportMemberSignups extends Report
@@ -19,10 +18,10 @@ class ForumReportMemberSignups extends Report
 
     public function sourceRecords($params = [])
     {
-        $membersQuery = DataQuery::create();
+        $membersQuery = SQLSelect::create();
         $membersQuery->setFrom('Member');
         $membersQuery->setSelect([
-            'Month' => DB::getConn()->formattedDatetimeClause('Created', '%Y-%m'),
+            'Month' => DB::get_conn()->formattedDatetimeClause('Created', '%Y-%m'),
             'Signups' => 'COUNT(Created)'
         ]);
         $membersQuery->setGroupBy('Month');

@@ -4,21 +4,23 @@ namespace FullscreenInteractive\SilverStripe\Forum\Tests;
 
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use FullscreenInteractive\SilverStripe\Forum\Reports\ForumMonthlyPosts;
-use SilverStripe\Dev\FunctionalTest;
+use FullscreenInteractive\SilverStripe\Forum\Reports\ForumReportMemberSignups;
+use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Security\Member;
-use SilverStripe\Security\Security;
 
-class ForumReportTest extends FunctionalTest
+class ForumReportTest extends SapphireTest
 {
     protected static $fixture_file = [
-        'ForumTest.yml',
+        './tests/fixtures.yml',
     ];
 
     protected static $use_draft_site = true;
 
     public function testMemberSignupsReport()
     {
-        $r = new ForumMonthlyPosts();
+        $r = ForumReportMemberSignups::create();
         $before = $r->sourceRecords([]);
 
         // Create a new Member in current month
@@ -27,38 +29,40 @@ class ForumReportTest extends FunctionalTest
         $member->write();
 
         // Ensure the signup count for current month has increased by one
-        $this->assertEquals((int)$before->first()->Signups + 1, (int)$r->records([])->first()->Signups);
+        $this->assertEquals((int)$before->first()->Signups + 1, (int)$r->sourceRecords([])->first()->Signups);
 
         // Move our member to have signed up in April 2015 and check that month's signups
         $member->Created = '2015-04-01 12:00:00';
         $member->write();
-        $this->assertEquals(1, $r->records([])->find('Month', '2015 April')->Signups);
+        $this->assertEquals(1, $r->sourceRecords([])->find('Month', '2015 April')->Signups);
 
         // We should now be back to our original number of members in current month
-        $this->assertEquals((int)$before->first()->Signups, (int)$r->records([])->first()->Signups);
+        $this->assertEquals((int)$before->first()->Signups, (int)$r->sourceRecords([])->first()->Signups);
     }
 
     public function testMonthlyPostsReport()
     {
-        $r = new ForumMonthlyPosts();
+        $r = ForumMonthlyPosts::create();
         $before = $r->sourceRecords([]);
 
         // Create a new post in current month
         $post = Post::create();
-        $post->AuthorID = $this->objFromFixture('Member', 'test2')->ID;
-        $post->ThreadID = $this->objFromFixture('ForumThread', 'Thread2')->ID;
-        $post->ForumID = $this->objFromFixture('Forum', 'forum5')->ID;
+        $post->AuthorID = $this->objFromFixture(Member::class, 'test2')->ID;
+        $post->ThreadID = $this->objFromFixture(ForumThread::class, 'Thread2')->ID;
+        $post->ForumID = $this->objFromFixture(Forum::class, 'forum5')->ID;
         $post->write();
 
+        $firstMonth = $before->first();
+
         // Ensure the post count for current month has increased by one
-        $this->assertEquals((int)$before->first()->Posts + 1, (int)$r->records([])->first()->Posts);
+        $this->assertEquals((int)$firstMonth->Posts + 1, (int)$r->sourceRecords([])->first()->Posts);
 
         // Move our post to April 2015 and ensure there are two posts (one is specified in fixture file)
         $post->Created = '2015-04-01 12:00:00';
         $post->write();
-        $this->assertEquals(2, $r->records([])->find('Month', '2015 April')->Posts);
+        $this->assertEquals(2, $r->sourceRecords([])->find('Month', '2015 April')->Posts);
 
         // We should now be back to our original number of posts in current month
-        $this->assertEquals((int)$before->first()->Posts, (int)$r->records([])->first()->Posts);
+        $this->assertEquals((int)$firstMonth->Posts, (int)$r->sourceRecords([])->first()->Posts);
     }
 }

@@ -117,7 +117,7 @@ ca:
   ForumMember_TopicNotification_ss:
     HI: "Hola %s,"
     NEWPOSTMESSAGE: "S'ha afegit un nou escrit al tema al qual esteu subscrit. Podeu <a href=\"%s\">veure aquest missatge prement aquí.</a>"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administrador"
     ANONYMOUS: "Usuari anònim"
     AVATAR: "Carrega un avatar"
@@ -136,9 +136,9 @@ ca:
     SURNAME: "Cognom"
     TRANSFERSUCCEEDED: "La transferència de dades ha tingut èxit. Tot i això, per a completar-la, heu d'eliminar la taula ForumMember. Per a fer-ho, executeu la consulta \"DROP TABLE 'ForumMember'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Etiquetes BBCode disponibles"
+    AVAILABLEMD: "Sintaxi Markdown disponible"
   Forum_reply_ss:
-    AVAILABLEBB: "Etiquetes BBCode disponibles"
+    AVAILABLEMD: "Sintaxi Markdown disponible"
   Forum_show_ss:
     AUTHOR: "Autor"
     CLICKGOTOEND: "Premeu aquí per anar al final d'aquest missatge"
@@ -155,7 +155,7 @@ ca:
     TOPIC: "Tema:"
     VIEWS: "Visites"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Etiquetes BBCode disponibles"
+    AVAILABLEMD: "Sintaxi Markdown disponible"
   Post:
     DELETE: "suprimeix"
     EDIT: "edita"

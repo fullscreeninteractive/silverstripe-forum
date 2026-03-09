@@ -131,7 +131,7 @@ pt_BR:
     NEWPOSTMESSAGE: "Um novo post foi incluível para o tópico que você esta inscrito."
     REPLYLINK: "Visualizar tópico"
     UNSUBSCRIBETEXT: "Desligar-se do tópico"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administrador"
     ANONYMOUS: "Usuário Anonimo"
     AVATAR: "Enviar imagem de Avatar"
@@ -151,9 +151,9 @@ pt_BR:
     SURNAME: "Sobrenome"
     TRANSFERSUCCEEDED: "A transferência foi realizada com sucesso. Contudo, para completar, você precisa excluir a tabela ForumMember.  Para isto, execute o comando \"DROP TABLE 'ForumMember'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Tags do BB disponíveis"
+    AVAILABLEMD: "Sintaxe Markdown disponível"
   Forum_reply_ss:
-    AVAILABLEBB: "Tags BBCode válidas"
+    AVAILABLEMD: "Sintaxe Markdown disponível"
   Forum_show_ss:
     AUTHOR: "Autor"
     CLICKGOTOEND: "Clique aqui para ir para o final da página"
@@ -170,7 +170,7 @@ pt_BR:
     TOPIC: "Tópico:"
     VIEWS: "visualizações"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Tags BBCode validas"
+    AVAILABLEMD: "Sintaxe Markdown disponível"
   Post:
     DELETE: "Excluir"
     EDIT: "Editar"

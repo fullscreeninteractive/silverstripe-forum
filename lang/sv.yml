@@ -115,7 +115,7 @@ sv:
     HI: "Hej %s,"
     REPLYLINK: "Visa rubriken"
     UNSUBSCRIBETEXT: "Av"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administratör"
     ANONYMOUS: "Anonym användare"
     AVATAR: "Ladda upp avatar"
@@ -129,9 +129,9 @@ sv:
     PASSWORD: "Lösenord"
     SURNAME: "Efternamn"
   Forum_editpost_ss:
-    AVAILABLEBB: "Tillgängliga BB Code-taggar"
+    AVAILABLEMD: "Tillgänglig Markdown-syntax"
   Forum_reply_ss:
-    AVAILABLEBB: "Tillgängliga BB Code-taggar"
+    AVAILABLEMD: "Tillgänglig Markdown-syntax"
   Forum_show_ss:
     AUTHOR: "Författare"
     CLICKGOTOEND: "Klicka här för att gå till slutet av det här inlägget"
@@ -147,7 +147,7 @@ sv:
     TOPIC: "Tråd:"
     VIEWS: "Visningar"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Tillgängliga BB Code-taggar"
+    AVAILABLEMD: "Tillgänglig Markdown-syntax"
   Post:
     DELETE: "radera"
     EDIT: "ändra"

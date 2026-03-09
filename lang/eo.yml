@@ -117,7 +117,7 @@ eo:
   ForumMember_TopicNotification_ss:
     HI: "Saluton %s,"
     NEWPOSTMESSAGE: "Nova afiŝo estas aldonita al temo al kiu vi abonis. Vi povas <a href=\"%s\">vidigi la afiŝon alklakante ĉi tie.</a>"
-  ForumRole:
+  ForumMemberExtension:
     ADMIN: "Administranto"
     ANONYMOUS: "Sennoma uzanto"
     AVATAR: "Alŝuti avataron"
@@ -136,9 +136,9 @@ eo:
     SURNAME: "Familia nomo"
     TRANSFERSUCCEEDED: "Sukcesis transigi datumojn. Tamen, por kompletigi ĝin, vi devas forigi la tabelon ForumMember. Por fari tion, rulu la informpeton \"DROP TABLE 'ForumMember'\"."
   Forum_editpost_ss:
-    AVAILABLEBB: "Disponeblaj BB-Kodaj etikedoj"
+    AVAILABLEMD: "Disponebla Markdown-sintakso"
   Forum_reply_ss:
-    AVAILABLEBB: "Disponeblaj BB-Kodaj etikedoj"
+    AVAILABLEMD: "Disponebla Markdown-sintakso"
   Forum_show_ss:
     AUTHOR: "Aŭtoro"
     CLICKGOTOEND: "Alklaku ĉi tie por iri al la fino de ĉi tiu afiŝo"
@@ -155,7 +155,7 @@ eo:
     TOPIC: "Temo:"
     VIEWS: "Vidigoj"
   Forum_starttopic_ss:
-    AVAILABLEBB: "Disponeblaj BB-Kodaj etikedoj"
+    AVAILABLEMD: "Disponebla Markdown-sintakso"
   Post:
     DELETE: "forigi"
     EDIT: "redakti"

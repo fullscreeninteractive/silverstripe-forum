@@ -2,8 +2,9 @@
 
 namespace FullscreenInteractive\SilverStripe\Forum\Model;
 
+use FullscreenInteractive\SilverStripe\Forum\Interfaces\PostContentParserInterface;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
-use FullscreenInteractive\SilverStripe\Forum\Parsers\BBCodeParser;
+use FullscreenInteractive\SilverStripe\Forum\Parsers\MarkdownParser;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
@@ -17,46 +18,46 @@ use SilverStripe\Security\Security;
 
 class Post extends DataObject
 {
-    private static $table_name = 'Post';
+    private static string $table_name = 'Post';
 
-    private static $singular_name = 'Post';
+    private static string $singular_name = 'Post';
 
-    private static $plural_name = 'Posts';
+    private static string $plural_name = 'Posts';
 
-    private static $description = 'A post in a forum thread';
+    private static string $description = 'A post in a forum thread';
 
     /**
      * @config
      */
-    private static $post_content_parser = BBCodeParser::class;
+    private static string $post_content_parser = MarkdownParser::class;
 
-    private static $db = [
+    private static array $db = [
         "Content" => "Text",
         "Status" => "Enum('Awaiting, Moderated, Rejected, Archived', 'Moderated')",
     ];
 
-    private static $casting = [
+    private static array $casting = [
         "Updated" => "Datetime",
         "RSSContent" => "HTMLText",
         "RSSAuthor" => "Varchar",
         "Content" => "HTMLText"
     ];
 
-    private static $has_one = [
+    private static array $has_one = [
         "Author" => Member::class,
         "Thread" => ForumThread::class,
         "Forum" => Forum::class
     ];
 
-    private static $has_many = [
+    private static array $has_many = [
         "Attachments" => PostAttachment::class
     ];
 
-    private static $cascade_deletes = [
+    private static array $cascade_deletes = [
         "Attachments"
     ];
 
-    private static $summary_fields = [
+    private static array $summary_fields = [
         "Content.LimitWordCount" => "Summary",
         "Created" => "Created",
         "Status" => "Status",
@@ -260,7 +261,7 @@ class Post extends DataObject
     {
         $member = Security::getCurrentUser();
 
-        if ($member->ID == $this->AuthorID) {
+        if ($member && $member->ID !== $this->AuthorID) {
             return $this->getModerationLink('markasspam', $this->ID, _t('Post.MARKASSPAM', 'Mark as Spam'), 'markAsSpamLink' . ($this->isFirstPost() ? ' firstPost' : ''));
         }
 
@@ -273,7 +274,7 @@ class Post extends DataObject
     {
         $member = Security::getCurrentUser();
 
-        if ($member->ID != $this->AuthorID) {
+        if ($member && $member->ID !== $this->AuthorID) {
             return $this->getModerationLink('ban', $this->AuthorID, _t('Post.BANUSER', 'Ban User'), 'banLink');
         }
 
@@ -324,7 +325,17 @@ class Post extends DataObject
 
     public function getParsedContent()
     {
-        $parser = Injector::inst()->get(self::config()->get('post_content_parser'));
+        $parserClass = self::config()->get('post_content_parser');
+
+        if (!$parserClass) {
+            return $this->Content;
+        }
+
+        $parser = Injector::inst()->get($parserClass);
+
+        if (!$parser instanceof PostContentParserInterface) {
+            return $this->Content;
+        }
 
         return $parser->parse($this->Content);
     }

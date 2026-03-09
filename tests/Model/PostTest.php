@@ -12,7 +12,7 @@ use SilverStripe\Security\Security;
 class PostTest extends FunctionalTest
 {
     protected static $fixture_file = [
-        'ForumTest.yml',
+        './tests/fixtures.yml',
     ];
 
     public function testPermissions()
@@ -91,7 +91,7 @@ class PostTest extends FunctionalTest
     public function testShowLink()
     {
         $post = $this->objFromFixture(Post::class, 'Post1');
-        Forum::$posts_per_page = 8;
+        Forum::config()->set('posts_per_page', 8);
 
         // test for show link on first page
         $this->assertStringContainsString((string) $post->Thread()->URLSegment . '/show/' . $post->ThreadID, $post->ShowLink());
@@ -164,39 +164,42 @@ class PostTest extends FunctionalTest
         $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
-        $this->assertContains($post->Thread()->URLSegment . '/deletePost/' . $post->ID, $post->DeleteLink());
+        $deleteLink = $post->DeleteLink();
+
+        $this->assertStringContainsString($post->Thread()->URLSegment . '/deletePost/' . $post->ID, (string) $deleteLink);
 
         // because this is the first post test for the class which is used in javascript
-        $this->assertContains("class=\"deleteLink firstPost\"", $post->DeleteLink());
+        $this->assertStringContainsString("class=\"deleteLink firstPost\"", (string) $deleteLink);
 
         $member->logOut();
 
         // log in as another member who is not in a position to delete this post
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture(Member::class, 'test2');
         $member->logIn();
 
         $this->assertFalse($post->DeleteLink());
 
         // log in as someone who can moderate this post (and therefore delete it)
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
+        $deleteLink = (string)  $post->DeleteLink();
 
         //check for the existance of a CSRF token
-        $this->assertContains("SecurityID=", $post->DeleteLink());
+        $this->assertStringContainsString("SecurityID=", $deleteLink);
 
         // should be able to edit post since they're moderators
         $this->assertContains($post->Thread()->URLSegment . '/deletePost/' . $post->ID, $post->DeleteLink());
 
         // test that a 2nd post doesn't have the first post ID hook
-        $memberOthersPost = $this->objFromFixture('Post', 'Post2');
+        $memberOthersPost = $this->objFromFixture(Post::class, 'Post2');
 
         $this->assertFalse(strstr($memberOthersPost->DeleteLink(), "firstPost"));
     }
 
     public function testMarkAsSpamLink()
     {
-        $post = $this->objFromFixture('Post', 'Post1');
+        $post = $this->objFromFixture(Post::class, 'Post1');
 
         SecurityToken::enable();
 
@@ -209,7 +212,7 @@ class PostTest extends FunctionalTest
         $this->assertFalse($post->MarkAsSpamLink());
 
         // logged in as the moderator. Should be able to mark the post as spam.
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
         $this->assertContains($post->Thread()->URLSegment . '/markasspam/' . $post->ID, $post->MarkAsSpamLink());
@@ -220,31 +223,31 @@ class PostTest extends FunctionalTest
         $member->logOut();
 
         // log in as another member who is not in a position to mark post as spam this post
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture(Member::class, 'test2');
         $member->logIn();
 
         $this->assertFalse($post->MarkAsSpamLink());
 
         // log in as someone who can moderate this post (and therefore mark as spam)
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
 
         //check for the existance of a CSRF token
-        $this->assertContains("SecurityID=", $post->MarkAsSpamLink());
+        $this->assertStringContainsString("SecurityID=", (string) $post->MarkAsSpamLink());
 
         // should be able to edit post since they're moderators
-        $this->assertContains($post->Thread()->URLSegment . '/markasspam/' . $post->ID, $post->MarkAsSpamLink());
+        $this->assertStringContainsString($post->Thread()->URLSegment . '/markasspam/' . $post->ID, (string) $post->MarkAsSpamLink());
 
         // test that a 2nd post doesn't have the first post ID hook
-        $memberOthersPost = $this->objFromFixture('Post', 'Post2');
+        $memberOthersPost = $this->objFromFixture(Post::class, 'Post2');
 
         $this->assertFalse(strstr($memberOthersPost->MarkAsSpamLink(), "firstPost"));
     }
 
     public function testBanAndGhostLink()
     {
-        $post = $this->objFromFixture('Post', 'Post1');
+        $post = $this->objFromFixture(Post::class, 'Post1');
 
         // should be false since we're not logged in.
         if ($member = Security::getCurrentUser()) {
@@ -256,7 +259,7 @@ class PostTest extends FunctionalTest
         $this->assertFalse($post->GhostLink());
 
         // logged in as the moderator. Should be able to mark the post as spam.
-        $member = $this->objFromFixture('Member', 'moderator');
+        $member = $this->objFromFixture(Member::class, 'moderator');
         $member->logIn();
 
         $forum = $post->Thread()->Forum();
@@ -266,7 +269,7 @@ class PostTest extends FunctionalTest
         $member->logOut();
 
         // log in as another member who is not in a position to mark post as spam this post
-        $member = $this->objFromFixture('Member', 'test2');
+        $member = $this->objFromFixture(Member::class, 'test2');
         $member->logIn();
 
         $this->assertFalse($post->BanLink());
@@ -289,11 +292,21 @@ class PostTest extends FunctionalTest
 
     public function testRSSContent()
     {
-        // @todo escaping tests. They are handled by bbcode parser tests?
+        $post = $this->objFromFixture(Post::class, 'Post1');
+        $rssContent = $post->getRSSContent();
+
+        $this->assertNotNull($rssContent);
+        $value = $rssContent->getValue();
+        $this->assertStringContainsString('This is my first post', $value);
+        $this->assertStringContainsString('Test Thread', $value);
     }
 
     public function testRSSAuthor()
     {
-        // @todo
+        $post = $this->objFromFixture(Post::class, 'Post1');
+        $this->assertEquals('test1', $post->getRSSAuthor());
+
+        $post3 = $this->objFromFixture(Post::class, 'Post3');
+        $this->assertEquals('test2', $post3->getRSSAuthor());
     }
 }
