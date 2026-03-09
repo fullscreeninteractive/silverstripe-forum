@@ -200,7 +200,7 @@ class ForumHolderController extends PageController
             $rss = new RSSFeed(
                 $this->getRecentPosts(50, $forumID, $threadID) ?? ArrayList::create(),
                 $this->Link() . 'rss',
-                sprintf(_t('Forum.RSSFORUMPOSTSTO'), $this->Title),
+                sprintf(_t('Forum.RSSFORUMPOSTSTO', 'Posts to the %s forum'), $this->Title),
                 "",
                 "Title",
                 "RSSContent",
@@ -231,7 +231,7 @@ class ForumHolderController extends PageController
                 $rss = new RSSFeed(
                     $available,
                     $this->Link() . 'rss',
-                    sprintf(_t('Forum.RSSFORUMPOSTSTO'), $this->Title),
+                    sprintf(_t('Forum.RSSFORUMPOSTSTO', 'Posts to the %s forum'), $this->Title),
                     "",
                     "Title",
                     "RSSContent",

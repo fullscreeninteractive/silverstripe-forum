@@ -15,7 +15,7 @@
     <p class="forum__message forum__message--error"><%t Forum_ss.READONLYFORUM "This Forum is read only. You cannot post replies or start new threads" %></p>
 <% end_if %>
 <% if canPost %>
-    <p><a href="{$Link(starttopic)}" title="<%t Forum_ss.NEWTOPIC "Click here to start a new topic" %>"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="bevel"><path d="M12 5v14"></path><path d="M5 12h14"></svg></a></p>
+    <p><a href="{$Link(starttopic)}" title="<%t Forum_ss.NEWTOPIC "Click here to start a new topic" %>"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="bevel"><path d="M12 5v14"></path><path d="M5 12h14"></svg> <%t Forum_ss.NEWTOPICSHORT "Start a new topic" %></a></p>
 <% end_if %>
 
 <div class="forum__features">
