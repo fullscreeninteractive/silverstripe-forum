@@ -7,6 +7,7 @@ use FullscreenInteractive\SilverStripe\Forum\Form\AdminActionsForm;
 use FullscreenInteractive\SilverStripe\Forum\Form\PostMessageForm;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
 use PageController;
+use SilverStripe\Control\Controller;
 use SilverStripe\View\Requirements;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
 use FullscreenInteractive\SilverStripe\Forum\Model\PostAttachment;
@@ -34,6 +35,7 @@ class ForumController extends PageController
         'AdminFormFeatures',
         'deleteAttachment',
         'deletePost',
+        'deletethread',
         'editpost',
         'markasspam',
         'PostMessageForm',
@@ -265,6 +267,7 @@ class ForumController extends PageController
         return ($request->isAjax()) ? true : $this->redirectBack();
     }
 
+
     public function ghost()
     {
         $request = $this->getRequest();
@@ -401,6 +404,7 @@ class ForumController extends PageController
         return $content;
     }
 
+
     /**
      * Get the link for the reply action
      *
@@ -410,6 +414,26 @@ class ForumController extends PageController
     {
         return self::join_links($this->Link(), 'reply', $this->urlParams['ID']);
     }
+
+
+    public function reply()
+    {
+        $thread = $this->getForumThread();
+
+        if (!$thread) {
+            return $this->httpError(404);
+        }
+
+        $form = $this->PostMessageForm();
+        $form->setThread($thread);
+
+        return [
+            'Thread' => $thread,
+            'PostMessageForm' => $form,
+            'Title' => DBField::create_field('HTMLText', _t('Forum.REPLYTO', 'Replying to: %s', $thread->Title))
+        ];
+    }
+
 
     /**
      * Show will get the selected thread to the user. Also increments the forums view count.
@@ -576,9 +600,80 @@ class ForumController extends PageController
             return $this->httpError(403);
         }
 
+        $thread = $post->Thread();
         $post->delete();
 
+        $remainingPosts = Post::get()->filter('ThreadID', $thread->ID)->count();
+
+        if ($remainingPosts === 0) {
+            $thread->delete();
+
+            return $this->redirect($this->Link());
+        }
+
         return $this->redirectBack();
+    }
+
+
+    /**
+     * Delete an entire thread and all its posts.
+     *
+     * Requires moderator permissions and a valid security token.
+     */
+    public function deletethread()
+    {
+        $request = $this->getRequest();
+
+        if (!SecurityToken::inst()->checkRequest($request)) {
+            return $this->httpError(400);
+        }
+
+        $id = $request->param('ID');
+
+        if (!$id) {
+            return $this->httpError(400);
+        }
+
+        $thread = ForumThread::get()->byID($id);
+
+        if (!$thread) {
+            return $this->httpError(404);
+        }
+
+        if (!$thread->canDelete()) {
+            return $this->httpError(403);
+        }
+
+        $currentUser = Security::getCurrentUser();
+
+        Injector::inst()->get(LoggerInterface::class)->info(sprintf(
+            'Deleted thread "%s" (#%d), by moderator %s (#%d)',
+            $thread->Title,
+            $thread->ID,
+            $currentUser->Email ?? 'Unknown',
+            $currentUser->ID ?? 0
+        ));
+
+        $thread->delete();
+
+        return ($request->isAjax()) ? true : $this->redirect($this->Link());
+    }
+
+
+    /**
+     * Returns a tokenised URL for deleting the current thread, if the user can moderate.
+     */
+    public function DeleteThreadLink(): ?string
+    {
+        $thread = $this->getForumThread();
+
+        if (!$thread || !$thread->canDelete()) {
+            return null;
+        }
+
+        $url = Controller::join_links($this->Link('deletethread'), $thread->ID);
+
+        return SecurityToken::inst()->addToUrl($url);
     }
 
 

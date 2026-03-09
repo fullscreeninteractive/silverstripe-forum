@@ -83,6 +83,10 @@
 <div class="forum__admin-features">
     <h3 class="forum__admin-features-title">Forum Admin Features</h3>
     $AdminFormFeatures
+
+    <% if $DeleteThreadLink %>
+        <a href="$DeleteThreadLink" class="forum__delete-thread-link deleteThreadLink"><%t Forum.DELETETHREAD "Delete Thread" %></a>
+    <% end_if %>
 </div>
 <% end_if %>
 

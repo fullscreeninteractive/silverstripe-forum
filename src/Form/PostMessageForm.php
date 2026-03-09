@@ -23,11 +23,13 @@ class PostMessageForm extends Form
 {
     protected ?Post $post = null;
 
+    protected ?ForumThread $thread = null;
+
     public function __construct($controller, $name)
     {
         $fields = FieldList::create([
             TextField::create("Title", _t('Forum.FORUMTHREADTITLE', 'Title')),
-            TextareaField::create("Content", _t('Forum.FORUMREPLYCONTENT', 'Content')),
+            TextareaField::create("Content", _t('Forum.FORUMREPLYCONTENT', 'Message')),
             HiddenField::create('ThreadID', 'ThreadID'),
             HiddenField::create('ID', 'ID'),
             CheckboxField::create(
@@ -50,7 +52,21 @@ class PostMessageForm extends Form
     }
 
 
-    public function setPost(Post $post)
+    public function setThread(?ForumThread $thread = null)
+    {
+        $this->loadDataFrom([
+            'ThreadID' => $thread ? $thread->ID : null,
+            'Title' => $thread ? $thread->Title : null,
+        ]);
+
+        $this->thread = $thread;
+        $this->fields->makeFieldReadonly('Title');
+
+        return $this;
+    }
+
+
+    public function setPost(?Post $post = null)
     {
         $this->loadDataFrom($post);
 

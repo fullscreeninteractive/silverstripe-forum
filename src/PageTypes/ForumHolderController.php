@@ -11,7 +11,6 @@ use SilverStripe\Core\Convert;
 use SilverStripe\Model\List\PaginatedList;
 use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\View\Requirements;
-use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
 
 class ForumHolderController extends PageController
@@ -27,7 +26,7 @@ class ForumHolderController extends PageController
 
     public function init()
     {
-        Requirements::javascript("fullscreeninteractive/silverstripe-forum:client/javascript/forum.js");
+        Requirements::javascript("fullscreeninteractive/silverstripe-forum:client/javascript/Forum.js");
         Requirements::css("fullscreeninteractive/silverstripe-forum:client/css/Forum.css");
 
         parent::init();

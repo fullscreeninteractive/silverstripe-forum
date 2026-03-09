@@ -203,6 +203,25 @@
     });
 
     /**
+     * Delete Thread link.
+     *
+     * Confirm before deleting the entire thread and all its posts.
+     * Uses native navigation (like ban/ghost) so the server redirect works cleanly.
+     */
+    var deleteThreadLinks = document.querySelectorAll("a.deleteThreadLink");
+    deleteThreadLinks.forEach(function (link) {
+      link.addEventListener("click", function (e) {
+        if (
+          !confirm(
+            "Are you sure you want to delete this entire thread?\nAll posts in this thread will be permanently removed."
+          )
+        ) {
+          e.preventDefault();
+        }
+      });
+    });
+
+    /**
      * Ban / Ghost member confirmation
      */
     var banGhostLinks = document.querySelectorAll("a.banLink, a.ghostLink");

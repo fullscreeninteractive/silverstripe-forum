@@ -23,7 +23,6 @@ use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Model\List\PaginatedList;
-use SilverStripe\ORM\DB;
 use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
