@@ -4,3 +4,4 @@
 /public
 /app
 .phpunit.result.cache
+.phpunit.cache/
