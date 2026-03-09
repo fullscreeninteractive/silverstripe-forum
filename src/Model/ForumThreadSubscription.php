@@ -70,7 +70,7 @@ class ForumThreadSubscription extends DataObject
                 try {
                     $email->send();
                 } catch (Exception $e) {
-                    Injector::inst()->get(LoggerInterface::class)->error($e->getMessage(), $e);
+                    Injector::inst()->get(LoggerInterface::class)->error($e->getMessage(), ['exception' => $e]);
                 }
             }
         }

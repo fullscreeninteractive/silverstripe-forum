@@ -3,6 +3,7 @@
 namespace FullscreenInteractive\SilverStripe\Forum\Tests\Model;
 
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
+use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolderController;
 use SilverStripe\Dev\FunctionalTest;

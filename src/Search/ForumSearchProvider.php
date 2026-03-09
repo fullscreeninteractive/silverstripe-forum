@@ -2,22 +2,15 @@
 
 namespace FullscreenInteractive\SilverStripe\Forum\Search;
 
+use SilverStripe\ORM\DataList;
+
 /**
  * Interface for the Search classes
- *
- * @package forum
  */
 
 interface ForumSearchProvider
 {
+    public function getResults(int $forumHolderID, string $query, string $order, int $offset = 0, int $limit = 10): ?DataList;
 
-    /**
-     * Results function
-     */
-    public function getResults($forumHolderID, $query, $order, $offset = 0, $limit = 10);
-
-    /**
-     * A callback when this forum search provider is loaded
-     */
-    public function load();
+    public function load(): bool;
 }

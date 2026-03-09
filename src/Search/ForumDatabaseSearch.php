@@ -3,11 +3,11 @@
 namespace FullscreenInteractive\SilverStripe\Forum\Search;
 
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
+use SilverStripe\Core\Convert;
+use SilverStripe\ORM\DataList;
 
 /**
- * Basic Forum Database Search. For a better search try the {@link ForumSphinxSearch}
- *
- * @package forum
+ * Basic Forum Database Search.
  */
 
 class ForumDatabaseSearch implements ForumSearchProvider
@@ -24,7 +24,7 @@ class ForumDatabaseSearch implements ForumSearchProvider
      *
      * @return DataSet Results of matching posts or empty DataSet if no results.
      */
-    public function getResults($forumHolderID, $query, $order = null, $offset = 0, $limit = 10)
+    public function getResults(int $forumHolderID, string $query, string $order = 'relevance', int $offset = 0, int $limit = 10): ?DataList
     {
 
         //sanitise the query string to avoid XSS (Using the ORM will also help avoid this too).
@@ -38,10 +38,6 @@ class ForumDatabaseSearch implements ForumSearchProvider
         //Add the original full query as one of the keywords.
         $terms[] = $query;
 
-        //Get  posts (limitation is that it picks up the whole phase rather than a FULLTEXT SEARCH.
-        //We are aiming to keep this as simple as possible). More complex impementations acheived with Solr.
-        //Rquires the post be moderated, then Checks for any match of Author name or Content partial match.
-        //Author name checks the full query whereas Content checks each term for matches.
         $posts = Post::get()
             ->filter([
                 'Status' => 'Moderated', //posts my be moderated/visible.
@@ -73,13 +69,13 @@ class ForumDatabaseSearch implements ForumSearchProvider
                 break;
         }
 
-        return $posts ? $posts : new DataList();
+        return $posts ? $posts : null;
     }
 
     /**
      * Callback when this Provider is loaded. For dealing with background processes
      */
-    public function load()
+    public function load(): bool
     {
         return true;
     }

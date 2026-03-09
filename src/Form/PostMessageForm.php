@@ -218,11 +218,14 @@ class PostMessageForm extends Form
                 $obj->write();
             }
         } elseif ($isSubscribed) {
-            // See if the member wanted to remove themselves
-            ForumThreadSubscription::get()->filter([
+            $subscriptions = ForumThreadSubscription::get()->filter([
                 'ThreadID' => $thread->ID,
                 'MemberID' => $member->ID
-            ])->delete();
+            ]);
+
+            foreach ($subscriptions as $subscription) {
+                $subscription->delete();
+            }
         }
 
         // Send any notifications that need to be sent

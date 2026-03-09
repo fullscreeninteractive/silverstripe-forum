@@ -60,7 +60,6 @@ class ForumRegistrationForm extends Form
         if (ForumHolder::config()->get('use_spamprotection_on_register')) {
             $this->enableSpamProtection();
         }
-
     }
 
 
@@ -93,8 +92,7 @@ class ForumRegistrationForm extends Form
                 $this->request->getSession()->set("FormInfo.Form_RegistrationForm.data", $data);
                 return $this->redirectBack();
             }
-        } elseif (
-            $this->getForumHolder()->OpenIDAvailable()
+        } elseif ($this->getForumHolder()->OpenIDAvailable()
             && isset($data['IdentityURL'])
             && ($member = Member::get()->filter('IdentityURL', $data['IdentityURL'])->first())
         ) {

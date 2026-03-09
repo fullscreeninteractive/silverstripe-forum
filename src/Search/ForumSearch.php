@@ -20,7 +20,7 @@ class ForumSearch
      *
      * @var String
      */
-    private static $search_engine = 'ForumDatabaseSearch';
+    private static $search_engine = ForumDatabaseSearch::class;
 
     /**
      * Set the search class to use for the Forum search. Must implement the

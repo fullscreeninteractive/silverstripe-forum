@@ -4,6 +4,7 @@ namespace FullscreenInteractive\SilverStripe\Forum\PageTypes;
 
 use PageController;
 use SilverStripe\Control\RSS\RSSFeed;
+use SilverStripe\Model\List\ArrayList;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
 use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use FullscreenInteractive\SilverStripe\Forum\Search\ForumSearch;
@@ -47,35 +48,33 @@ class ForumHolderController extends PageController
      */
     public function popularthreads()
     {
-        $start = $this->request->getVar('start') ?: 0;
+        $start = (int) ($this->request->getVar('start') ?: 0);
         $limit = 20;
-        $method = $this->request->getVar('by') ?: null;
-        if (!$method) {
-            $method = 'posts';
-        }
+        $method = $this->request->getVar('by') ?: 'posts';
 
-        if ($method == 'posts') {
-            $threadsQuery = ForumThread::get()->buildSQL(
-                "\"SiteTree\".\"ParentID\" = '" . $this->ID . "'",
-                "\"PostCount\" DESC",
-                "$start,$limit",
-                "LEFT JOIN \"Post\" ON \"Post\".\"ThreadID\" = \"ForumThread\".\"ID\" LEFT JOIN \"SiteTree\" ON \"SiteTree\".\"ID\" = \"ForumThread\".\"ForumID\""
-            );
-            $threadsQuery->select[] = "COUNT(\"Post\".\"ID\") AS 'PostCount'";
-            $threadsQuery->groupby[] = "\"ForumThread\".\"ID\"";
-            $threads = singleton('ForumThread')->buildDataObjectSet($threadsQuery->execute());
-            if ($threads) {
-                $threads->setPageLimits($start, $limit, $threadsQuery->unlimitedRowCount());
-            }
-        } elseif ($method == 'views') {
-            $threads = ForumThread::get()->sort("NumViews", "DESC")->limit($limit, $start);
+        if ($method === 'posts') {
+            $threads = ForumThread::get()
+                ->filter('Forum.ParentID', $this->ID)
+                ->leftJoin('Post', '"Post"."ThreadID" = "ForumThread"."ID"')
+                ->alterDataQuery(function ($query) {
+                    $query->query()
+                        ->addSelect(['COUNT("Post"."ID") AS "PostCount"'])
+                        ->addGroupBy('"ForumThread"."ID"');
+                })
+                ->sort('"PostCount" DESC')
+                ->limit($limit, $start);
+        } else {
+            $threads = ForumThread::get()
+                ->filter('Forum.ParentID', $this->ID)
+                ->sort('NumViews', 'DESC')
+                ->limit($limit, $start);
         }
 
         return [
             'Title' => _t('ForumHolder.POPULARTHREADS', 'Most popular forum threads'),
             'Subtitle' => _t('ForumHolder.POPULARTHREADS', 'Most popular forum threads'),
             'Method' => $method,
-            'Threads' => $threads
+            'Threads' => $threads,
         ];
     }
 
@@ -199,7 +198,7 @@ class ForumHolderController extends PageController
 
         if (!isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
             $rss = new RSSFeed(
-                $this->getRecentPosts(50, $forumID, $threadID),
+                $this->getRecentPosts(50, $forumID, $threadID) ?? ArrayList::create(),
                 $this->Link() . 'rss',
                 sprintf(_t('Forum.RSSFORUMPOSTSTO'), $this->Title),
                 "",
@@ -264,17 +263,17 @@ class ForumHolderController extends PageController
      */
     public function GlobalAnnouncements()
     {
-        // Get all the forums with global sticky threads
         return ForumThread::get()
-            ->filter('IsGlobalSticky', 1)
-            ->innerJoin(ForumHolder::baseForumTable(), '"ForumThread"."ForumID"="ForumPage"."ID"', "ForumPage")
-            ->where('"ForumPage"."ParentID" = ' . $this->ID)
+            ->filter([
+                'IsGlobalSticky' => 1,
+                'Forum.ParentID' => $this->ID,
+            ])
             ->filterByCallback(function ($thread) {
                 if ($thread->canView()) {
-                    $post = Post::get()->filter('ThreadID', $thread->ID)->sort('Post.Created DESC');
-                    $thread->Post = $post;
+                    $thread->Post = Post::get()->filter('ThreadID', $thread->ID)->sort('Created', 'DESC');
                     return true;
                 }
+                return false;
             });
     }
 }

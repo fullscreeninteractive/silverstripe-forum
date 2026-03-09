@@ -197,7 +197,10 @@ class ForumHolder extends Page
             return 0;
         }
 
-        return Post::get()->filter('ForumID', $forums->column('ID'))->count();
+        return Post::get()->filter([
+            'ForumID' => $forums->column('ID'),
+            'Author.ForumStatus' => 'Normal',
+        ])->count();
     }
 
 
@@ -214,10 +217,12 @@ class ForumHolder extends Page
             return 0;
         }
 
-        return ForumThread::get()->filter([
+        $threadIDs = Post::get()->filter([
             'ForumID' => $forums->column('ID'),
-            'Author.ForumStatus' => 'Normal'
-        ])->count();
+            'Author.ForumStatus' => 'Normal',
+        ])->columnUnique('ThreadID');
+
+        return count($threadIDs);
     }
 
 
@@ -234,10 +239,12 @@ class ForumHolder extends Page
             return 0;
         }
 
-        return Post::get()->filter([
+        $authorIDs = Post::get()->filter([
             'ForumID' => $forums->column('ID'),
-            'Author.ForumStatus' => 'Normal'
-        ])->distinct('AuthorID')->count();
+            'Author.ForumStatus' => 'Normal',
+        ])->columnUnique('AuthorID');
+
+        return count($authorIDs);
     }
 
     /**
@@ -406,9 +413,11 @@ class ForumHolder extends Page
         }
 
         // limit to just this forum install
-        $posts = $posts->filter(["ParentID" => $this->ID]);
+        $posts = $posts->filter(["Forum.ParentID" => $this->ID]);
 
-        return $posts->sort("ID", "DESC")->limit($limit);
+        $result = $posts->sort("ID", "DESC")->limit($limit);
+
+        return $result->exists() ? $result : null;
     }
 
 
@@ -452,24 +461,16 @@ class ForumHolder extends Page
 
         $lastPost = $posts->sort("ID", "DESC")->limit(1)->first();
 
-        if ($data) {
+        if ($data && $lastPost) {
             $data['last_id'] = (int)$lastPost->ID;
             $data['last_created'] = strtotime($lastPost->Created);
         }
 
-        $lastVisit = (int) $lastVisit;
-
-        if ($lastVisit <= 0) {
-            $lastVisit = false;
-        }
-
-        $lastPostID = (int)$lastPostID;
-        if ($lastPostID <= 0) {
-            $lastPostID = false;
-        }
-
         if (!$lastVisit && !$lastPostID) {
             return true;
+        }
+        if (!$lastPost) {
+            return false;
         }
         if ($lastVisit && (strtotime($lastPost->Created) > $lastVisit)) {
             return true;

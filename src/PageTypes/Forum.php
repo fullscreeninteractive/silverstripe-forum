@@ -310,7 +310,12 @@ class Forum extends Page
      */
     public function getNumTopics()
     {
-        return ForumThread::get()->filter(["ForumID" => $this->ID])->count();
+        $threadIDs = Post::get()->filter([
+            'ForumID' => $this->ID,
+            'Author.ForumStatus' => 'Normal',
+        ])->columnUnique('ThreadID');
+
+        return count($threadIDs);
     }
 
     /**
@@ -319,8 +324,8 @@ class Forum extends Page
     public function getNumPosts()
     {
         return Post::get()->filter([
-            "ForumID" => $this->ID,
-            "Author.ForumStatus" => "Normal"
+            'ForumID' => $this->ID,
+            'Author.ForumStatus' => 'Normal',
         ])->count();
     }
 
@@ -330,10 +335,12 @@ class Forum extends Page
      */
     public function getNumAuthors(): int
     {
-        return Post::get()->filter([
-            "ForumID" => $this->ID,
-            "Author.ForumStatus" => "Normal"
-        ])->distinct("AuthorID")->count();
+        $authorIDs = Post::get()->filter([
+            'ForumID' => $this->ID,
+            'Author.ForumStatus' => 'Normal',
+        ])->columnUnique('AuthorID');
+
+        return count($authorIDs);
     }
 
     /**
@@ -373,7 +380,10 @@ class Forum extends Page
             ->addOrderBy(['"PostMax"."PostCreatedMax" DESC', '"PostMax"."PostIDMax" DESC'])
             ->setDistinct(false);
 
-        // And return the results
+        if (!$threads->exists()) {
+            return null;
+        }
+
         return PaginatedList::create($threads);
     }
 
@@ -381,15 +391,15 @@ class Forum extends Page
 
     /*
      * Returns the Sticky Threads
-     * @param boolean $include_global Include Global Sticky Threads in the results (default: true)
+     * @param bool $include_global Include Global Sticky Threads in the results (default: true)
      * @return DataList
      */
-    public function getStickyTopics($include_global = true)
+    public function getStickyTopics(bool $includeGlobalSticky = true)
     {
         // Get Threads that are sticky & in this forum
         $where = '("ForumThread"."ForumID" = ' . $this->ID . ' AND "ForumThread"."IsSticky" = 1)';
         // Get Threads that are globally sticky
-        if ($include_global) {
+        if ($includeGlobalSticky) {
             $where .= ' OR ("ForumThread"."IsGlobalSticky" = 1)';
         }
 

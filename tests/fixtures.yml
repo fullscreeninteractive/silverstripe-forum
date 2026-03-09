@@ -84,20 +84,20 @@ FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder:
 FullscreenInteractive\SilverStripe\Forum\Model\ForumCategory:
   fh1cat1:
     Title: cat1
-    StackableOrder: 1
-    ForumHolderID: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh
+    SortOrder: 1
+    Parent: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh
   fh1cat2:
     Title: cat2
-    StackableOrder: 2
-    ForumHolderID: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh
+    SortOrder: 2
+    Parent: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh
   fh2cat3:
     Title: cat3
-    StackableOrder: 3
-    ForumHolderID: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh2
+    SortOrder: 3
+    Parent: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh2
   fh2cat4:
     Title: cat4
-    StackableOrder: 4
-    ForumHolderID: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh2
+    SortOrder: 4
+    Parent: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh2
 FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum:
   general:
     Title: General Discussion

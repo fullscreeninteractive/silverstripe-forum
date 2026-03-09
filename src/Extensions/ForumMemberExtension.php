@@ -295,7 +295,7 @@ class ForumMemberExtension extends Extension
     {
         $suspendedUntil = $this->owner->dbObject('SuspendedUntil');
         if ($suspendedUntil && $suspendedUntil->exists()) {
-            return $suspendedUntil->isInThePast();
+            return !$suspendedUntil->InPast();
         }
 
         return false;

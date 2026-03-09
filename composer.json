@@ -29,7 +29,8 @@
         "lint:fix": "phpcbf src/ tests/",
         "phpstan": "phpstan analyse -c phpstan.neon",
         "syntax-check": "find src/ tests/ -type f -name '*.php' -exec php -l {} \\;",
-        "test": "phpunit tests"
+        "test": "phpunit tests",
+        "coverage": "phpunit tests --coverage-text"
     },
     "extra": {
         "branch-alias": {

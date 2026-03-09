@@ -2,6 +2,7 @@
 
 namespace FullscreenInteractive\SilverStripe\Forum\Email;
 
+use Exception;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\Email\Email;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
@@ -38,11 +39,16 @@ class ForumSubscriptionEmail extends Email
             $from = Email::config()->get('admin_email');
         }
 
+        if (!$this->post || !$this->subscription) {
+            throw new Exception('Post and subscription are required');
+        }
+
         $this->setFrom($from);
         $this->setTo($this->subscription->Member()->Email);
         $this->setSubject(_t('Post.NEWREPLY', 'New reply for {title}', [
             'title' => $this->post->Title,
         ]));
+
         $this->setHTMLTemplate('email/ForumMember_TopicNotification');
         $this->setData($this->post);
         $this->addData('Nickname', $this->subscription->Member()->Nickname);

@@ -4,6 +4,3 @@ Name: silverstripe-forum
 SilverStripe\Security\Member:
   extensions:
     - FullscreenInteractive\SilverStripe\Forum\Extensions\ForumMemberExtension
-SilverStripe\Forum\Model\Post:
-  extensions:
-    - FullscreenInteractive\SilverStripe\Forum\Extensions\ForumSpamPostExtension

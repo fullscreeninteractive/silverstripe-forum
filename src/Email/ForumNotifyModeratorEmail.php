@@ -46,10 +46,15 @@ class ForumNotifyModeratorEmail extends Email
     public function send(): void
     {
         if ($this->startingThread) {
-            $this->setSubject('New thread "' . $this->thread->Title . '" in forum [' . $this->thread->Forum->Title . ']');
+            $this->setSubject(sprintf(
+                'New thread "%s" in forum [%s]', $this->thread->Title, $this->thread->Forum->Title
+            ));
         } else {
-            $this->setSubject('New post "' . $this->post->Title . '" in forum [' . $this->thread->Forum->Title . ']');
+            $this->setSubject(sprintf(
+                'New post "%s" in forum [%s]', $this->post->Title, $this->thread->Forum->Title
+            ));
         }
+
         $this->setHTMLTemplate('email/ForumMember_NotifyModerator');
         $this->addData([
             'NewThread' => $this->startingThread,
