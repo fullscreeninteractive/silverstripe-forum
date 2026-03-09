@@ -154,7 +154,7 @@ class ForumMemberExtension extends Extension
      */
     public function isModeratingForum(Forum $forum): bool
     {
-        $moderatorIds = $forum->Moderators() ? $forum->Moderators()->getIdList() : array();
+        $moderatorIds = $forum->Moderators() ? $forum->Moderators()->getIdList() : [];
         return in_array($this->owner->ID, $moderatorIds);
     }
 
@@ -171,7 +171,7 @@ class ForumMemberExtension extends Extension
 
         $avatarField = FileField::create('Avatar', _t('ForumRole.AVATAR', 'Avatar Image') . ' ' . $gravatarText);
         $avatarField->setFolderName(ForumHolder::config()->get('avatars_folder'));
-        $avatarField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'gif', 'png'));
+        $avatarField->getValidator()->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png']);
 
         $personalDetailsFields = CompositeField::create([
             LiteralField::create("PersonalDetails", "<h2>" . _t('ForumRole.PERSONAL', 'Personal Details') . "</h2>"),

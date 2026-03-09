@@ -181,7 +181,7 @@ class ForumHolderTest extends FunctionalTest
         $fh = $this->objFromFixture(ForumHolder::class, "fh");
 
         // test last visit. we can assume that these tests have been reloaded in the past 24 hours
-        $data = array();
+        $data = [];
         $this->assertTrue(ForumHolder::new_posts_available($fh->ID, $data, date('Y-m-d H:i:s', mktime(0, 0, 0, date('m'), date('d') - 1, date('Y')))));
 
         // set the last post ID (test the first post - so there should be a post, last post (false))

@@ -358,19 +358,19 @@ class Forum extends Page
             ->setDistinct(false);
 
         // Get a list of forum threads inside this forum that aren't sticky
-        $threads = ForumThread::get()->filter(array(
+        $threads = ForumThread::get()->filter([
             'ForumID' => $this->ID,
             'IsGlobalSticky' => 0,
             'IsSticky' => 0
-        ));
+        ]);
 
         // Get the underlying query and change it to inner join on the posts list to just show threads that
         // have approved (and maybe awaiting) posts, and sort the threads by the most recent post
         $threadQuery = $threads->dataQuery()->query();
         $threadQuery
-            ->addSelect(array('"PostMax"."PostCreatedMax", "PostMax"."PostIDMax"'))
+            ->addSelect(['"PostMax"."PostCreatedMax", "PostMax"."PostIDMax"'])
             ->addFrom('INNER JOIN (' . $postQuery->sql() . ') AS "PostMax" ON ("PostMax"."ThreadID" = "ForumThread"."ID")')
-            ->addOrderBy(array('"PostMax"."PostCreatedMax" DESC', '"PostMax"."PostIDMax" DESC'))
+            ->addOrderBy(['"PostMax"."PostCreatedMax" DESC', '"PostMax"."PostIDMax" DESC'])
             ->setDistinct(false);
 
         // And return the results

@@ -133,11 +133,11 @@ class ForumHolder extends Page
 
             $fields->addFieldsToTab("Root.Access", [
                 HeaderField::create(_t('Forum.ACCESSPOST', 'Who can post to the forum?'), 2),
-                OptionsetField::create("CanPostType", "", array(
+                OptionsetField::create("CanPostType", "", [
                     "Anyone" => _t('Forum.READANYONE', 'Anyone'),
                     "LoggedInUsers" => _t('Forum.READLOGGEDIN', 'Logged-in users'),
                     "NoOne" => _t('Forum.READNOONE', 'Nobody. Make Forum Read Only')
-                ))
+                ])
             ]);
         });
 
@@ -259,7 +259,7 @@ class ForumHolder extends Page
             return false;
         }
 
-        $groupIDs = array();
+        $groupIDs = [];
 
         if ($forumGroup = Group::get()->filter('Code', 'forum-members')->first()) {
             $groupIDs[] = $forumGroup->ID;

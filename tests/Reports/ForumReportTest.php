@@ -19,7 +19,7 @@ class ForumReportTest extends FunctionalTest
     public function testMemberSignupsReport()
     {
         $r = new ForumMonthlyPosts();
-        $before = $r->sourceRecords(array());
+        $before = $r->sourceRecords([]);
 
         // Create a new Member in current month
         $member = Member::create();
@@ -27,15 +27,15 @@ class ForumReportTest extends FunctionalTest
         $member->write();
 
         // Ensure the signup count for current month has increased by one
-        $this->assertEquals((int)$before->first()->Signups + 1, (int)$r->records(array())->first()->Signups);
+        $this->assertEquals((int)$before->first()->Signups + 1, (int)$r->records([])->first()->Signups);
 
         // Move our member to have signed up in April 2015 and check that month's signups
         $member->Created = '2015-04-01 12:00:00';
         $member->write();
-        $this->assertEquals(1, $r->records(array())->find('Month', '2015 April')->Signups);
+        $this->assertEquals(1, $r->records([])->find('Month', '2015 April')->Signups);
 
         // We should now be back to our original number of members in current month
-        $this->assertEquals((int)$before->first()->Signups, (int)$r->records(array())->first()->Signups);
+        $this->assertEquals((int)$before->first()->Signups, (int)$r->records([])->first()->Signups);
     }
 
     public function testMonthlyPostsReport()
@@ -51,14 +51,14 @@ class ForumReportTest extends FunctionalTest
         $post->write();
 
         // Ensure the post count for current month has increased by one
-        $this->assertEquals((int)$before->first()->Posts + 1, (int)$r->records(array())->first()->Posts);
+        $this->assertEquals((int)$before->first()->Posts + 1, (int)$r->records([])->first()->Posts);
 
         // Move our post to April 2015 and ensure there are two posts (one is specified in fixture file)
         $post->Created = '2015-04-01 12:00:00';
         $post->write();
-        $this->assertEquals(2, $r->records(array())->find('Month', '2015 April')->Posts);
+        $this->assertEquals(2, $r->records([])->find('Month', '2015 April')->Posts);
 
         // We should now be back to our original number of posts in current month
-        $this->assertEquals((int)$before->first()->Posts, (int)$r->records(array())->first()->Posts);
+        $this->assertEquals((int)$before->first()->Posts, (int)$r->records([])->first()->Posts);
     }
 }

@@ -17,7 +17,7 @@ class ForumReportMemberSignups extends Report
         return _t('Forum.FORUMSIGNUPS', 'Forum Signups by Month');
     }
 
-    public function sourceRecords($params = array())
+    public function sourceRecords($params = [])
     {
         $membersQuery = DataQuery::create();
         $membersQuery->setFrom('Member');
@@ -39,10 +39,10 @@ class ForumReportMemberSignups extends Report
 
     public function columns()
     {
-        $fields = array(
+        $fields = [
             'Month' => 'Month',
             'Signups' => 'Signups'
-        );
+        ];
 
         return $fields;
     }

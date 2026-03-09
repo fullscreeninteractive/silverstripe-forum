@@ -71,12 +71,12 @@ class ForumHolderController extends PageController
             $threads = ForumThread::get()->sort("NumViews", "DESC")->limit($limit, $start);
         }
 
-        return array(
+        return [
             'Title' => _t('ForumHolder.POPULARTHREADS', 'Most popular forum threads'),
             'Subtitle' => _t('ForumHolder.POPULARTHREADS', 'Most popular forum threads'),
             'Method' => $method,
             'Threads' => $threads
-        );
+        ];
     }
 
     /**
@@ -194,7 +194,7 @@ class ForumHolderController extends PageController
             }
         }
 
-        $data = array('last_created' => null, 'last_id' => null);
+        $data = ['last_created' => null, 'last_id' => null];
 
         if (!isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
             $rss = new RSSFeed(
