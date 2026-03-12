@@ -59,9 +59,12 @@ class AdminActionsForm extends Form
 
                 $form->saveInto($thread);
                 $thread->write();
+
+                return $this->redirect($thread->Link());
             }
+
         }
 
-        return $this->redirect($this->Link());
+        return $this->redirect($this->controller->Link());
     }
 }
