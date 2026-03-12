@@ -8,6 +8,7 @@ use FullscreenInteractive\SilverStripe\Forum\Form\PostMessageForm;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThread;
 use PageController;
 use SilverStripe\Control\Controller;
+use SilverStripe\Control\HTTPResponse;
 use SilverStripe\View\Requirements;
 use FullscreenInteractive\SilverStripe\Forum\Model\ForumThreadSubscription;
 use FullscreenInteractive\SilverStripe\Forum\Model\PostAttachment;
@@ -16,6 +17,7 @@ use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Control\RSS\RSSFeed;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Model\List\PaginatedList;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\FieldType\DBField;
@@ -318,7 +320,7 @@ class ForumController extends PageController
         $threadID = $this->getRequest()->param('ID');
 
         if (!$threadID) {
-            return PaginatedList::create();
+            return PaginatedList::create(ArrayList::create(), $this->getRequest());
         }
 
         $posts = Post::get()
@@ -412,7 +414,9 @@ class ForumController extends PageController
      */
     public function ReplyLink()
     {
-        return self::join_links($this->Link(), 'reply', $this->urlParams['ID']);
+        $id = $this->getRequest()->param('ID') ?? $this->urlParams['ID'] ?? null;
+
+        return $id ? self::join_links($this->Link(), 'reply', $id) : $this->Link('reply');
     }
 
 
@@ -430,7 +434,7 @@ class ForumController extends PageController
         return [
             'Thread' => $thread,
             'PostMessageForm' => $form,
-            'Title' => DBField::create_field('HTMLText', _t('Forum.REPLYTO', 'Replying to: %s', $thread->Title))
+            'Title' => DBField::create_field('HTMLText', _t('Forum.REPLYINGTO', 'Replying to:') . ' ' . $thread->Title)
         ];
     }
 
@@ -540,7 +544,23 @@ class ForumController extends PageController
 
 
     /**
-     * Edit post action
+     * Edit post action - renders the edit post page with form
+     *
+     * @return array|HTTPResponse Returns an array to render the edit post page, or error response
+     */
+    public function editpost()
+    {
+        $form = $this->EditForm();
+
+        if ($form instanceof HTTPResponse) {
+            return $form;
+        }
+
+        return array_merge($this->edit(), ['EditForm' => $form]);
+    }
+
+    /**
+     * Edit post action (legacy) - returns subtitle for template
      *
      * @return array Returns an array to render the edit post page
      */
@@ -554,7 +574,7 @@ class ForumController extends PageController
     /**
      * Get the post edit form if the user has the necessary permissions
      *
-     * @return Form
+     * @return PostMessageForm|HTTPResponse
      */
     public function EditForm()
     {
@@ -566,7 +586,14 @@ class ForumController extends PageController
 
         $post = Post::get()->byID($id);
 
-        return $this->PostMessageForm(false, $post);
+        if (!$post || !$post->exists()) {
+            return $this->httpError(404);
+        }
+
+        $form = PostMessageForm::create($this, 'PostMessageForm');
+        $form->setPost($post);
+
+        return $form;
     }
 
 

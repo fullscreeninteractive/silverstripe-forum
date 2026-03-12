@@ -27,8 +27,6 @@ class DeleteThreadTest extends FunctionalTest
         foreach (Forum::get() as $forum) {
             $forum->publishRecursive();
         }
-
-        $this->markTestSkipped('ForumController deletethread action not routed in SS6');
     }
 
     public function testRejectsRequestWithoutSecurityToken()

@@ -334,13 +334,8 @@ class ForumTest extends FunctionalTest
      */
     public function testMarkAsSpamLink()
     {
-        $this->markTestSkipped('Requires SS6 controller routing migration for ForumController actions');
-
         $spampost = $this->objFromFixture(Post::class, 'SpamSecondPost');
         $forum = $spampost->Forum();
-
-        $author = $spampost->Author();
-        $moderator = $this->objFromFixture(Member::class, 'moderator'); // moderator for "general" forum
 
         // without a logged-in moderator
         $this->assertFalse($spampost->MarkAsSpamLink(), 'Link not present by default');
@@ -364,8 +359,6 @@ class ForumTest extends FunctionalTest
 
     public function testBanLink()
     {
-        $this->markTestSkipped('Requires SS6 controller routing migration for ForumController actions');
-
         $spampost = $this->objFromFixture(Post::class, 'SpamSecondPost');
         $forum = $spampost->Forum();
         $author = $spampost->Author();
@@ -393,8 +386,6 @@ class ForumTest extends FunctionalTest
 
     public function testGhostLink()
     {
-        $this->markTestSkipped('Requires SS6 controller routing migration for ForumController actions');
-
         $spampost = $this->objFromFixture(Post::class, 'SpamSecondPost');
         $forum = $spampost->Forum();
         $author = $spampost->Author();
@@ -422,8 +413,6 @@ class ForumTest extends FunctionalTest
 
     public function testNotifyModerators()
     {
-        $this->markTestSkipped('Requires SS6 controller routing migration for form submissions');
-
         SecurityToken::disable();
 
         $forum = $this->objFromFixture(Forum::class, 'general');

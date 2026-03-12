@@ -97,23 +97,6 @@ class ForumHolderControllerTest extends SapphireTest
         return $post;
     }
 
-    /**
-     * Asserts ForumSearch::getSearchEngine() exists before running search tests.
-     * The controller calls getSearchEngine() but the class defines get_search_engine().
-     */
-    private function skipIfSearchBroken(): void
-    {
-        if (!method_exists(ForumSearch::class, 'getSearchEngine')) {
-            $this->markTestSkipped(
-                'ForumSearch::getSearchEngine() not found; controller calls getSearchEngine() '
-                . 'but ForumSearch only defines get_search_engine()'
-            );
-        }
-    }
-
-    // -----------------------------------------------------------------------
-    // popularthreads
-    // -----------------------------------------------------------------------
 
     public function testPopularThreadsByViewsSortsDescending(): void
     {

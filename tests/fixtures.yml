@@ -313,3 +313,7 @@ FullscreenInteractive\SilverStripe\Forum\Model\Post:
     Thread: =>FullscreenInteractive\SilverStripe\Forum\Model\ForumThread.Thread1
     Author: =>SilverStripe\Security\Member.test2
     Forum: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum.general
+FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumMemberProfile:
+  profile:
+    Title: Profile
+    ParentID: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\ForumHolder.fh

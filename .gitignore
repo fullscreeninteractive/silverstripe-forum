@@ -5,3 +5,4 @@
 /app
 .phpunit.result.cache
 .phpunit.cache/
+/themes

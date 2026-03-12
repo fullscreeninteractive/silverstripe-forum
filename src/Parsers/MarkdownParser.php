@@ -23,14 +23,17 @@ class MarkdownParser implements PostContentParserInterface
 
     public function getSupportingHelpText(): DBField
     {
-        $sampleText = '<details><summary>Formatting</summary><pre>'
+        $sampleText = '<div class="forum-formatting-help">'
+            . '<details class="forum-formatting-help__accordion">'
+            . '<summary class="forum-formatting-help__summary">Formatting</summary>'
+            . '<pre>'
             . "**Bold**\n"
             . "*Italic*\n"
             . "~~Strikethrough~~\n"
             . "[Link](https://www.example.com)\n"
             . "`Inline Code`\n"
             . "> Blockquote"
-            . '</pre></details>';
+            . '</pre></details></div>';
 
         return DBField::create_field('HTMLText', $sampleText);
     }
