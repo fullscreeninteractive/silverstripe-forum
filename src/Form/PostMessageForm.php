@@ -61,6 +61,9 @@ class PostMessageForm extends Form
         $required = RequiredFieldsValidator::create(["Title", "Content"]);
 
         parent::__construct($controller, $name, $fields, $actions, $required);
+
+        // Default "Subscribe to this topic" to checked
+        $this->loadDataFrom(['TopicSubscription' => 1]);
     }
 
 
@@ -74,6 +77,14 @@ class PostMessageForm extends Form
         $this->thread = $thread;
         $this->fields->makeFieldReadonly('Title');
 
+        if ($thread) {
+            $member = Security::getCurrentUser();
+            $isSubscribed = $member && ForumThreadSubscription::singleton()->isSubscribed($thread->ID, $member->ID);
+            if ($isSubscribed) {
+                $this->loadDataFrom(['TopicSubscription' => 1]);
+            }
+        }
+
         return $this;
     }
 
@@ -83,6 +94,14 @@ class PostMessageForm extends Form
         $this->loadDataFrom($post);
 
         $this->post = $post;
+
+        if ($post && $post->ThreadID) {
+            $member = Security::getCurrentUser();
+            $isSubscribed = $member && ForumThreadSubscription::singleton()->isSubscribed($post->ThreadID, $member->ID);
+            if ($isSubscribed) {
+                $this->loadDataFrom(['TopicSubscription' => 1]);
+            }
+        }
 
         if (!$post->isFirstPost() || $post->ThreadID) {
             $this->fields->makeFieldReadonly('Title');

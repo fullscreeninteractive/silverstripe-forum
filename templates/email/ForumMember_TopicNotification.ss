@@ -1,4 +1,4 @@
-<p><%t ForumMember_TopicNotification_ss.HI "Hi {name}," name=$Nickname %></p>
+<p><%t ForumMember_TopicNotification_ss.HI "Hi" %></p>
 
 <p><%t ForumMember_TopicNotification_ss.NEWPOSTMESSAGE "A new post has been added to a topic you've subscribed to" %> - '$Title' <% if $Author %><%t ForumMember_TopicNotification_ss.BY "by" %> {$Author.Nickname}.<% end_if %></p>
 

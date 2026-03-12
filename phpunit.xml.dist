@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <phpunit bootstrap="vendor/silverstripe/cms/tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache">
+  <php>
+    <env name="SS_PHPUNIT_TEST" value="true"/>
+  </php>
   <testsuite name="Default">
     <directory>tests</directory>
   </testsuite>
