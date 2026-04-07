@@ -36,7 +36,7 @@ class PostMessageForm extends Form
             HiddenField::create('ID', 'ID'),
             CheckboxField::create(
                 "TopicSubscription",
-                _t('Forum.SUBSCRIBETOPIC', 'Subscribe to this topic (Receive email notifications when a new reply is added)')
+                _t('Forum.SUBSCRIBETOPIC', 'Subscribe to this topic (Receive notifications when a reply is added)')
             )
         ]);
 
@@ -75,11 +75,18 @@ class PostMessageForm extends Form
         ]);
 
         $this->thread = $thread;
-        $this->fields->makeFieldReadonly('Title');
+
+        // disable the title field
+        $titleField = $this->fields->fieldByName('Title');
+
+        if ($titleField) {
+            $titleField->setDisabled(true);
+        }
 
         if ($thread) {
             $member = Security::getCurrentUser();
             $isSubscribed = $member && ForumThreadSubscription::singleton()->isSubscribed($thread->ID, $member->ID);
+
             if ($isSubscribed) {
                 $this->loadDataFrom(['TopicSubscription' => 1]);
             }
@@ -95,16 +102,22 @@ class PostMessageForm extends Form
 
         $this->post = $post;
 
-        if ($post && $post->ThreadID) {
-            $member = Security::getCurrentUser();
-            $isSubscribed = $member && ForumThreadSubscription::singleton()->isSubscribed($post->ThreadID, $member->ID);
+        $member = Security::getCurrentUser();
+
+        if ($post && $post->ThreadID && $member) {
+            $isSubscribed = ForumThreadSubscription::singleton()->isSubscribed($post->ThreadID, $member->ID);
+
             if ($isSubscribed) {
                 $this->loadDataFrom(['TopicSubscription' => 1]);
             }
         }
 
         if (!$post->isFirstPost() || $post->ThreadID) {
-            $this->fields->makeFieldReadonly('Title');
+            $titleField = $this->fields->fieldByName('Title');
+
+            if ($titleField) {
+                $titleField->setDisabled(true);
+            }
         }
 
         if ($post->Attachments()->exists()) {

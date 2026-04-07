@@ -24,7 +24,9 @@ class AdminActionsForm extends Form
             HiddenField::create('ID', 'Thread')
         ]);
 
-        if (($forums = Forum::get()) && $forums->exists()) {
+        $forums = Forum::get();
+
+        if ($forums && $forums->count() > 1) {
             $fields->push(DropdownField::create(
                 'ForumID',
                 _t('Forum.CHANGETHREADFORUM', "Change Thread Forum"),
@@ -60,11 +62,11 @@ class AdminActionsForm extends Form
                 $form->saveInto($thread);
                 $thread->write();
 
-                return $this->redirect($thread->Link());
+                return $this->controller->redirect($thread->Link());
             }
 
         }
 
-        return $this->redirect($this->controller->Link());
+        return $this->controller->redirect($this->controller->Link());
     }
 }

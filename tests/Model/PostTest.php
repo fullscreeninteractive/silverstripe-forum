@@ -12,7 +12,7 @@ use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 class PostTest extends FunctionalTest
 {
     protected static $fixture_file = [
-        './tests/fixtures.yml',
+        '../fixtures.yml',
     ];
 
     protected static $use_draft_site = true;
@@ -309,6 +309,26 @@ class PostTest extends FunctionalTest
 
         $this->assertNull($post->BanLink());
         $this->assertNull($post->GhostLink());
+    }
+
+    public function testGhostLinkNotShownForModeratorOrAdminAuthor(): void
+    {
+        $postByModerator = $this->objFromFixture(Post::class, 'PostByForumModerator');
+        $postByAdmin = $this->objFromFixture(Post::class, 'PostByAdmin');
+        $admin = $this->objFromFixture(Member::class, 'admin');
+        $moderator = $this->objFromFixture(Member::class, 'moderator');
+
+        $this->logInAs($admin);
+        $this->assertNull(
+            $postByModerator->GhostLink(),
+            'Ghost link must not target a user who moderates this forum'
+        );
+
+        $this->logInAs($moderator);
+        $this->assertNull(
+            $postByAdmin->GhostLink(),
+            'Ghost link must not target a CMS administrator'
+        );
     }
 
     public function testGetUpdated()

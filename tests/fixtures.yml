@@ -223,6 +223,16 @@ FullscreenInteractive\SilverStripe\Forum\Model\Post:
     Forum: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum.general
     Author: =>SilverStripe\Security\Member.test1
     Created: '2015-04-23 01:00:00'
+  PostByForumModerator:
+    Content: Post by a forum moderator
+    Thread: =>FullscreenInteractive\SilverStripe\Forum\Model\ForumThread.Thread1
+    Forum: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum.general
+    Author: =>SilverStripe\Security\Member.moderator
+  PostByAdmin:
+    Content: Post by a CMS admin
+    Thread: =>FullscreenInteractive\SilverStripe\Forum\Model\ForumThread.Thread1
+    Forum: =>FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum.general
+    Author: =>SilverStripe\Security\Member.admin
   Post2:
     Content: This is a reply to the first post
     Thread: =>FullscreenInteractive\SilverStripe\Forum\Model\ForumThread.Thread1

@@ -284,7 +284,20 @@ class Post extends DataObject
 
     public function GhostLink(): ?DBHTMLText
     {
-        return $this->getModerationLink('ghost', $this->AuthorID, _t('Post.GHOSTUSER', 'Ghost User'), 'ghostLink');
+        $member = Security::getCurrentUser();
+
+        if (!$member || $member->ID !== $this->AuthorID) {
+            // make sure author is not a moderator
+            $author = $this->Author();
+
+            if ($author->isModeratingForum($this->Forum()) || Permission::checkMember($author, 'ADMIN')) {
+                return null;
+            }
+
+            return $this->getModerationLink('ghost', $this->AuthorID, _t('Post.GHOSTUSER', 'Ghost User'), 'ghostLink');
+        }
+
+        return null;
     }
 
 
