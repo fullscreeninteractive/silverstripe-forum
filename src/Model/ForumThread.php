@@ -2,11 +2,11 @@
 
 namespace FullscreenInteractive\SilverStripe\Forum\Model;
 
-use FullscreenInteractive\SilverStripe\Forum\Model\Post;
 use SilverStripe\ORM\DataObject;
 use FullscreenInteractive\SilverStripe\Forum\PageTypes\Forum;
 use SilverStripe\Control\Controller;
 use SilverStripe\ORM\DB;
+use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
@@ -20,7 +20,9 @@ class ForumThread extends DataObject
         "NumViews" => 'Int',
         "IsSticky" => 'Boolean',
         "IsReadOnly" => 'Boolean',
-        "IsGlobalSticky" => 'Boolean'
+        "IsGlobalSticky" => 'Boolean',
+        // Latest activity: max of each post's Created/LastEdited; synced from Post on write/delete.
+        "LastPostDate" => 'Datetime',
     ];
 
     private static $has_one = [
@@ -45,7 +47,8 @@ class ForumThread extends DataObject
 
     private static $indexes = [
         'IsSticky' => true,
-        'IsGlobalSticky' => true
+        'IsGlobalSticky' => true,
+        'LastPostDate' => true,
     ];
 
 
@@ -138,8 +141,40 @@ class ForumThread extends DataObject
         return Post::get()->filter([
             'ThreadID' => $this->ID
         ])->sort([
-            'Created' => 'DESC'
+            'LastEdited' => 'DESC',
+            'ID' => 'DESC',
         ])->first();
+    }
+
+    /**
+     * Recompute LastPostDate from posts (Created vs LastEdited, whichever is later).
+     */
+    public function syncLastPostDate(): void
+    {
+        if (!$this->isInDB() || $this->ID <= 0) {
+            return;
+        }
+
+        $sql = sprintf(
+            'SELECT MAX(GREATEST("Created", "LastEdited")) AS "LastActivity" FROM "Post" WHERE "ThreadID" = %d',
+            (int) $this->ID
+        );
+        $row = DB::query($sql)->record();
+        $lastActivity = null;
+        if (is_array($row)) {
+            $lastActivity = $row['LastActivity'] ?? null;
+        }
+        if ($lastActivity === '' || $lastActivity === false) {
+            $lastActivity = null;
+        }
+
+        // No posts: keep listing/sort stable and avoid repeated "null date" hydration.
+        if (!$lastActivity) {
+            $lastActivity = $this->getField('Created') ?: null;
+        }
+
+        $this->LastPostDate = $lastActivity;
+        $this->write();
     }
 
     /**
@@ -216,6 +251,15 @@ class ForumThread extends DataObject
         return ForumThreadSubscription::singleton()->isSubscribed($this->ID, $member->ID);
     }
 
+
+    protected function onBeforeWrite()
+    {
+        if (!$this->isInDB() && !$this->LastPostDate) {
+            $this->LastPostDate = DBDatetime::now()->getValue();
+        }
+
+        parent::onBeforeWrite();
+    }
 
     public function onAfterWrite()
     {

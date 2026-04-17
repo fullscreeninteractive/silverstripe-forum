@@ -44,6 +44,11 @@ class ForumSubscriptionEmail extends Email
         }
 
         $this->setFrom($from);
+
+        if (!Email::is_valid_address($this->subscription->Member()->Email)) {
+            throw new Exception('Invalid email address: ' . $this->subscription->Member()->Email);
+        }
+
         $this->setTo($this->subscription->Member()->Email);
         $this->setSubject(_t('Post.NEWREPLY', 'New reply for {title}', [
             'title' => $this->post->Title,

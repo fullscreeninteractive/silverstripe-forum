@@ -58,9 +58,8 @@ class PostMessageForm extends Form
             FormAction::create("doPostMessageForm", _t('Forum.REPLYFORMPOST', 'Post'))
         ]);
 
-        $required = RequiredFieldsValidator::create(["Title", "Content"]);
 
-        parent::__construct($controller, $name, $fields, $actions, $required);
+        parent::__construct($controller, $name, $fields, $actions);
 
         // Default "Subscribe to this topic" to checked
         $this->loadDataFrom(['TopicSubscription' => 1]);
@@ -174,8 +173,15 @@ class PostMessageForm extends Form
             $thread = ForumThread::get()->byID($data['ThreadID']);
 
             if (!$thread || !$thread->canView()) {
+                $form->sessionError(_t('Forum.THREADNOTFOUND', 'Thread not found'));
                 return $this->controller->redirectBack();
             }
+        }
+
+        // if no thread, then title is required
+        if (!$thread && !$title) {
+            $form->sessionError(_t('Forum.TITLEREQUIRED', 'Title is required'));
+            return $this->controller->redirectBack();
         }
 
         // If this is a simple edit the post then handle it here. Look up the correct post,
@@ -186,6 +192,7 @@ class PostMessageForm extends Form
             $post = Post::get()->byID($data['ID']);
 
             if (!$post || !$post->canEdit()) {
+                $form->sessionError(_t('Forum.POSTNOTFOUND', 'Post not found'));
                 return $this->controller->redirectBack();
             }
 

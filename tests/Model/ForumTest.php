@@ -19,7 +19,7 @@ class ForumTest extends FunctionalTest
 {
 
     protected static $fixture_file = [
-        './tests/fixtures.yml',
+        '../fixtures.yml',
     ];
 
     protected static $use_draft_site = true;

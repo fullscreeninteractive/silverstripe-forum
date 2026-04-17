@@ -344,41 +344,34 @@ class Forum extends Page
     }
 
     /**
+     * After schema upgrades, ForumThread.LastPostDate can be null; recompute from posts
+     * so topic ordering is correct before listing.
+     */
+    private function hydrateForumThreadsWithNullLastPostDate(): void
+    {
+        foreach (ForumThread::get()->filter(['ForumID' => $this->ID, 'LastPostDate' => null]) as $thread) {
+            $thread->syncLastPostDate();
+        }
+    }
+
+    /**
      * Returns the Topics (the first Post of each Thread) for this Forum
      */
     public function getTopics(): ?PaginatedList
     {
-        // Get a list of Posts
-        $posts = Post::get();
+        $this->hydrateForumThreadsWithNullLastPostDate();
 
-        // Get the underlying query and change it to return the ThreadID and Max(Created) and Max(ID) for each thread
-        // of those posts
-        $postQuery = $posts->dataQuery()->query();
-
-        $postQuery
-            ->setSelect([])
-            ->selectField('MAX("Post"."Created")', 'PostCreatedMax')
-            ->selectField('MAX("Post"."ID")', 'PostIDMax')
-            ->selectField('"ThreadID"')
-            ->setGroupBy('"ThreadID"')
-            ->addWhere(sprintf('"ForumID" = \'%s\'', $this->ID))
-            ->setDistinct(false);
-
-        // Get a list of forum threads inside this forum that aren't sticky
         $threads = ForumThread::get()->filter([
             'ForumID' => $this->ID,
             'IsGlobalSticky' => 0,
-            'IsSticky' => 0
+            'IsSticky' => 0,
+        ])->where(sprintf(
+            '"ForumThread"."ID" IN (SELECT "ThreadID" FROM "Post" WHERE "ForumID" = %d)',
+            (int) $this->ID
+        ))->sort([
+            'LastPostDate' => 'DESC',
+            'ID' => 'DESC',
         ]);
-
-        // Get the underlying query and change it to inner join on the posts list to just show threads that
-        // have approved (and maybe awaiting) posts, and sort the threads by the most recent post
-        $threadQuery = $threads->dataQuery()->query();
-        $threadQuery
-            ->addSelect(['"PostMax"."PostCreatedMax", "PostMax"."PostIDMax"'])
-            ->addFrom('INNER JOIN (' . $postQuery->sql() . ') AS "PostMax" ON ("PostMax"."ThreadID" = "ForumThread"."ID")')
-            ->addOrderBy(['"PostMax"."PostCreatedMax" DESC', '"PostMax"."PostIDMax" DESC'])
-            ->setDistinct(false);
 
         if (!$threads->exists()) {
             return null;
@@ -403,28 +396,18 @@ class Forum extends Page
             $where .= ' OR ("ForumThread"."IsGlobalSticky" = 1)';
         }
 
-        // Get the underlying query
-        $query = ForumThread::get()->where($where)->dataQuery()->query();
+        foreach (ForumThread::get()->where($where)->filter(['LastPostDate' => null]) as $thread) {
+            $thread->syncLastPostDate();
+        }
 
-        // Sort by the latest Post in each thread's Created date
-        $query
-            ->addSelect('"PostMax"."PostMax"')
-            // TODO: Confirm this works in non-MySQL DBs
-            ->addFrom(sprintf(
-                'LEFT JOIN (SELECT MAX("Created") AS "PostMax", "ThreadID" FROM "Post" WHERE "ForumID" = \'%s\' GROUP BY "ThreadID") AS "PostMax" ON ("PostMax"."ThreadID" = "ForumThread"."ID")',
-                $this->ID
-            ))
-            ->addOrderBy('"PostMax"."PostMax" DESC')
-            ->setDistinct(false);
+        $threads = ForumThread::get()->where($where)->sort([
+            'LastPostDate' => 'DESC',
+            'ID' => 'DESC',
+        ]);
 
-        // Build result as ArrayList
         $res = new ArrayList();
-        $rows = $query->execute();
-
-        if ($rows) {
-            foreach ($rows as $row) {
-                $res->push(new ForumThread($row));
-            }
+        foreach ($threads as $thread) {
+            $res->push($thread);
         }
 
         return $res;

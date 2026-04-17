@@ -18,6 +18,8 @@ use SilverStripe\Security\Security;
 
 class Post extends DataObject
 {
+    private ?int $previousThreadIDForLastPostSync = null;
+
     private static string $table_name = 'Post';
 
     private static string $singular_name = 'Post';
@@ -375,5 +377,42 @@ class Post extends DataObject
         $pos = ($start == 0 ? '' : "?start=$start") . ($count == 0 ? '' : "#post{$this->ID}");
 
         return ($action == "show") ? $link . $pos : $link;
+    }
+
+    protected function onBeforeWrite()
+    {
+        if ($this->isInDB() && $this->isChanged('ThreadID')) {
+            $changed = $this->getChangedFields(['ThreadID']);
+            if (isset($changed['ThreadID']['before'])) {
+                $this->previousThreadIDForLastPostSync = (int) $changed['ThreadID']['before'];
+            }
+        }
+        parent::onBeforeWrite();
+    }
+
+    protected function onAfterWrite()
+    {
+        parent::onAfterWrite();
+
+        if ($this->previousThreadIDForLastPostSync > 0
+            && $this->previousThreadIDForLastPostSync !== (int) $this->ThreadID
+        ) {
+            ForumThread::get()->byID($this->previousThreadIDForLastPostSync)?->syncLastPostDate();
+            $this->previousThreadIDForLastPostSync = null;
+        }
+
+        if ($this->ThreadID) {
+            $this->Thread()?->syncLastPostDate();
+        }
+    }
+
+    protected function onAfterDelete()
+    {
+        $threadID = (int) $this->ThreadID;
+        parent::onAfterDelete();
+
+        if ($threadID) {
+            ForumThread::get()->byID($threadID)?->syncLastPostDate();
+        }
     }
 }
