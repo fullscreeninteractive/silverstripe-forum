@@ -25,11 +25,11 @@
     <td class="forum__last-post">
         <% if $LatestPost %>
             <% with $LatestPost %>
-                <a href="{$Link}" class="forum__topic-title">$Title</a>
-                <p class="forum__post-date">$Created.Ago</p>
+                <a href="{$Link}" class="forum__topic-title">{$Title}</a>
+                <p class="forum__post-date">{$Created.Ago}</p>
 
                 <% with $Author %>
-                    <p>by <% if $Link %><a href="$Link"><% if $Nickname %>$Nickname<% else %>Anon<% end_if %></a><% else %><span>Anon</span><% end_if %></p>
+                    <p>by <% if $Link %><a href="$Link">{$Nickname}</a><% else %><span>{$Nickname}</span><% end_if %></p>
                 <% end_with %>
             <% end_with %>
         <% end_if %>

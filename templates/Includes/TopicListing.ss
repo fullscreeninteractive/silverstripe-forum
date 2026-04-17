@@ -6,9 +6,9 @@
             <% with $FirstPost %>
                 <% with $Author %>
                     <% if $Link %>
-                        <a href="$Link" title="<%t TopicListing_ss.CLICKTOUSER "Click here to view" %>"><% if $Nickname %>$Nickname<% else %>Anon<% end_if %></a>
+                        <a href="{$Link}" title="<%t TopicListing_ss.CLICKTOUSER "Click here to view" %>{$Nickname}</a>
                     <% else %>
-                        <span>Anon</span>
+                        <span>{$Nickname}</span>
                     <% end_if %>
                 <% end_with %>
                 <%t TopicListing_ss.ON "on" %> $Created.Long
@@ -25,11 +25,11 @@
                 <%t TopicListing_ss.BY "by" %>
                 <% with $Author %>
                     <% if $Link %>
-                        <a href="$Link" title="<%t TopicListing_ss.CLICKTOUSER "" %> <% if $Nickname %>$Nickname.XML<% else %>Anon<% end_if %><%t TopicListing_ss.CLICKTOUSER2 "" %>">
-                            <% if $Nickname %>$Nickname<% else %>Anon<% end_if %>
+                        <a href="{$Link}" title="<%t TopicListing_ss.CLICKTOUSER "" %> {$Nickname.ATT}<%t TopicListing_ss.CLICKTOUSER2 "" %>">
+                            {$Nickname}
                         </a>
                     <% else %>
-                        <span>Anon</span>
+                        <span>{$Nickname}</span>
                     <% end_if %>
                 <% end_with %>
                 <a href="$Link" title="<%t TopicListing_ss.GOTOFIRSTUNREAD "Go to the first unread post in the {title} topic." title=$Title.XML %>"><%t TopicListing_ss.READMORE "Read more" %></a>

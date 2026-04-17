@@ -4,7 +4,7 @@
 <% else %>
     <% with $Member %>
         <div id="forum__profile" class="forum__profile">
-            <h2><% if $Nickname %>$Nickname<% else %>Anon<% end_if %>&#39;s <%t ForumMemberProfile_show_ss.PROFILE "Profile" %></h2>
+            <h2>{$Nickname}'s <%t ForumMemberProfile_show_ss.PROFILE "Profile" %></h2>
 
             <% if $isSuspended %>
                 <p class="forum__message forum__message--warning forum__message--suspension">
@@ -14,7 +14,7 @@
 
             <% if $FormattedAvatar %>
             <div id="forum__profile-field--avatar" class="forum__profile-field forum__profile-field--avatar">
-                <p><img class="forum__avatar" src="$FormattedAvatar" width="240" height="240" alt="<% if $Nickname %>$Nickname<% else %>Anon<% end_if %><%t ForumMemberProfile_show_ss.USERSAVATAR "&#39;s avatar" %>" /></p>
+                <p><img class="forum__avatar" src="$FormattedAvatar" width="240" height="240" alt="{$Nickname.ATT}'s avatar" /></p>
             </div>
             <% end_if %>
 
